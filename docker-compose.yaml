@@ -1,0 +1,33 @@
+services:
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: airdrop
+    ports:
+      - "${MYSQL_PORT:-3301}:3306"
+
+  redis:
+    image: redis:alpine
+    command: ["redis-server"]
+    ports:
+      - "${REDIS_PORT:-6372}:6379"
+
+  asynqmon:
+    image: asynqmon
+    container_name: signer-asynqmon
+    ports:
+      - "${ASYNQMON_PORT:-8022}:8080"
+    environment:
+      REDIS_URL: redis://redis:6379/0
+
+  # app:
+  #   build: .
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - db
+  #     - redis
+  #   environment:
+  #     - GIN_MODE=release
+  #     - CONFIG_PATH=config/config.yaml
