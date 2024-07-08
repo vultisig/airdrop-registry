@@ -4,14 +4,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vultisig/airdrop-registry/pkg/address"
 )
 
 var testECDSAPublicKey = "027e897b35aa9f9fff223b6c826ff42da37e8169fae7be57cbd38be86938a746c6"
+
+// var testEDDSAPublicKey = "2dff7cf8446bd3829604bc5c2193ec64c43f67e764de3fd4807df759b91426fe"
 var testHexChainCode = "57f3f25c4b034ad80016ef37da5b245bfd6187dc5547696c336ff5a66ed7ee0f"
 
 func TestGenerateSupportedChainAddresses(t *testing.T) {
-	addresses, err := address.GenerateSupportedChainAddresses(testECDSAPublicKey, testHexChainCode)
+	addresses, err := GenerateSupportedChainAddresses(testECDSAPublicKey, testHexChainCode)
 	assert.NoError(t, err)
 
 	expectedAddresses := map[string]string{
@@ -61,7 +62,7 @@ func TestGenerateSpecificAddresses(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keys, err := address.GenerateChainKeys(tc.chain, testECDSAPublicKey, testHexChainCode, tc.derivePath, false)
+			keys, err := GenerateChainKeys(tc.chain, testECDSAPublicKey, testHexChainCode, tc.derivePath, false)
 			assert.NoError(t, err)
 			assert.Equal(t, tc.chain, keys.ChainName)
 			assert.NotEmpty(t, keys.PublicKey)

@@ -10,35 +10,8 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/vultisig/airdrop-registry/internal/models"
 	"github.com/vultisig/airdrop-registry/internal/services"
+	"github.com/vultisig/airdrop-registry/pkg/balance"
 )
-
-// func ProcessVaultBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
-// 	var p VaultBalanceFetchPayload
-// 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
-// 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
-// 	}
-// 	log.Printf("Fetching addresses for Vault: eccdsa=%s, eddsa=%s and spinning up new jobs to fetch balance", p.ECCDSA, p.EDDSA)
-
-// 	vault, err := services.GetVault(p.ECCDSA, p.EDDSA)
-// 	if err != nil {
-// 		return fmt.Errorf("services.GetVault failed: %v: %w", err, asynq.SkipRetry)
-// 	}
-
-// 	addresses, err := address.GenerateSupportedChainAddresses(vault.ECDSA, vault.HexChainCode)
-// 	if err != nil {
-// 		return fmt.Errorf("address.GenerateSupportedChainAddresses failed: %v: %w", err, asynq.SkipRetry)
-// 	}
-
-// 	for chain, addr := range addresses {
-// 		// err := EnqueueBalanceFetchTask(asynqClient.AsynqClient, p.ECCDSA, p.EDDSA, chain, addr)
-// 		// if err != nil {
-// 		// 	return fmt.Errorf("EnqueueBalanceFetchTask failed: %v: %w", err, asynq.SkipRetry)
-// 		// }
-// 		log.Printf("Enqueued task: BalanceFetch for Vault: eccdsa=%s, eddsa=%s, chain=%s, address=%s", p.ECCDSA, p.EDDSA, chain, addr)
-// 	}
-
-// 	return nil
-// }
 
 func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 	var p BalanceFetchPayload
@@ -47,7 +20,7 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 	}
 	log.Printf("Fetching balance for vault: eccdsa=%s, eddsa=%s, chain=%s, address=%s", p.ECCDSA, p.EDDSA, p.Chain, p.Address)
 
-	balance, err := services.FetchBalanceOfAddress(p.Chain, p.Address)
+	balance, err := balance.FetchBalanceOfAddress(p.Chain, p.Address)
 	if err != nil {
 		return fmt.Errorf("services.GetBalanceOfAddress failed: %v: %w", err, asynq.SkipRetry)
 	}
@@ -77,6 +50,5 @@ func ProcessPointsCalculationTask(ctx context.Context, t *asynq.Task) error {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
 	log.Printf("Calculating points for Vault: eccdsa=%s, eddsa=%s", p.ECCDSA, p.EDDSA)
-	// Points calculation logic ...
 	return nil
 }
