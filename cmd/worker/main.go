@@ -24,19 +24,25 @@ func main() {
 		asynq.Config{
 			Concurrency: 10,
 			Queues: map[string]int{
-				"critical": 6,
-				"default":  3,
-				"low":      1,
+				// "critical":                  6,
+				// "default":                   3,
+				// "low":                       1,
+				tasks.TypeBalanceFetch:      2,
+				tasks.TypePointsCalculation: 1,
+				tasks.TypeVaultBalanceFetch: 3,
 			},
 		},
 	)
 
 	mux := asynq.NewServeMux()
 	// Register task handlers
-	mux.HandleFunc(tasks.TypeBalanceFetch, tasks.HandleBalanceFetchTask)
-	mux.HandleFunc(tasks.TypePointsCalculation, tasks.HandlePointsCalculationTask)
+	mux.HandleFunc(tasks.TypeBalanceFetch, tasks.ProcessBalanceFetchTask)
+	// mux.HandleFunc(tasks.TypeVaultBalanceFetch, tasks.ProcessVaultBalanceFetchTask)
+	mux.HandleFunc(tasks.TypePointsCalculation, tasks.ProcessPointsCalculationTask)
 
 	if err := server.Run(mux); err != nil {
 		log.Fatalf("could not run server: %v", err)
 	}
+
+	defer db.CloseDatabase()
 }

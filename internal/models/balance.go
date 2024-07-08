@@ -6,8 +6,10 @@ import (
 
 type Balance struct {
 	gorm.Model
-	VaultID uint    `json:"vault_id"`
+	ECDSA   string  `gorm:"type:varchar(255)" json:"ECDSA" binding:"required"`
+	EDDSA   string  `gorm:"type:varchar(255)" json:"EdDSA" binding:"required"`
 	Chain   string  `json:"chain"`
+	Address string  `json:"address"`
 	Token   string  `json:"token"`
 	Balance float64 `json:"balance"`
 	Date    int64   `json:"date"`

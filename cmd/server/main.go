@@ -24,9 +24,17 @@ func main() {
 		})
 	})
 
-	router.POST("/register", handlers.RegisterVaultHandler)
-	router.GET("/vault/:eccdsaPublicKey/:eddsaPublicKey", handlers.QueryVaultHandler)
+	router.POST("/vault", handlers.RegisterVaultHandler)
+
 	router.GET("/vaults", handlers.ListVaultsHandler)
+
+	router.GET("/vault/:eccdsaPublicKey/:eddsaPublicKey", handlers.GetVaultHandler)
+
+	router.POST("/vault/:eccdsaPublicKey/:eddsaPublicKey/address", handlers.FetchVaultBalancesHandler)
+	router.GET("/vault/:eccdsaPublicKey/:eddsaPublicKey/address", handlers.GetVaultAddressesHandler)
+
+	router.GET("/vault/:eccdsaPublicKey/:eddsaPublicKey/balances", handlers.GetVaultBalancesHandler)
+	router.GET("/vault/:eccdsaPublicKey/:eddsaPublicKey/balance", handlers.GetVaultBalanceHandler)
 
 	go asynq.Initialize()
 	defer asynq.AsynqClient.Close()

@@ -22,8 +22,6 @@ func (v *Vault) BeforeCreate(tx *gorm.DB) (err error) {
 	v.ECDSA = strings.ToLower(v.ECDSA)
 	v.EDDSA = strings.ToLower(v.EDDSA)
 
-	fmt.Println(v.ECDSA)
-
 	if !utils.IsValidHex(v.ECDSA) || !utils.IsValidHex(v.EDDSA) {
 		return fmt.Errorf("invalid ECDSA or EdDSA format")
 	}
