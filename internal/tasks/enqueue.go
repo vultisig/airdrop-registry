@@ -9,7 +9,7 @@ import (
 
 // Balance fetch
 
-func NewBalanceFetch(
+func newBalanceFetch(
 	eccdsa string,
 	eddsa string,
 	chain string,
@@ -29,7 +29,7 @@ func EnqueueBalanceFetchTask(
 	chain string,
 	address string,
 ) error {
-	task, err := NewBalanceFetch(eccdsa, eddsa, chain, address)
+	task, err := newBalanceFetch(eccdsa, eddsa, chain, address)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func EnqueueBalanceFetchTask(
 
 // Point calculation
 
-func NewPointsCalculationPayload(
+func newPointsCalculationPayload(
 	eccdsa string,
 	eddsa string,
 ) (*asynq.Task, error) {
@@ -81,7 +81,7 @@ func EnqueuePointsCalculationTask(
 	eccdsa string,
 	eddsa string,
 ) error {
-	task, err := NewPointsCalculationPayload(eccdsa, eddsa)
+	task, err := newPointsCalculationPayload(eccdsa, eddsa)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func EnqueuePointsCalculationTask(
 
 // Price fetch
 
-func NewPriceFetch(
+func newPriceFetch(
 	chain string,
 	token string,
 ) (*asynq.Task, error) {
@@ -107,7 +107,7 @@ func EnqueuePriceFetchTask(
 	chain string,
 	token string,
 ) error {
-	task, err := NewPriceFetch(chain, token)
+	task, err := newPriceFetch(chain, token)
 	if err != nil {
 		return err
 	}
@@ -116,3 +116,20 @@ func EnqueuePriceFetchTask(
 
 	return err
 }
+
+// Price fetch for all active pairs
+
+func NewPriceFetchForAllActivePairs() (*asynq.Task, error) {
+	return asynq.NewTask(TypePriceFetchAllActivePairs, nil), nil
+}
+
+// func EnqueuePriceFetchTasksForActivePairs(asynqClient *asynq.Client) error {
+// 	task, err := newPriceFetchForAllActivePairs()
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	_, err = asynqClient.Enqueue(task, asynq.Retention(24*time.Hour), asynq.Queue(TypePriceFetchAllActivePairs))
+
+// 	return err
+// }

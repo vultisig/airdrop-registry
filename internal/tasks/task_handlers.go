@@ -10,6 +10,7 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/vultisig/airdrop-registry/internal/models"
 	"github.com/vultisig/airdrop-registry/internal/services"
+	clientAsynq "github.com/vultisig/airdrop-registry/pkg/asynq"
 	"github.com/vultisig/airdrop-registry/pkg/balance"
 	"github.com/vultisig/airdrop-registry/pkg/price"
 )
@@ -102,6 +103,30 @@ func ProcessPriceFetchTask(ctx context.Context, t *asynq.Task) error {
 	if _, err := t.ResultWriter().Write([]byte(resultBytes)); err != nil {
 		return fmt.Errorf("t.ResultWriter.Write failed: %v: %w", err, asynq.SkipRetry)
 	}
+
+	return nil
+}
+
+func ProcessPriceFetchAllActivePairsTask(ctx context.Context, t *asynq.Task) error {
+	clientAsynq.Initialize()
+	asynqClient := clientAsynq.AsynqClient
+	fmt.Println(&clientAsynq.AsynqClient)
+
+	pairs, err := services.GetUniqueActiveChainTokenPairs()
+	if err != nil {
+		return fmt.Errorf("!!4 services.GetUniqueActiveChainTokenPairs failed: %v", err)
+	}
+
+	for _, pair := range pairs {
+		fmt.Printf("amogus1 Enqueuing price fetch task for pair: chain=%s, token=%s\n", pair.Chain, pair.Token)
+		err := EnqueuePriceFetchTask(asynqClient, pair.Chain, pair.Token)
+		if err != nil {
+			return fmt.Errorf("failed to enqueue price fetch tasks: %v", err)
+		}
+		fmt.Printf("amogus1 Enqueued price fetch task for pair: chain=%s, token=%s\n", pair.Chain, pair.Token)
+	}
+
+	log.Printf("amogus1 Enqueued price fetch tasks for all active pairs")
 
 	return nil
 }

@@ -37,5 +37,5 @@ func GetPricesHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"prices": prices})
+	c.JSON(http.StatusOK, prices)
 }
