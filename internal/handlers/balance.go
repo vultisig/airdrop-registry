@@ -1,5 +1,3 @@
-// FetchVaultBalancesHandler
-
 package handlers
 
 import (

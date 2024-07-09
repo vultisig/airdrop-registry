@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/hibiken/asynq"
 )
@@ -32,7 +33,7 @@ func EnqueueBalanceFetchTask(
 	if err != nil {
 		return err
 	}
-	_, err = asynqClient.Enqueue(task, asynq.Queue(TypeBalanceFetch))
+	_, err = asynqClient.Enqueue(task, asynq.MaxRetry(3), asynq.Timeout(10*time.Second), asynq.Retention(24*time.Hour), asynq.Queue(TypeBalanceFetch))
 	return err
 }
 
@@ -84,6 +85,34 @@ func EnqueuePointsCalculationTask(
 	if err != nil {
 		return err
 	}
-	_, err = asynqClient.Enqueue(task, asynq.Queue(TypePointsCalculation))
+	_, err = asynqClient.Enqueue(task, asynq.MaxRetry(1), asynq.Unique(time.Hour), asynq.Retention(24*time.Hour), asynq.Queue(TypePointsCalculation))
+	return err
+}
+
+// Price fetch
+
+func NewPriceFetch(
+	chain string,
+	token string,
+) (*asynq.Task, error) {
+	payload, err := json.Marshal(PriceFetchPayload{Chain: chain, Token: token})
+	if err != nil {
+		return nil, err
+	}
+	return asynq.NewTask(TypePriceFetch, payload), nil
+}
+
+func EnqueuePriceFetchTask(
+	asynqClient *asynq.Client,
+	chain string,
+	token string,
+) error {
+	task, err := NewPriceFetch(chain, token)
+	if err != nil {
+		return err
+	}
+
+	_, err = asynqClient.Enqueue(task, asynq.MaxRetry(2), asynq.Unique(time.Minute*5), asynq.Retention(24*time.Hour), asynq.Queue(TypePriceFetch))
+
 	return err
 }

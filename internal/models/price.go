@@ -6,7 +6,9 @@ import (
 
 type Price struct {
 	gorm.Model
-	Token string  `json:"token"`
-	USD   float64 `json:"usd"`
-	Date  int64   `json:"date"`
+	Chain  string  `json:"chain"`
+	Token  string  `json:"token"`
+	Price  float64 `json:"usd"`
+	Date   int64   `json:"date"`
+	Source string  `json:"source"`
 }

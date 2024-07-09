@@ -24,6 +24,9 @@ type Config struct {
 		Password string `mapstructure:"password"`
 		DB       int    `mapstructure:"db"`
 	}
+	CoinGecko struct {
+		Key string `mapstructure:"key"`
+	}
 }
 
 var Cfg Config
@@ -46,6 +49,7 @@ func LoadConfig() {
 	viper.SetDefault("redis.port", 6381)
 	viper.SetDefault("redis.password", "")
 	viper.SetDefault("redis.db", 0)
+	viper.SetDefault("coingecko.key", "x-cg-demo-api-key")
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Printf("Error reading config file, %s", err)

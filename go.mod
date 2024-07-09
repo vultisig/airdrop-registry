@@ -3,13 +3,13 @@ module github.com/vultisig/airdrop-registry
 go 1.22.2
 
 require (
+	github.com/JulianToledano/goingecko v0.3.0
 	github.com/cosmos/cosmos-sdk v0.50.7
 	github.com/ethereum/go-ethereum v1.14.6
 	github.com/gin-gonic/gin v1.10.0
 	github.com/hibiken/asynq v0.24.1
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
-	github.com/tyler-smith/go-bip32 v1.0.0
 	github.com/vultisig/mobile-tss-lib v0.0.0-20240705062349-155dfd486626
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.25.10
@@ -26,8 +26,6 @@ require (
 	cosmossdk.io/store v1.1.0 // indirect
 	cosmossdk.io/x/tx v0.13.3 // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
-	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
-	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
 	github.com/agl/ed25519 v0.0.0-20200225211852-fd4d107ace12 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bnb-chain/tss-lib/v2 v2.0.2 // indirect
@@ -165,4 +163,5 @@ replace (
 	github.com/agl/ed25519 => github.com/binance-chain/edwards25519 v0.0.0-20200305024217-f36fc4b53d43
 	github.com/cwespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.1
 	github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
+	github.com/JulianToledano/goingecko => ../coingecko
 )

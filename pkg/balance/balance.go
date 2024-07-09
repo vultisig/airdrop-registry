@@ -16,3 +16,32 @@ func FetchBalanceOfAddress(chain, address string) (float64, error) {
 		return 0, fmt.Errorf("unsupported chain: %s", chain)
 	}
 }
+
+func GetBaseTokenByChain(chain string) (string, error) {
+	switch chain {
+	case "ethereum":
+		return "ETH", nil
+	case "avalanche":
+		return "AVAX", nil
+	case "bsc":
+		return "BNB", nil
+	case "base":
+		return "ETH", nil
+	case "blast":
+		return "BLAST", nil
+	case "optimism":
+		return "ETH", nil
+	case "matic":
+		return "MATIC", nil
+	case "zksync":
+		return "ETH", nil
+	case "bitcoin":
+		return "BTC", nil
+	case "mayachain":
+		return "MAYA", nil
+	case "thorchain":
+		return "RUNE", nil
+	default:
+		return "", fmt.Errorf("unsupported chain: %s", chain)
+	}
+}

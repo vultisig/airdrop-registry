@@ -26,3 +26,23 @@ func GetLatestBalancesByVaultKeys(ecdsaPublicKey, eddsaPublicKey string) ([]mode
 	err := db.DB.Where("id IN (?)", subquery).Order("created_at desc").Find(&balances).Error
 	return balances, err
 }
+
+type ChainTokenPair struct {
+	Chain string `json:"chain"`
+	Token string `json:"token"`
+}
+
+func GetUniqueActiveChainTokenPairs() ([]ChainTokenPair, error) {
+	var chainTokenPairs []ChainTokenPair
+
+	subquery := db.DB.Table("balances").
+		Select("MAX(id) as id").
+		Group("chain, token, ecdsa, eddsa")
+
+	err := db.DB.Table("balances").
+		Select("DISTINCT chain, token").
+		Where("id IN (?) AND balance > 0", subquery).
+		Scan(&chainTokenPairs).Error
+
+	return chainTokenPairs, err
+}

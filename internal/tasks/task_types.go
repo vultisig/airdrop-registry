@@ -4,6 +4,7 @@ const (
 	TypeVaultBalanceFetch = "vault:balance:fetch"
 	TypeBalanceFetch      = "balance:fetch"
 	TypePointsCalculation = "points:calculate"
+	TypePriceFetch        = "price:fetch"
 )
 
 // type VaultBalanceFetchPayload struct {
@@ -21,4 +22,9 @@ type BalanceFetchPayload struct {
 type PointsCalculationPayload struct {
 	ECCDSA string
 	EDDSA  string
+}
+
+type PriceFetchPayload struct {
+	Chain string
+	Token string
 }
