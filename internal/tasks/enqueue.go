@@ -15,7 +15,7 @@ func newBalanceFetch(
 	chain string,
 	address string,
 ) (*asynq.Task, error) {
-	payload, err := json.Marshal(BalanceFetchPayload{ecdsa: ecdsa, EDDSA: eddsa, Chain: chain, Address: address})
+	payload, err := json.Marshal(BalanceFetchPayload{ECDSA: ecdsa, EDDSA: eddsa, Chain: chain, Address: address})
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func newPointsCalculationPayload(
 	ecdsa string,
 	eddsa string,
 ) (*asynq.Task, error) {
-	payload, err := json.Marshal(PointsCalculationPayload{ecdsa: ecdsa, EDDSA: eddsa})
+	payload, err := json.Marshal(PointsCalculationPayload{ECDSA: ecdsa, EDDSA: eddsa})
 	if err != nil {
 		return nil, err
 	}

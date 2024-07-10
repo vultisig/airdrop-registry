@@ -21,7 +21,7 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
-	log.Printf("Fetching balance for vault: ecdsa=%s, eddsa=%s, chain=%s, address=%s", p.ecdsa, p.EDDSA, p.Chain, p.Address)
+	log.Printf("Fetching balance for vault: ecdsa=%s, eddsa=%s, chain=%s, address=%s", p.ECDSA, p.EDDSA, p.Chain, p.Address)
 
 	balanceAmount, err := balance.FetchBalanceOfAddress(p.Chain, p.Address)
 	if err != nil {
@@ -48,7 +48,7 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 		return fmt.Errorf("services.SaveBalance failed: %v: %w", err, asynq.SkipRetry)
 	}
 
-	log.Printf("Balance for vault: ecdsa=%s, eddsa=%s, chain=%s, address=%s is %f", p.ecdsa, p.EDDSA, p.Chain, p.Address, balanceAmount)
+	log.Printf("Balance for vault: ecdsa=%s, eddsa=%s, chain=%s, address=%s is %f", p.ECDSA, p.EDDSA, p.Chain, p.Address, balanceAmount)
 
 	result := map[string]interface{}{
 		"balance": balanceAmount,
@@ -66,7 +66,7 @@ func ProcessPointsCalculationTask(ctx context.Context, t *asynq.Task) error {
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
-	log.Printf("Calculating points for Vault: ecdsa=%s, eddsa=%s", p.ecdsa, p.EDDSA)
+	log.Printf("Calculating points for Vault: ecdsa=%s, eddsa=%s", p.ECDSA, p.EDDSA)
 	return nil
 }
 
