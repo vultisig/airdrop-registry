@@ -34,7 +34,7 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 	}
 
 	b := &models.Balance{
-		ECDSA:   p.ecdsa,
+		ECDSA:   p.ECDSA,
 		EDDSA:   p.EDDSA,
 		Chain:   p.Chain,
 		Address: p.Address,

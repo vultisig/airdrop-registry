@@ -1,11 +1,13 @@
 package address
 
 import (
+	"crypto/ed25519"
 	"encoding/hex"
 	"fmt"
 
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/cosmos/btcutil/base58"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	tss "github.com/vultisig/mobile-tss-lib/tss"
@@ -34,38 +36,68 @@ func GenerateChainKeys(chainName, hexPubKey, hexChainCode, path string, isEdDSA 
 	}
 
 	switch chainName {
-	case "bitcoin":
-		net := &chaincfg.MainNetParams
-		addressPubKey, err := btcutil.NewAddressWitnessPubKeyHash(btcutil.Hash160(pubKeyBytes), net)
+	case "bitcoin", "bitcoin cash", "dash", "dogecoin", "litecoin":
+		var net *chaincfg.Params
+		var prefix string
+		switch chainName {
+		case "bitcoin":
+			net = &chaincfg.MainNetParams
+			prefix = "bc1"
+		case "bitcoin cash":
+			net = &chaincfg.MainNetParams
+			prefix = "bitcoincash:"
+		case "dash":
+			net = &chaincfg.MainNetParams
+			prefix = "X"
+		case "dogecoin":
+			net = &chaincfg.MainNetParams
+			prefix = "D"
+		case "litecoin":
+			net = &chaincfg.MainNetParams
+			prefix = "ltc1"
+		}
+
+		var address string
+		witnessProgram := btcutil.Hash160(pubKeyBytes)
+		conv, err := btcutil.NewAddressWitnessPubKeyHash(witnessProgram, net)
 		if err != nil {
 			return ChainKeys{}, err
 		}
-		keys.Address = addressPubKey.EncodeAddress()
-	case "ethereum":
+		address = conv.EncodeAddress()
+		addressWithoutPrefix := address[4:]
+		keys.Address = prefix + addressWithoutPrefix
+	case "ethereum", "arbitrum", "avalanche", "bsc", "base", "blast chain", "cronoschain", "optimism eth", "polygon", "zksync":
 		pubKey, err := crypto.DecompressPubkey(pubKeyBytes)
 		if err != nil {
 			return ChainKeys{}, err
 		}
 		keys.Address = crypto.PubkeyToAddress(*pubKey).Hex()
-	case "thorchain":
+	case "thorchain", "mayachain", "gaia", "kujira":
 		pubKeyHash := btcutil.Hash160(pubKeyBytes)
-		thorAddr, err := sdk.Bech32ifyAddressBytes("thor", pubKeyHash)
+		prefix := map[string]string{
+			"thorchain": "thor",
+			"mayachain": "maya",
+			"gaia":      "cosmos",
+			"kujira":    "kujira",
+		}[chainName]
+		addr, err := sdk.Bech32ifyAddressBytes(prefix, pubKeyHash)
 		if err != nil {
 			return ChainKeys{}, err
 		}
-		keys.Address = thorAddr
-
-	case "mayachain":
-		pubKeyHash := btcutil.Hash160(pubKeyBytes)
-		mayaAddr, err := sdk.Bech32ifyAddressBytes("maya", pubKeyHash)
-		if err != nil {
-			return ChainKeys{}, err
-		}
-		keys.Address = mayaAddr
+		keys.Address = addr
+	case "solana":
+		keys.Address = base58.Encode(pubKeyBytes)
+	case "polkadot":
+		// polka uses sr25519 (not standard?) BELOW IS WRONG
+		keys.Address = fmt.Sprintf("polkadot:%x", pubKeyBytes[:32])
+	case "sui":
+		keys.Address = fmt.Sprintf("0x%x", pubKeyBytes)
+	case "dydx":
+		pubKey := ed25519.PublicKey(pubKeyBytes)
+		keys.Address = fmt.Sprintf("dydx%x", pubKey)
 	default:
 		return ChainKeys{}, fmt.Errorf("unsupported chain: %s", chainName)
 	}
-
 	return keys, nil
 }
 
@@ -91,4 +123,23 @@ var supportedChains = []struct {
 	{name: "ethereum", derivePath: "m/44'/60'/0'/0/0"},
 	{name: "thorchain", derivePath: "m/44'/931'/0'/0/0"},
 	{name: "mayachain", derivePath: "m/44'/931'/0'/0/0"},
+	{name: "arbitrum", derivePath: "m/44'/60'/0'/0/0"},
+	{name: "avalanche", derivePath: "m/44'/60'/0'/0/0"},
+	{name: "bsc", derivePath: "m/44'/60'/0'/0/0"},
+	{name: "base", derivePath: "m/44'/60'/0'/0/0"},
+	{name: "bitcoin cash", derivePath: "m/44'/145'/0'/0/0"},
+	{name: "blast chain", derivePath: "m/44'/60'/0'/0/0"},
+	{name: "cronoschain", derivePath: "m/44'/60'/0'/0/0"},
+	{name: "dash", derivePath: "m/44'/5'/0'/0/0"},
+	{name: "dogecoin", derivePath: "m/44'/3'/0'/0/0"},
+	{name: "dydx", derivePath: "m/44'/60'/0'/0/0"},
+	{name: "gaia", derivePath: "m/44'/118'/0'/0/0"},
+	{name: "kujira", derivePath: "m/44'/118'/0'/0/0"},
+	{name: "litecoin", derivePath: "m/84'/2'/0'/0/0"},
+	{name: "optimism eth", derivePath: "m/44'/60'/0'/0/0"},
+	{name: "polkadot", derivePath: "m/44'/354'/0'/0/0"},
+	{name: "polygon", derivePath: "m/44'/60'/0'/0/0"},
+	{name: "solana", derivePath: "m/44'/501'/0'/0'"},
+	{name: "sui", derivePath: "m/44'/784'/0'/0'/0'"},
+	{name: "zksync", derivePath: "m/44'/60'/0'/0/0"},
 }
