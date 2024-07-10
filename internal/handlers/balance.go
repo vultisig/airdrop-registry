@@ -13,10 +13,10 @@ import (
 )
 
 func FetchVaultBalancesHandler(c *gin.Context) {
-	eccdsaPublicKey := c.Param("eccdsaPublicKey")
+	ecdsaPublicKey := c.Param("ecdsaPublicKey")
 	eddsaPublicKey := c.Param("eddsaPublicKey")
 
-	vault, err := services.GetVault(eccdsaPublicKey, eddsaPublicKey)
+	vault, err := services.GetVault(ecdsaPublicKey, eddsaPublicKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -29,12 +29,12 @@ func FetchVaultBalancesHandler(c *gin.Context) {
 	}
 
 	for chain, addr := range addresses {
-		err := tasks.EnqueueBalanceFetchTask(asynqClient.AsynqClient, eccdsaPublicKey, eddsaPublicKey, chain, addr)
+		err := tasks.EnqueueBalanceFetchTask(asynqClient.AsynqClient, ecdsaPublicKey, eddsaPublicKey, chain, addr)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		log.Printf("Enqueued task: BalanceFetch for Vault: eccdsa=%s, eddsa=%s, chain=%s, address=%s", eccdsaPublicKey, eddsaPublicKey, chain, addr)
+		log.Printf("Enqueued task: BalanceFetch for Vault: ecdsa=%s, eddsa=%s, chain=%s, address=%s", ecdsaPublicKey, eddsaPublicKey, chain, addr)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Balance fetch task enqueued", "vault": vault, "addresses": addresses})

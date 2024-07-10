@@ -17,12 +17,26 @@ func Schedule(redisConnOpt *asynq.RedisClientOpt) error {
 	}
 
 	// Runs at :30 every hour
-	entryID, err := scheduler.Register("30 * * * * ", task, asynq.Queue(TypePriceFetchAllActivePairs), asynq.Retention(24*time.Hour))
+	entryId, err := scheduler.Register("30 * * * * ", task, asynq.Queue(TypePriceFetchAllActivePairs), asynq.Retention(24*time.Hour))
 	if err != nil {
 		return err
 	}
 
-	log.Printf("Registered a scheduler entry: %q\n", entryID)
+	log.Printf("Registered a scheduler entry for PriceFetchAllActivePairs: %v", entryId)
+
+	// Runs at :00 every hour
+	task, err = NewBalanceFetchAll()
+	if err != nil {
+		return err
+	}
+
+	// Runs at :00 every hour
+	entryId, err = scheduler.Register("0 * * * * ", task, asynq.Queue(TypeBalanceFetchAll), asynq.Retention(24*time.Hour))
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Registered a scheduler entry for BalanceFetchAll: %v", entryId)
 
 	if err := scheduler.Run(); err != nil {
 		return err

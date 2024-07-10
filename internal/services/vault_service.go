@@ -11,12 +11,12 @@ func RegisterVault(vault *models.Vault) error {
 	return db.DB.Create(vault).Error
 }
 
-func GetVault(eccdsaAddress, eddsaAddress string) (*models.Vault, error) {
-	eccdsaAddress = strings.ToLower(eccdsaAddress)
+func GetVault(ecdsaAddress, eddsaAddress string) (*models.Vault, error) {
+	ecdsaAddress = strings.ToLower(ecdsaAddress)
 	eddsaAddress = strings.ToLower(eddsaAddress)
 
 	var vault models.Vault
-	if err := db.DB.Where("ecdsa = ? AND eddsa = ?", eccdsaAddress, eddsaAddress).First(&vault).Error; err != nil {
+	if err := db.DB.Where("ecdsa = ? AND eddsa = ?", ecdsaAddress, eddsaAddress).First(&vault).Error; err != nil {
 		return nil, err
 	}
 	return &vault, nil

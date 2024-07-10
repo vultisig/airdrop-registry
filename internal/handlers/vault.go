@@ -29,10 +29,10 @@ func RegisterVaultHandler(c *gin.Context) {
 }
 
 func GetVaultHandler(c *gin.Context) {
-	eccdsaPublicKey := c.Param("eccdsaPublicKey")
+	ecdsaPublicKey := c.Param("ecdsaPublicKey")
 	eddsaPublicKey := c.Param("eddsaPublicKey")
 
-	vault, err := services.GetVault(eccdsaPublicKey, eddsaPublicKey)
+	vault, err := services.GetVault(ecdsaPublicKey, eddsaPublicKey)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "vault not found"})
 		return
@@ -41,10 +41,10 @@ func GetVaultHandler(c *gin.Context) {
 }
 
 func GetVaultAddressesHandler(c *gin.Context) {
-	eccdsaPublicKey := c.Param("eccdsaPublicKey")
+	ecdsaPublicKey := c.Param("ecdsaPublicKey")
 	eddsaPublicKey := c.Param("eddsaPublicKey")
 
-	vault, err := services.GetVault(eccdsaPublicKey, eddsaPublicKey)
+	vault, err := services.GetVault(ecdsaPublicKey, eddsaPublicKey)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "vault not found"})
 		return
@@ -60,10 +60,10 @@ func GetVaultAddressesHandler(c *gin.Context) {
 }
 
 func GetVaultBalancesHandler(c *gin.Context) {
-	eccdsaPublicKey := c.Param("eccdsaPublicKey")
+	ecdsaPublicKey := c.Param("ecdsaPublicKey")
 	eddsaPublicKey := c.Param("eddsaPublicKey")
 
-	vault, err := services.GetVault(eccdsaPublicKey, eddsaPublicKey)
+	vault, err := services.GetVault(ecdsaPublicKey, eddsaPublicKey)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "vault not found"})
 		return
@@ -80,10 +80,10 @@ func GetVaultBalancesHandler(c *gin.Context) {
 
 // fetches only latest balance
 func GetVaultBalanceHandler(c *gin.Context) {
-	eccdsaPublicKey := c.Param("eccdsaPublicKey")
+	ecdsaPublicKey := c.Param("ecdsaPublicKey")
 	eddsaPublicKey := c.Param("eddsaPublicKey")
 
-	vault, err := services.GetVault(eccdsaPublicKey, eddsaPublicKey)
+	vault, err := services.GetVault(ecdsaPublicKey, eddsaPublicKey)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "vault not found"})
 		return

@@ -27,15 +27,15 @@ func main() {
 	// Vaults
 	router.POST("/vault", handlers.RegisterVaultHandler)
 	router.GET("/vaults", handlers.ListVaultsHandler)
-	router.GET("/vault/:eccdsaPublicKey/:eddsaPublicKey", handlers.GetVaultHandler)
+	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey", handlers.GetVaultHandler)
 
 	// Address
-	router.POST("/vault/:eccdsaPublicKey/:eddsaPublicKey/address", handlers.FetchVaultBalancesHandler)
-	router.GET("/vault/:eccdsaPublicKey/:eddsaPublicKey/address", handlers.GetVaultAddressesHandler)
+	router.POST("/vault/:ecdsaPublicKey/:eddsaPublicKey/address", handlers.FetchVaultBalancesHandler)
+	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/address", handlers.GetVaultAddressesHandler)
 
 	// Balances
-	router.GET("/vault/:eccdsaPublicKey/:eddsaPublicKey/balances", handlers.GetVaultBalancesHandler)
-	router.GET("/vault/:eccdsaPublicKey/:eddsaPublicKey/balance", handlers.GetVaultBalanceHandler)
+	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/balances", handlers.GetVaultBalancesHandler)
+	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/balance", handlers.GetVaultBalanceHandler)
 
 	// Prices
 	router.POST("/prices", handlers.StartPricesFetchHandler)

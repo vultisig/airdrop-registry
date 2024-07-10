@@ -10,12 +10,12 @@ import (
 // Balance fetch
 
 func newBalanceFetch(
-	eccdsa string,
+	ecdsa string,
 	eddsa string,
 	chain string,
 	address string,
 ) (*asynq.Task, error) {
-	payload, err := json.Marshal(BalanceFetchPayload{ECCDSA: eccdsa, EDDSA: eddsa, Chain: chain, Address: address})
+	payload, err := json.Marshal(BalanceFetchPayload{ecdsa: ecdsa, EDDSA: eddsa, Chain: chain, Address: address})
 	if err != nil {
 		return nil, err
 	}
@@ -24,12 +24,12 @@ func newBalanceFetch(
 
 func EnqueueBalanceFetchTask(
 	asynqClient *asynq.Client,
-	eccdsa string,
+	ecdsa string,
 	eddsa string,
 	chain string,
 	address string,
 ) error {
-	task, err := newBalanceFetch(eccdsa, eddsa, chain, address)
+	task, err := newBalanceFetch(ecdsa, eddsa, chain, address)
 	if err != nil {
 		return err
 	}
@@ -37,39 +37,13 @@ func EnqueueBalanceFetchTask(
 	return err
 }
 
-// Vault balance fetch
-
-// func NewVaultBalanceFetch(
-// 	eccdsa string,
-// 	eddsa string,
-// ) (*asynq.Task, error) {
-// 	payload, err := json.Marshal(VaultBalanceFetchPayload{ECCDSA: eccdsa, EDDSA: eddsa})
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return asynq.NewTask(TypeVaultBalanceFetch, payload), nil
-// }
-
-// func EnqueueVaultBalanceFetchTask(
-// 	asynqClient *asynq.Client,
-// 	eccdsa string,
-// 	eddsa string,
-// ) error {
-// 	task, err := NewVaultBalanceFetch(eccdsa, eddsa)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	_, err = asynqClient.Enqueue(task, asynq.Queue(TypeVaultBalanceFetch))
-// 	return err
-// }
-
 // Point calculation
 
 func newPointsCalculationPayload(
-	eccdsa string,
+	ecdsa string,
 	eddsa string,
 ) (*asynq.Task, error) {
-	payload, err := json.Marshal(PointsCalculationPayload{ECCDSA: eccdsa, EDDSA: eddsa})
+	payload, err := json.Marshal(PointsCalculationPayload{ecdsa: ecdsa, EDDSA: eddsa})
 	if err != nil {
 		return nil, err
 	}
@@ -78,10 +52,10 @@ func newPointsCalculationPayload(
 
 func EnqueuePointsCalculationTask(
 	asynqClient *asynq.Client,
-	eccdsa string,
+	ecdsa string,
 	eddsa string,
 ) error {
-	task, err := newPointsCalculationPayload(eccdsa, eddsa)
+	task, err := newPointsCalculationPayload(ecdsa, eddsa)
 	if err != nil {
 		return err
 	}
@@ -118,18 +92,11 @@ func EnqueuePriceFetchTask(
 }
 
 // Price fetch for all active pairs
-
 func NewPriceFetchForAllActivePairs() (*asynq.Task, error) {
 	return asynq.NewTask(TypePriceFetchAllActivePairs, nil), nil
 }
 
-// func EnqueuePriceFetchTasksForActivePairs(asynqClient *asynq.Client) error {
-// 	task, err := newPriceFetchForAllActivePairs()
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	_, err = asynqClient.Enqueue(task, asynq.Retention(24*time.Hour), asynq.Queue(TypePriceFetchAllActivePairs))
-
-// 	return err
-// }
+// Balance fetch all
+func NewBalanceFetchAll() (*asynq.Task, error) {
+	return asynq.NewTask(TypeBalanceFetchAll, nil), nil
+}

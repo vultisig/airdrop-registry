@@ -33,6 +33,7 @@ func main() {
 				tasks.TypeVaultBalanceFetch:        3,
 				tasks.TypePriceFetch:               5,
 				tasks.TypePriceFetchAllActivePairs: 1, // because this only schedules new jobs that have a lower priority and this is only 1x job every x period
+				tasks.TypeBalanceFetchAll:          1, // same as above
 			},
 		},
 	)
@@ -54,6 +55,7 @@ func main() {
 	mux.HandleFunc(tasks.TypePointsCalculation, tasks.ProcessPointsCalculationTask)
 	mux.HandleFunc(tasks.TypePriceFetch, tasks.ProcessPriceFetchTask)
 	mux.HandleFunc(tasks.TypePriceFetchAllActivePairs, tasks.ProcessPriceFetchAllActivePairsTask)
+	mux.HandleFunc(tasks.TypeBalanceFetchAll, tasks.ProcessBalanceFetchAllTask)
 
 	// Run server in a separate goroutine
 	go func() {
