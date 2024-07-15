@@ -141,7 +141,7 @@ func ProcessBalanceFetchAllTask(ctx context.Context, t *asynq.Task) error {
 	}
 
 	for _, vault := range vaults {
-		addresses, err := address.GenerateSupportedChainAddresses(vault.ECDSA, vault.HexChainCode)
+		addresses, err := address.GenerateSupportedChainAddresses(vault.ECDSA, vault.HexChainCode, vault.EDDSA)
 		if err != nil {
 			return fmt.Errorf("address.GenerateSupportedChainAddresses failed: %v", err)
 		}

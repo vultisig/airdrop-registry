@@ -22,7 +22,7 @@ func FetchVaultBalancesHandler(c *gin.Context) {
 		return
 	}
 
-	addresses, err := address.GenerateSupportedChainAddresses(vault.ECDSA, vault.HexChainCode)
+	addresses, err := address.GenerateSupportedChainAddresses(vault.ECDSA, vault.HexChainCode, vault.EDDSA)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
