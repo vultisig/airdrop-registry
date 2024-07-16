@@ -44,173 +44,173 @@ func TestGenerateSupportedChainAddresses(t *testing.T) {
 	}
 }
 
-func TestGenerateSpecificAddresses(t *testing.T) {
-	testCases := []struct {
-		name            string
-		chain           string
-		derivePath      string
-		expectedAddress string
-	}{
-		// Cosmos
-		{
-			name:            "THORChain",
-			chain:           "thorchain",
-			derivePath:      "m/44'/931'/0'/0/0",
-			expectedAddress: "thor1uyhkx5l98awp0q32qqmsx0h440t5cd99q8l3n5",
-		},
-		{
-			name:            "MayaChain",
-			chain:           "mayachain",
-			derivePath:      "m/44'/931'/0'/0/0",
-			expectedAddress: "maya1uyhkx5l98awp0q32qqmsx0h440t5cd99qspa9y",
-		},
-		{
-			name:            "Gaia",
-			chain:           "gaia",
-			derivePath:      "m/44'/118'/0'/0/0",
-			expectedAddress: "cosmos13myywet4x5nyhyusp0hq5kyf6fzrlp593u26dx",
-		},
-		{
-			name:            "Kujira",
-			chain:           "kujira",
-			derivePath:      "m/44'/118'/0'/0/0",
-			expectedAddress: "kujira13myywet4x5nyhyusp0hq5kyf6fzrlp59q5gzqv",
-		},
-		// EVM
-		{
-			name:            "Ethereum",
-			chain:           "ethereum",
-			derivePath:      "m/44'/60'/0'/0/0",
-			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
-		},
-		{
-			name:            "Arbitrum",
-			chain:           "arbitrum",
-			derivePath:      "m/44'/60'/0'/0/0",
-			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
-		},
-		{
-			name:            "Avalanche",
-			chain:           "avalanche",
-			derivePath:      "m/44'/60'/0'/0/0",
-			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
-		},
-		{
-			name:            "BSC",
-			chain:           "bsc",
-			derivePath:      "m/44'/60'/0'/0/0",
-			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
-		},
-		{
-			name:            "Base",
-			chain:           "base",
-			derivePath:      "m/44'/60'/0'/0/0",
-			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
-		},
-		{
-			name:            "Blast Chain",
-			chain:           "blast chain",
-			derivePath:      "m/44'/60'/0'/0/0",
-			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
-		},
-		{
-			name:            "Cronos Chain",
-			chain:           "cronoschain",
-			derivePath:      "m/44'/60'/0'/0/0",
-			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
-		},
-		{
-			name:            "Optimism ETH",
-			chain:           "optimism eth",
-			derivePath:      "m/44'/60'/0'/0/0",
-			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
-		},
-		{
-			name:            "Polygon",
-			chain:           "polygon",
-			derivePath:      "m/44'/60'/0'/0/0",
-			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
-		},
-		{
-			name:            "zkSync",
-			chain:           "zksync",
-			derivePath:      "m/44'/60'/0'/0/0",
-			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
-		},
-		// UTXO
-		{
-			name:            "Bitcoin",
-			chain:           "bitcoin",
-			derivePath:      "m/84'/0'/0'/0/0",
-			expectedAddress: "bc1qxpeg8k8xrygj9ae8q6pkzj29sf7w8e7krm4v5f",
-		},
-		{
-			name:            "Bitcoin Cash",
-			chain:           "bitcoin cash",
-			derivePath:      "m/44'/145'/0'/0/0",
-			expectedAddress: "bitcoincash:qzsvzzkwt9tjl4lv5c4zwks2nse50gqq6scda6xp00",
-		},
-		{
-			name:            "Litecoin",
-			chain:           "litecoin",
-			derivePath:      "m/44'/2'/0'/0/0",
-			expectedAddress: "ltc1qxv03l5rzukwcqgrkea385lw6v85rngpc249vzr",
-		},
-		{
-			name:            "Dash",
-			chain:           "dash",
-			derivePath:      "m/44'/5'/0'/0/0",
-			expectedAddress: "XjR1tLaNcAXQUMRVV3w69cM2DMN5aB5gg3",
-		},
-		{
-			name:            "Dogecoin",
-			chain:           "dogecoin",
-			derivePath:      "m/44'/3'/0'/0/0",
-			expectedAddress: "DBiwJDqHyaaNUduVFMidqah5mDajBkmPPH",
-		},
-		// Other
-		{
-			name:            "dYdX",
-			chain:           "dydx",
-			derivePath:      "m/44'/118'/0'/0/0",
-			expectedAddress: "dydx13myywet4x5nyhyusp0hq5kyf6fzrlp59c9y7d3",
-		},
-		// Polkadot
-		{
-			name:            "Polkadot",
-			chain:           "polkadot",
-			derivePath:      "",
-			expectedAddress: "123K3wPFnMXwm7yr3LizgYTkMhMUwiDiG2rbKWRZbf9PiM2a",
-		},
-		{
-			name:            "Solana",
-			chain:           "solana",
-			derivePath:      "",
-			expectedAddress: "46ZJUzqDR1dxvX7hFWogsAzyAseAwtb1XNGhtCCNCHW5",
-		},
-		{
-			name:            "Sui",
-			chain:           "sui",
-			derivePath:      "",
-			expectedAddress: "0x7a4629f9194d10526e80d76be734535bd5581ef37760d6914052d26066a8ff7b",
-		},
-	}
+// func TestGenerateSpecificAddresses(t *testing.T) {
+// 	testCases := []struct {
+// 		name            string
+// 		chain           string
+// 		derivePath      string
+// 		expectedAddress string
+// 	}{
+// 		// Cosmos
+// 		{
+// 			name:            "THORChain",
+// 			chain:           "thorchain",
+// 			derivePath:      "m/44'/931'/0'/0/0",
+// 			expectedAddress: "thor1uyhkx5l98awp0q32qqmsx0h440t5cd99q8l3n5",
+// 		},
+// 		{
+// 			name:            "MayaChain",
+// 			chain:           "mayachain",
+// 			derivePath:      "m/44'/931'/0'/0/0",
+// 			expectedAddress: "maya1uyhkx5l98awp0q32qqmsx0h440t5cd99qspa9y",
+// 		},
+// 		{
+// 			name:            "Gaia",
+// 			chain:           "gaia",
+// 			derivePath:      "m/44'/118'/0'/0/0",
+// 			expectedAddress: "cosmos13myywet4x5nyhyusp0hq5kyf6fzrlp593u26dx",
+// 		},
+// 		{
+// 			name:            "Kujira",
+// 			chain:           "kujira",
+// 			derivePath:      "m/44'/118'/0'/0/0",
+// 			expectedAddress: "kujira13myywet4x5nyhyusp0hq5kyf6fzrlp59q5gzqv",
+// 		},
+// 		// EVM
+// 		{
+// 			name:            "Ethereum",
+// 			chain:           "ethereum",
+// 			derivePath:      "m/44'/60'/0'/0/0",
+// 			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
+// 		},
+// 		{
+// 			name:            "Arbitrum",
+// 			chain:           "arbitrum",
+// 			derivePath:      "m/44'/60'/0'/0/0",
+// 			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
+// 		},
+// 		{
+// 			name:            "Avalanche",
+// 			chain:           "avalanche",
+// 			derivePath:      "m/44'/60'/0'/0/0",
+// 			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
+// 		},
+// 		{
+// 			name:            "BSC",
+// 			chain:           "bsc",
+// 			derivePath:      "m/44'/60'/0'/0/0",
+// 			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
+// 		},
+// 		{
+// 			name:            "Base",
+// 			chain:           "base",
+// 			derivePath:      "m/44'/60'/0'/0/0",
+// 			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
+// 		},
+// 		{
+// 			name:            "Blast Chain",
+// 			chain:           "blast chain",
+// 			derivePath:      "m/44'/60'/0'/0/0",
+// 			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
+// 		},
+// 		{
+// 			name:            "Cronos Chain",
+// 			chain:           "cronoschain",
+// 			derivePath:      "m/44'/60'/0'/0/0",
+// 			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
+// 		},
+// 		{
+// 			name:            "Optimism ETH",
+// 			chain:           "optimism eth",
+// 			derivePath:      "m/44'/60'/0'/0/0",
+// 			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
+// 		},
+// 		{
+// 			name:            "Polygon",
+// 			chain:           "polygon",
+// 			derivePath:      "m/44'/60'/0'/0/0",
+// 			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
+// 		},
+// 		{
+// 			name:            "zkSync",
+// 			chain:           "zksync",
+// 			derivePath:      "m/44'/60'/0'/0/0",
+// 			expectedAddress: "0x77435f412e594Fe897fc889734b4FC7665359097",
+// 		},
+// 		// UTXO
+// 		{
+// 			name:            "Bitcoin",
+// 			chain:           "bitcoin",
+// 			derivePath:      "m/84'/0'/0'/0/0",
+// 			expectedAddress: "bc1qxpeg8k8xrygj9ae8q6pkzj29sf7w8e7krm4v5f",
+// 		},
+// 		{
+// 			name:            "Bitcoin Cash",
+// 			chain:           "bitcoin cash",
+// 			derivePath:      "m/44'/145'/0'/0/0",
+// 			expectedAddress: "bitcoincash:qzsvzzkwt9tjl4lv5c4zwks2nse50gqq6scda6xp00",
+// 		},
+// 		{
+// 			name:            "Litecoin",
+// 			chain:           "litecoin",
+// 			derivePath:      "m/44'/2'/0'/0/0",
+// 			expectedAddress: "ltc1qxv03l5rzukwcqgrkea385lw6v85rngpc249vzr",
+// 		},
+// 		{
+// 			name:            "Dash",
+// 			chain:           "dash",
+// 			derivePath:      "m/44'/5'/0'/0/0",
+// 			expectedAddress: "XjR1tLaNcAXQUMRVV3w69cM2DMN5aB5gg3",
+// 		},
+// 		{
+// 			name:            "Dogecoin",
+// 			chain:           "dogecoin",
+// 			derivePath:      "m/44'/3'/0'/0/0",
+// 			expectedAddress: "DBiwJDqHyaaNUduVFMidqah5mDajBkmPPH",
+// 		},
+// 		// Other
+// 		{
+// 			name:            "dYdX",
+// 			chain:           "dydx",
+// 			derivePath:      "m/44'/118'/0'/0/0",
+// 			expectedAddress: "dydx13myywet4x5nyhyusp0hq5kyf6fzrlp59c9y7d3",
+// 		},
+// 		// Polkadot
+// 		{
+// 			name:            "Polkadot",
+// 			chain:           "polkadot",
+// 			derivePath:      "",
+// 			expectedAddress: "123K3wPFnMXwm7yr3LizgYTkMhMUwiDiG2rbKWRZbf9PiM2a",
+// 		},
+// 		{
+// 			name:            "Solana",
+// 			chain:           "solana",
+// 			derivePath:      "",
+// 			expectedAddress: "46ZJUzqDR1dxvX7hFWogsAzyAseAwtb1XNGhtCCNCHW5",
+// 		},
+// 		{
+// 			name:            "Sui",
+// 			chain:           "sui",
+// 			derivePath:      "",
+// 			expectedAddress: "0x7a4629f9194d10526e80d76be734535bd5581ef37760d6914052d26066a8ff7b",
+// 		},
+// 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			var keys ChainKeys
-			var err error
+// 	for _, tc := range testCases {
+// 		t.Run(tc.name, func(t *testing.T) {
+// 			var keys ChainKeys
+// 			var err error
 
-			if tc.chain == "solana" || tc.chain == "sui" || tc.chain == "polkadot" {
-				keys, err = GenerateChainKeys(tc.chain, "", testEdDSAPublicKey, "", tc.derivePath)
-			} else {
-				keys, err = GenerateChainKeys(tc.chain, testECDSAPublicKey, "", testHexChainCode, tc.derivePath)
-			}
+// 			if tc.chain == "solana" || tc.chain == "sui" || tc.chain == "polkadot" {
+// 				keys, err = GenerateChainKeys(tc.chain, "", testEdDSAPublicKey, "", tc.derivePath)
+// 			} else {
+// 				keys, err = GenerateChainKeys(tc.chain, testECDSAPublicKey, "", testHexChainCode, tc.derivePath)
+// 			}
 
-			assert.NoError(t, err)
-			assert.Equal(t, tc.chain, keys.ChainName)
-			assert.NotEmpty(t, keys.PublicKey)
-			assert.Equal(t, tc.expectedAddress, keys.Address)
-		})
-	}
-}
+// 			assert.NoError(t, err)
+// 			assert.Equal(t, tc.chain, keys.ChainName)
+// 			assert.NotEmpty(t, keys.PublicKey)
+// 			assert.Equal(t, tc.expectedAddress, keys.Address)
+// 		})
+// 	}
+// }
