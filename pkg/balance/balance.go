@@ -12,6 +12,12 @@ func FetchBalanceOfAddress(chain, address string) (float64, error) {
 		return FetchMayachainBalanceOfAddress(address)
 	case "thorchain":
 		return FetchThorchainBalanceOfAddress(address)
+	case "polkadot":
+		return FetchPolkadotBalanceOfAddress(address)
+	case "sui":
+		return FetchSuiBalanceOfAddress(address)
+	case "solana":
+		return FetchSolanaBalanceOfAddress(address)
 	default:
 		return 0, fmt.Errorf("unsupported chain: %s", chain)
 	}
@@ -37,10 +43,24 @@ func GetBaseTokenByChain(chain string) (string, error) {
 		return "ETH", nil
 	case "bitcoin":
 		return "BTC", nil
+	case "litecoin":
+		return "LTC", nil
+	case "dash":
+		return "DASH", nil
+	case "bitcoin cash":
+		return "BCH", nil
+	case "dogecoin":
+		return "DOGE", nil
 	case "mayachain":
 		return "MAYA", nil
 	case "thorchain":
 		return "RUNE", nil
+	case "polkadot":
+		return "DOT", nil
+	case "sui":
+		return "SUI", nil
+	case "solana":
+		return "SOL", nil
 	default:
 		return "", fmt.Errorf("unsupported chain: %s", chain)
 	}

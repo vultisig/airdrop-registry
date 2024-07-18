@@ -60,3 +60,45 @@ func TestMayaChainBalance(t *testing.T) {
 		t.Errorf("Expected balance %f, got %f", expectedBalance, balance)
 	}
 }
+
+func TestPolkadotBalance(t *testing.T) {
+	polkadotAddress := "16fq6FSxb8s5Ah2m2wi7mEnemvG7hwithfMqXx6N2FsTumnL"
+	expectedBalance := 218.706
+
+	balance, err := FetchPolkadotBalanceOfAddress(polkadotAddress)
+	if err != nil {
+		t.Errorf("Error fetching balance: %v", err)
+	}
+
+	if fmt.Sprintf("%.6f", balance) != fmt.Sprintf("%.6f", expectedBalance) {
+		t.Errorf("Expected balance %f, got %f", expectedBalance, balance)
+	}
+}
+
+// func TestSuiBalance(t *testing.T) {
+// 	suiAddress := "0x3a6fD4d2F4d3Cd7f1aBb3E2f1aFbdff4D3D3cd7f"
+// 	expectedBalance := 0.987654
+
+// 	balance, err := FetchSuiBalanceOfAddress(suiAddress)
+// 	if err != nil {
+// 		t.Errorf("Error fetching balance: %v", err)
+// 	}
+
+// 	if fmt.Sprintf("%.6f", balance) != fmt.Sprintf("%.6f", expectedBalance) {
+// 		t.Errorf("Expected balance %f, got %f", expectedBalance, balance)
+// 	}
+// }
+
+func TestSolanaBalance(t *testing.T) {
+	solanaAddress := "GYRsheZ78JMfMNETuAZNrs6L1U3GsHP5crzzLPeETDYm"
+	expectedBalance := 1.5478
+
+	balance, err := FetchSolanaBalanceOfAddress(solanaAddress)
+	if err != nil {
+		t.Errorf("Error fetching balance: %v", err)
+	}
+
+	if fmt.Sprintf("%.2f", balance) != fmt.Sprintf("%.2f", expectedBalance) {
+		t.Errorf("Expected balance %f, got %f", expectedBalance, balance)
+	}
+}

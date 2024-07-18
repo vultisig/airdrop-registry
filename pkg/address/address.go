@@ -10,9 +10,9 @@ import (
 	"github.com/btcsuite/btcutil/base58"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/vultisig/airdrop-registry/pkg/utils"
 	tss "github.com/vultisig/mobile-tss-lib/tss"
 
-	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/ed25519"
 )
 
@@ -20,29 +20,6 @@ type ChainKeys struct {
 	ChainName string
 	PublicKey string
 	Address   string
-}
-
-// SS58Encode encodes data and format identifier to an SS58 checksumed string.
-func SS58Encode(pubkey []byte, format uint16) string {
-	ident := format & 0b0011_1111_1111_1111
-	var prefix []byte
-	if ident <= 63 {
-		prefix = []byte{uint8(ident)}
-	} else if ident <= 16_383 {
-		first := uint8(ident & 0b0000_0000_1111_1100 >> 2)
-		second := uint8(ident>>8) | uint8(ident&0b0000_0000_0000_0011)<<6
-		prefix = []byte{first | 0b01000000, second}
-	} else {
-		panic("unreachable: masked out the upper two bits; qed")
-	}
-	body := append(prefix, pubkey...)
-	hash := ss58hash(body)
-	return base58.Encode(append(body, hash[:2]...))
-}
-
-func ss58hash(data []byte) [64]byte {
-	prefix := []byte("SS58PRE")
-	return blake2b.Sum512(append(prefix, data...))
 }
 
 func GenerateChainKeys(chainName, hexPubKeyECDSA, hexPubKeyEdDSA, hexChainCode, path string) (ChainKeys, error) {
@@ -137,7 +114,7 @@ func GenerateChainKeys(chainName, hexPubKeyECDSA, hexPubKeyEdDSA, hexChainCode, 
 		keys.Address = base58.Encode(pubKey)
 
 	case "polkadot":
-		keys.Address = SS58Encode(pubKeyBytes, 0)
+		keys.Address = utils.SS58Encode(pubKeyBytes, 0)
 
 	case "sui":
 		keys.Address = fmt.Sprintf("0x%x", pubKeyBytes)
