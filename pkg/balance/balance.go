@@ -7,6 +7,10 @@ func FetchBalanceOfAddress(chain, address string) (float64, error) {
 	case "bitcoin":
 		return FetchBitcoinBalanceOfAddress(address)
 	case "ethereum", "avalanche", "bsc", "eth_base", "eth_blast", "optimism", "matic", "zksync":
+		// @TEST
+		if chain == "ethereum" {
+			address = "0xaA11EA95475341c4dDb83aF141B01e52500c23d6"
+		}
 		return FetchEvmBalanceOfAddress(chain, address)
 	case "mayachain":
 		return FetchMayachainBalanceOfAddress(address)

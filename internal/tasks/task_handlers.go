@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -43,18 +44,52 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 		Date:    time.Now().Unix(),
 	}
 
-	err = services.SaveBalance(b)
-	if err != nil {
-		return fmt.Errorf("services.SaveBalance failed: %v: %w", err, asynq.SkipRetry)
+	if balanceAmount > 0 {
+		err = services.SaveBalance(b)
+		if err != nil {
+			return fmt.Errorf("services.SaveBalance failed: %v: %w", err, asynq.SkipRetry)
+		}
 	}
 
 	log.Printf("Balance for vault: ecdsa=%s, eddsa=%s, chain=%s, address=%s is %f", p.ECDSA, p.EDDSA, p.Chain, p.Address, balanceAmount)
 
 	result := map[string]interface{}{
-		"balance": balanceAmount,
+		"native_balance": balanceAmount,
 	}
+
+	if p.Chain == "ethereum" || p.Chain == "bsc" || p.Chain == "optimism" {
+		tokenBalances, err := balance.FetchTokensWithBalance(p.Address, p.Chain)
+		if err != nil {
+			return fmt.Errorf("balance.FetchTokensWithBalance failed: %v: %w", err, asynq.SkipRetry)
+		}
+		for tokenAddress, tokenBalance := range tokenBalances {
+			tokenBalanceFloat, err := strconv.ParseFloat(tokenBalance, 64)
+			if err != nil {
+				return fmt.Errorf("strconv.ParseFloat failed: %v: %w", err, asynq.SkipRetry)
+			}
+			tb := &models.Balance{
+				ECDSA:   p.ECDSA,
+				EDDSA:   p.EDDSA,
+				Chain:   p.Chain,
+				Address: p.Address,
+				Balance: tokenBalanceFloat,
+				Token:   tokenAddress,
+				Date:    time.Now().Unix(),
+			}
+			err = services.SaveBalance(tb)
+			if err != nil {
+				return fmt.Errorf("services.SaveBalance failed: %v: %w", err, asynq.SkipRetry)
+			}
+		}
+		result["token_balances"] = tokenBalances
+	}
+
 	resultBytes, err := json.Marshal(result)
-	if _, err := t.ResultWriter().Write([]byte(resultBytes)); err != nil {
+	if err != nil {
+		return fmt.Errorf("json.Marshal failed: %v: %w", err, asynq.SkipRetry)
+	}
+
+	if _, err := t.ResultWriter().Write(resultBytes); err != nil {
 		return fmt.Errorf("t.ResultWriter.Write failed: %v: %w", err, asynq.SkipRetry)
 	}
 
