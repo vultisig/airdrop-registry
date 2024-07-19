@@ -63,7 +63,7 @@ func TestMayaChainBalance(t *testing.T) {
 
 func TestPolkadotBalance(t *testing.T) {
 	polkadotAddress := "16fq6FSxb8s5Ah2m2wi7mEnemvG7hwithfMqXx6N2FsTumnL"
-	expectedBalance := 218.706
+	expectedBalance := 1382.721198
 
 	balance, err := FetchPolkadotBalanceOfAddress(polkadotAddress)
 	if err != nil {
@@ -91,7 +91,7 @@ func TestPolkadotBalance(t *testing.T) {
 
 func TestSolanaBalance(t *testing.T) {
 	solanaAddress := "GYRsheZ78JMfMNETuAZNrs6L1U3GsHP5crzzLPeETDYm"
-	expectedBalance := 1.5478
+	expectedBalance := 0.551011
 
 	balance, err := FetchSolanaBalanceOfAddress(solanaAddress)
 	if err != nil {
