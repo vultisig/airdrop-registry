@@ -18,6 +18,8 @@ func getRpcUrlForChain(chain string) string {
 		return "https://polygon-rpc.com"
 	case "zksync":
 		return "https://mainnet.era.zksync.io"
+	case "sui":
+		return "https://sui-rpc.publicnode.com"
 	default:
 		return ""
 	}

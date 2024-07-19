@@ -75,19 +75,19 @@ func TestPolkadotBalance(t *testing.T) {
 	}
 }
 
-// func TestSuiBalance(t *testing.T) {
-// 	suiAddress := "0x3a6fD4d2F4d3Cd7f1aBb3E2f1aFbdff4D3D3cd7f"
-// 	expectedBalance := 0.987654
+func TestSuiBalance(t *testing.T) {
+	suiAddress := "0x410b48683d0c029ee482649d666d062dcc0ac2be1346ac0c96973bf8df620a29"
+	expectedBalance := 700001.31
 
-// 	balance, err := FetchSuiBalanceOfAddress(suiAddress)
-// 	if err != nil {
-// 		t.Errorf("Error fetching balance: %v", err)
-// 	}
+	balance, err := FetchSuiBalanceOfAddress(suiAddress)
+	if err != nil {
+		t.Errorf("Error fetching balance: %v", err)
+	}
 
-// 	if fmt.Sprintf("%.6f", balance) != fmt.Sprintf("%.6f", expectedBalance) {
-// 		t.Errorf("Expected balance %f, got %f", expectedBalance, balance)
-// 	}
-// }
+	if fmt.Sprintf("%.2f", balance) != fmt.Sprintf("%.2f", expectedBalance) {
+		t.Errorf("Expected balance %f, got %f", expectedBalance, balance)
+	}
+}
 
 func TestSolanaBalance(t *testing.T) {
 	solanaAddress := "GYRsheZ78JMfMNETuAZNrs6L1U3GsHP5crzzLPeETDYm"
