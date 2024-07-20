@@ -33,8 +33,8 @@ func GetLatestPriceByToken(chain, token string) (*models.Price, error) {
 	return &price, err
 }
 
-func GetLatestPrices(chain string) ([]models.Price, error) {
+func GetLatestPrices() ([]models.Price, error) {
 	var prices []models.Price
-	err := db.DB.Raw("SELECT * FROM prices WHERE chain = ? AND date IN (SELECT MAX(date) FROM prices WHERE chain = ? GROUP BY token)", chain, chain).Scan(&prices).Error
+	err := db.DB.Raw("SELECT * FROM prices WHERE date IN (SELECT MAX(date) FROM prices GROUP BY token)").Scan(&prices).Error
 	return prices, err
 }
