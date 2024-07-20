@@ -9,32 +9,32 @@ func SavePrice(price *models.Price) error {
 	return db.DB.Create(price).Error
 }
 
-func GetPriceByTokenAndDate(token string, date int64) (*models.Price, error) {
+func GetPriceByTokenAndDate(chain, token string, date int64) (*models.Price, error) {
 	var price models.Price
-	err := db.DB.Where("token = ? AND date = ?", token, date).First(&price).Error
+	err := db.DB.Where("chain = ? AND token = ? AND date = ?", chain, token, date).First(&price).Error
 	return &price, err
 }
 
-func GetPricesByToken(token string) ([]models.Price, error) {
+func GetPricesByToken(chain, token string) ([]models.Price, error) {
 	var prices []models.Price
-	err := db.DB.Where("token = ?", token).Find(&prices).Error
+	err := db.DB.Where("chain = ? AND token = ?", chain, token).Find(&prices).Error
 	return prices, err
 }
 
-func GetPricesByTokenAndDateRange(token string, start int64, end int64) ([]models.Price, error) {
+func GetPricesByTokenAndDateRange(chain, token string, start int64, end int64) ([]models.Price, error) {
 	var prices []models.Price
-	err := db.DB.Where("token = ? AND date >= ? AND date <= ?", token, start, end).Find(&prices).Error
+	err := db.DB.Where("chain = ? AND token = ? AND date >= ? AND date <= ?", chain, token, start, end).Find(&prices).Error
 	return prices, err
 }
 
-func GetLatestPriceByToken(token string) (*models.Price, error) {
+func GetLatestPriceByToken(chain, token string) (*models.Price, error) {
 	var price models.Price
-	err := db.DB.Where("token = ?", token).Order("date desc").First(&price).Error
+	err := db.DB.Where("chain = ? AND token = ?", chain, token).Order("date desc").First(&price).Error
 	return &price, err
 }
 
-func GetLatestPrices() ([]models.Price, error) {
+func GetLatestPrices(chain string) ([]models.Price, error) {
 	var prices []models.Price
-	err := db.DB.Raw("SELECT * FROM prices WHERE date IN (SELECT MAX(date) FROM prices GROUP BY token)").Scan(&prices).Error
+	err := db.DB.Raw("SELECT * FROM prices WHERE chain = ? AND date IN (SELECT MAX(date) FROM prices WHERE chain = ? GROUP BY token)", chain, chain).Scan(&prices).Error
 	return prices, err
 }
