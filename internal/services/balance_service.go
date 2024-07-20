@@ -1,6 +1,8 @@
 package services
 
 import (
+	"time"
+
 	"github.com/vultisig/airdrop-registry/internal/models"
 	"github.com/vultisig/airdrop-registry/pkg/db"
 )
@@ -18,12 +20,17 @@ func GetBalancesByVaultKeys(ecdsaPublicKey, eddsaPublicKey string) ([]models.Bal
 func GetLatestBalancesByVaultKeys(ecdsaPublicKey, eddsaPublicKey string) ([]models.Balance, error) {
 	var balances []models.Balance
 
+	oneHourAgo := time.Now().Add(-1 * time.Hour)
+
 	subquery := db.DB.Table("balances").
 		Select("MAX(id) as id").
 		Where("ecdsa = ? AND eddsa = ?", ecdsaPublicKey, eddsaPublicKey).
 		Group("chain, token")
 
-	err := db.DB.Where("id IN (?)", subquery).Order("created_at desc").Find(&balances).Error
+	err := db.DB.Where("id IN (?)", subquery).
+		Where("updated_at > ?", oneHourAgo).
+		Order("created_at desc").
+		Find(&balances).Error
 	return balances, err
 }
 
