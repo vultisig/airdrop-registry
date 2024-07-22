@@ -33,7 +33,7 @@ func EnqueueBalanceFetchTask(
 	if err != nil {
 		return err
 	}
-	_, err = asynqClient.Enqueue(task, asynq.MaxRetry(3), asynq.Timeout(10*time.Second), asynq.Retention(24*time.Hour), asynq.Queue(TypeBalanceFetch))
+	_, err = asynqClient.Enqueue(task, asynq.MaxRetry(3), asynq.Unique(time.Minute*1), asynq.Timeout(10*time.Second), asynq.Retention(24*time.Hour), asynq.Queue(TypeBalanceFetch))
 	return err
 }
 
@@ -59,7 +59,7 @@ func EnqueuePointsCalculationTask(
 	if err != nil {
 		return err
 	}
-	_, err = asynqClient.Enqueue(task, asynq.MaxRetry(1), asynq.Unique(time.Hour), asynq.Retention(24*time.Hour), asynq.Queue(TypePointsCalculation))
+	_, err = asynqClient.Enqueue(task, asynq.MaxRetry(2), asynq.Unique(time.Minute*1), asynq.Retention(24*time.Hour), asynq.Queue(TypePointsCalculation))
 	return err
 }
 
@@ -86,7 +86,7 @@ func EnqueuePriceFetchTask(
 		return err
 	}
 
-	_, err = asynqClient.Enqueue(task, asynq.MaxRetry(2), asynq.Unique(time.Minute*5), asynq.Retention(24*time.Hour), asynq.Queue(TypePriceFetch))
+	_, err = asynqClient.Enqueue(task, asynq.MaxRetry(2), asynq.Unique(time.Minute*1), asynq.Retention(24*time.Hour), asynq.Queue(TypePriceFetch))
 
 	return err
 }

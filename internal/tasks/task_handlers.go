@@ -26,12 +26,12 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 
 	balanceAmount, err := balance.FetchBalanceOfAddress(p.Chain, p.Address)
 	if err != nil {
-		return fmt.Errorf("services.GetBalanceOfAddress failed: %v: %w", err, asynq.SkipRetry)
+		return fmt.Errorf("services.GetBalanceOfAddress failed: %v", err)
 	}
 
 	token, err := balance.GetBaseTokenByChain(p.Chain)
 	if err != nil {
-		return fmt.Errorf("balances.GetBaseTokenByChain failed: %v: %w", err, asynq.SkipRetry)
+		return fmt.Errorf("balances.GetBaseTokenByChain failed: %v", err)
 	}
 
 	b := &models.Balance{
@@ -45,9 +45,9 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 	}
 
 	if balanceAmount > 0 {
-		err = services.SaveBalance(b)
+		_, err = services.SaveBalanceWithLatestPrice(b)
 		if err != nil {
-			return fmt.Errorf("services.SaveBalance failed: %v: %w", err, asynq.SkipRetry)
+			return fmt.Errorf("services.SaveBalance failed: %v", err)
 		}
 	}
 
@@ -60,12 +60,12 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 	if p.Chain == "ethereum" || p.Chain == "bsc" || p.Chain == "optimism" {
 		tokenBalances, err := balance.FetchTokensWithBalance(p.Address, p.Chain)
 		if err != nil {
-			return fmt.Errorf("balance.FetchTokensWithBalance failed: %v: %w", err, asynq.SkipRetry)
+			return fmt.Errorf("balance.FetchTokensWithBalance failed: %v", err)
 		}
 		for tokenAddress, tokenBalance := range tokenBalances {
 			tokenBalanceFloat, err := strconv.ParseFloat(tokenBalance, 64)
 			if err != nil {
-				return fmt.Errorf("strconv.ParseFloat failed: %v: %w", err, asynq.SkipRetry)
+				return fmt.Errorf("strconv.ParseFloat failed: %v", err)
 			}
 			tb := &models.Balance{
 				ECDSA:   p.ECDSA,
@@ -76,9 +76,9 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 				Token:   tokenAddress,
 				Date:    time.Now().Unix(),
 			}
-			err = services.SaveBalance(tb)
+			_, err = services.SaveBalanceWithLatestPrice(tb)
 			if err != nil {
-				return fmt.Errorf("services.SaveBalance failed: %v: %w", err, asynq.SkipRetry)
+				return fmt.Errorf("services.SaveBalance failed: %v", err)
 			}
 		}
 		result["token_balances"] = tokenBalances
@@ -86,11 +86,11 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 
 	resultBytes, err := json.Marshal(result)
 	if err != nil {
-		return fmt.Errorf("json.Marshal failed: %v: %w", err, asynq.SkipRetry)
+		return fmt.Errorf("json.Marshal failed: %v", err)
 	}
 
 	if _, err := t.ResultWriter().Write(resultBytes); err != nil {
-		return fmt.Errorf("t.ResultWriter.Write failed: %v: %w", err, asynq.SkipRetry)
+		return fmt.Errorf("t.ResultWriter.Write failed: %v", err)
 	}
 
 	return nil
@@ -99,7 +99,7 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 func ProcessPointsCalculationTask(ctx context.Context, t *asynq.Task) error {
 	var p PointsCalculationPayload
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
-		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
+		return fmt.Errorf("json.Unmarshal failed: %v", err)
 	}
 	log.Printf("Calculating points for Vault: ecdsa=%s, eddsa=%s", p.ECDSA, p.EDDSA)
 	return nil
@@ -108,7 +108,7 @@ func ProcessPointsCalculationTask(ctx context.Context, t *asynq.Task) error {
 func ProcessPriceFetchTask(ctx context.Context, t *asynq.Task) error {
 	var p PriceFetchPayload
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
-		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
+		return fmt.Errorf("json.Unmarshal failed: %v", err)
 	}
 	log.Printf("Fetching coin price for token: chain=%s, token=%s", p.Chain, p.Token)
 
@@ -129,7 +129,7 @@ func ProcessPriceFetchTask(ctx context.Context, t *asynq.Task) error {
 
 	err = services.SavePrice(price)
 	if err != nil {
-		return fmt.Errorf("services.SavePrice failed: %v: %w", err, asynq.SkipRetry)
+		return fmt.Errorf("services.SavePrice failed: %v", err)
 	}
 
 	result := map[string]interface{}{
@@ -137,7 +137,7 @@ func ProcessPriceFetchTask(ctx context.Context, t *asynq.Task) error {
 	}
 	resultBytes, err := json.Marshal(result)
 	if _, err := t.ResultWriter().Write([]byte(resultBytes)); err != nil {
-		return fmt.Errorf("t.ResultWriter.Write failed: %v: %w", err, asynq.SkipRetry)
+		return fmt.Errorf("t.ResultWriter.Write failed: %v", err)
 	}
 
 	return nil

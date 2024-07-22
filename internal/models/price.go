@@ -12,3 +12,11 @@ type Price struct {
 	Date   int64   `json:"date"`
 	Source string  `json:"source"`
 }
+
+type PriceResponse struct {
+	Chain  string  `json:"chain"`
+	Token  string  `json:"token"`
+	Price  float64 `json:"price"`
+	Date   int64   `json:"date"`
+	Source string  `json:"source"`
+}

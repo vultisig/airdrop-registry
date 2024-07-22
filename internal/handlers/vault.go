@@ -59,45 +59,6 @@ func GetVaultAddressesHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, addresses)
 }
 
-func GetVaultBalancesHandler(c *gin.Context) {
-	ecdsaPublicKey := c.Param("ecdsaPublicKey")
-	eddsaPublicKey := c.Param("eddsaPublicKey")
-
-	vault, err := services.GetVault(ecdsaPublicKey, eddsaPublicKey)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "vault not found"})
-		return
-	}
-
-	balances, err := services.GetBalancesByVaultKeys(vault.ECDSA, vault.EDDSA)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, balances)
-}
-
-// fetches only latest balance
-func GetVaultBalanceHandler(c *gin.Context) {
-	ecdsaPublicKey := c.Param("ecdsaPublicKey")
-	eddsaPublicKey := c.Param("eddsaPublicKey")
-
-	vault, err := services.GetVault(ecdsaPublicKey, eddsaPublicKey)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "vault not found"})
-		return
-	}
-
-	balance, err := services.GetLatestBalancesByVaultKeys(vault.ECDSA, vault.EDDSA)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, balance)
-}
-
 func ListVaultsHandler(c *gin.Context) {
 	vaults, err := services.GetAllVaults()
 	if err != nil {
