@@ -19,17 +19,17 @@ type Balance struct {
 }
 
 type BalanceResponse struct {
-	ID         uint      `json:"id"`
-	ECDSA      string    `json:"ecdsa"`
-	EDDSA      string    `json:"eddsa"`
-	Chain      string    `json:"chain"`
-	Address    string    `json:"address"`
-	Token      string    `json:"token"`
-	Balance    float64   `json:"balance"`
-	Date       int64     `json:"date"`
-	PriceID    uint      `json:"price_id"`
-	UsdBalance float64   `json:"usd_balance"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-	Price      Price     `json:"price"`
+	ID        uint      `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	ECDSA      string        `json:"ecdsa"`
+	EDDSA      string        `json:"eddsa"`
+	Chain      string        `json:"chain"`
+	Address    string        `json:"address"`
+	Token      string        `json:"token"`
+	Balance    float64       `json:"balance"`
+	Date       int64         `json:"date"`
+	UsdBalance float64       `json:"usd_balance"`
+	Price      PriceResponse `json:"price"`
 }

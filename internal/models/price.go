@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -14,6 +16,10 @@ type Price struct {
 }
 
 type PriceResponse struct {
+	ID        uint      `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
 	Chain  string  `json:"chain"`
 	Token  string  `json:"token"`
 	Price  float64 `json:"price"`
