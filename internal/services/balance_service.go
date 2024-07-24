@@ -109,7 +109,7 @@ func fetchBalancesByVaultKeys(ecdsaPublicKey, eddsaPublicKey string, onlyRecent 
 			UsdValue:  result.UsdValue,
 			CreatedAt: result.CreatedAt,
 			UpdatedAt: result.UpdatedAt,
-			Price: models.PriceResponse{
+			Price: models.Price{
 				ID:        0,
 				CreatedAt: time.Time{},
 				UpdatedAt: time.Time{},
