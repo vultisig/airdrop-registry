@@ -19,13 +19,18 @@ type TokenInfo struct {
 }
 
 func GetTokenInfo(addresses []string, chain string) (map[string]TokenInfo, error) {
+	chainToId := GetChainIDByChain(chain)
+	if chainToId == 0 {
+		return nil, fmt.Errorf("unsupported chain: %s", chain)
+	}
+
 	var addressesLower []string
 	for _, address := range addresses {
 		addressesLower = append(addressesLower, strings.ToLower(address))
 	}
 	addressesParam := strings.Join(addressesLower, ",")
 
-	apiURL := fmt.Sprintf("https://api.vultisig.com/1inch/token/v1.2/%s/custom?addresses=%s", chain, addressesParam)
+	apiURL := fmt.Sprintf("https://api.vultisig.com/1inch/token/v1.2/%d/custom?addresses=%s", chainToId, addressesParam)
 
 	response, err := http.Get(apiURL)
 	if err != nil {
@@ -49,15 +54,17 @@ func GetTokenInfo(addresses []string, chain string) (map[string]TokenInfo, error
 
 func FetchTokensWithBalance(address, chain string) (map[string]string, error) {
 	chainToId := GetChainIDByChain(chain)
+	if chainToId == 0 {
+		return nil, fmt.Errorf("unsupported chain: %s", chain)
+	}
+
 	address = strings.ToLower(address)
-	// fmt.Println("!!!!!!3Fetching token balances for address", address, "on chain", chain)
 	// @TEST
 	if chain == "ethereum" {
 		address = "0xaA11EA95475341c4dDb83aF141B01e52500c23d6"
 	}
 	apiURL := fmt.Sprintf("https://api.vultisig.com/1inch/balance/v1.2/%d/balances/%s", chainToId, address)
 
-	fmt.Println(apiURL)
 	response, err := http.Get(apiURL)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching token balances: %v", err)

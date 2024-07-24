@@ -8,7 +8,7 @@ import (
 
 func TestFetchTokensWithBalance(t *testing.T) {
 	address := "0xaA11EA95475341c4dDb83aF141B01e52500c23d6"
-	tokens, err := FetchTokensWithBalance(address, "1")
+	tokens, err := FetchTokensWithBalance(address, "ethereum")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -37,7 +37,7 @@ func checkBalanceGreaterThan(t *testing.T, tokens map[string]string, addr string
 
 func TestGetTokenInfo(t *testing.T) {
 	addresses := []string{"0xc3d688b66703497daa19211eedff47f25384cdc3", "0xd01409314acb3b245cea9500ece3f6fd4d70ea30"}
-	tokenInfo, err := GetTokenInfo(addresses, "1")
+	tokenInfo, err := GetTokenInfo(addresses, "ethereum")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
