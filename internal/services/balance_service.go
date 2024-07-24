@@ -58,7 +58,7 @@ func fetchBalancesByVaultKeys(ecdsaPublicKey, eddsaPublicKey string, onlyRecent 
 		Balance        float64    `json:"balance"`
 		Date           int64      `json:"date"`
 		PriceID        *uint      `json:"price_id"`
-		UsdBalance     float64    `json:"usd_balance"`
+		UsdValue       float64    `json:"usd_value"`
 		CreatedAt      time.Time  `json:"created_at"`
 		UpdatedAt      time.Time  `json:"updated_at"`
 		PriceChain     *string    `json:"price_chain"`
@@ -75,7 +75,7 @@ func fetchBalancesByVaultKeys(ecdsaPublicKey, eddsaPublicKey string, onlyRecent 
 	query := db.DB.Table("balances").
 		Select(`balances.id, balances.ecdsa, balances.eddsa, balances.chain, balances.address, balances.token,
 				balances.balance, balances.date, balances.price_id, balances.created_at, balances.updated_at,
-				COALESCE(balances.balance * prices.price, 0) as usd_balance,
+				COALESCE(balances.balance * prices.price, 0) as usd_value,
 				prices.id as price_id, prices.chain as price_chain, prices.token as price_token, prices.price as price_price, prices.date as price_date, prices.source as price_source, prices.created_at as price_created_at, prices.updated_at as price_updated_at`).
 		Joins("LEFT JOIN prices ON balances.price_id = prices.id").
 		Where("balances.ecdsa = ? AND balances.eddsa = ?", ecdsaPublicKey, eddsaPublicKey)
@@ -98,17 +98,17 @@ func fetchBalancesByVaultKeys(ecdsaPublicKey, eddsaPublicKey string, onlyRecent 
 
 	for _, result := range results {
 		balance := models.BalanceResponse{
-			ID:         result.ID,
-			ECDSA:      result.ECDSA,
-			EDDSA:      result.EDDSA,
-			Chain:      result.Chain,
-			Address:    result.Address,
-			Token:      result.Token,
-			Balance:    result.Balance,
-			Date:       result.Date,
-			UsdBalance: result.UsdBalance,
-			CreatedAt:  result.CreatedAt,
-			UpdatedAt:  result.UpdatedAt,
+			ID:        result.ID,
+			ECDSA:     result.ECDSA,
+			EDDSA:     result.EDDSA,
+			Chain:     result.Chain,
+			Address:   result.Address,
+			Token:     result.Token,
+			Balance:   result.Balance,
+			Date:      result.Date,
+			UsdValue:  result.UsdValue,
+			CreatedAt: result.CreatedAt,
+			UpdatedAt: result.UpdatedAt,
 			Price: models.PriceResponse{
 				ID:        0,
 				CreatedAt: time.Time{},
@@ -161,7 +161,7 @@ func fetchBalancesByVaultKeys(ecdsaPublicKey, eddsaPublicKey string, onlyRecent 
 				balance.Price.Date = recentPrice.Date
 				balance.Price.Source = recentPrice.Source
 
-				balance.UsdBalance = balance.Balance * recentPrice.Price
+				balance.UsdValue = balance.Balance * recentPrice.Price
 			}
 		}
 		balances = append(balances, balance)

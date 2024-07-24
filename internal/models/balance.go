@@ -23,13 +23,13 @@ type BalanceResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
-	ECDSA      string        `json:"ecdsa"`
-	EDDSA      string        `json:"eddsa"`
-	Chain      string        `json:"chain"`
-	Address    string        `json:"address"`
-	Token      string        `json:"token"`
-	Balance    float64       `json:"balance"`
-	Date       int64         `json:"date"`
-	UsdBalance float64       `json:"usd_balance"`
-	Price      PriceResponse `json:"price"`
+	ECDSA    string        `json:"ecdsa"`
+	EDDSA    string        `json:"eddsa"`
+	Chain    string        `json:"chain"`
+	Address  string        `json:"address"`
+	Token    string        `json:"token"`
+	Balance  float64       `json:"balance"`
+	Date     int64         `json:"date"`
+	UsdValue float64       `json:"usd_value"`
+	Price    PriceResponse `json:"price"`
 }
