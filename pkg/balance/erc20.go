@@ -31,7 +31,6 @@ func GetTokenInfo(addresses []string, chain string) (map[string]TokenInfo, error
 	addressesParam := strings.Join(addressesLower, ",")
 
 	apiURL := fmt.Sprintf("https://api.vultisig.com/1inch/token/v1.2/%d/custom?addresses=%s", chainToId, addressesParam)
-
 	response, err := http.Get(apiURL)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching token info: %v", err)

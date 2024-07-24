@@ -1,6 +1,7 @@
 package services
 
 import (
+	"strings"
 	"time"
 
 	"github.com/vultisig/airdrop-registry/internal/models"
@@ -12,18 +13,27 @@ func SaveBalance(balance *models.Balance) error {
 }
 
 func SaveBalanceWithLatestPrice(balance *models.Balance) (float64, error) {
-	latestPrice, _ := GetLatestPriceByToken(balance.Chain, balance.Token)
-	// if err != nil {
-	// 	return 0, err
-	// }
+	if balance.Token == "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" {
+		balance.Token = "ETH"
+	}
+
+	latestPrice, err := GetLatestPriceByToken(balance.Chain, balance.Token)
+	if err != nil {
+		recordNotFound := strings.Contains(err.Error(), "record not found")
+		if !recordNotFound {
+			return 0, err
+		}
+	}
 
 	if latestPrice.ID != 0 {
-		if time.Since(latestPrice.CreatedAt) > 24*time.Hour {
+		twentyFourHoursAgo := time.Now().Add(-24 * time.Hour)
+
+		if latestPrice.CreatedAt.After(twentyFourHoursAgo) {
 			balance.PriceID = latestPrice.ID
 		}
 	}
 
-	err := db.DB.Create(balance).Error
+	err = db.DB.Create(balance).Error
 	return latestPrice.Price, err
 }
 
@@ -39,25 +49,25 @@ func fetchBalancesByVaultKeys(ecdsaPublicKey, eddsaPublicKey string, onlyRecent 
 	var balances []models.BalanceResponse
 
 	type balanceWithPrice struct {
-		ID             uint      `json:"id"`
-		ECDSA          string    `json:"ecdsa"`
-		EDDSA          string    `json:"eddsa"`
-		Chain          string    `json:"chain"`
-		Address        string    `json:"address"`
-		Token          string    `json:"token"`
-		Balance        float64   `json:"balance"`
-		Date           int64     `json:"date"`
-		PriceID        uint      `json:"price_id"`
-		UsdBalance     float64   `json:"usd_balance"`
-		CreatedAt      time.Time `json:"created_at"`
-		UpdatedAt      time.Time `json:"updated_at"`
-		PriceChain     string    `json:"price_chain"`
-		PriceToken     string    `json:"price_token"`
-		PricePrice     float64   `json:"price_price"`
-		PriceDate      int64     `json:"price_date"`
-		PriceSource    string    `json:"price_source"`
-		PriceCreatedAt time.Time `json:"price_created_at"`
-		PriceUpdatedAt time.Time `json:"price_updated_at"`
+		ID             uint       `json:"id"`
+		ECDSA          string     `json:"ecdsa"`
+		EDDSA          string     `json:"eddsa"`
+		Chain          string     `json:"chain"`
+		Address        string     `json:"address"`
+		Token          string     `json:"token"`
+		Balance        float64    `json:"balance"`
+		Date           int64      `json:"date"`
+		PriceID        *uint      `json:"price_id"`
+		UsdBalance     float64    `json:"usd_balance"`
+		CreatedAt      time.Time  `json:"created_at"`
+		UpdatedAt      time.Time  `json:"updated_at"`
+		PriceChain     *string    `json:"price_chain"`
+		PriceToken     *string    `json:"price_token"`
+		PricePrice     *float64   `json:"price_price"`
+		PriceDate      *int64     `json:"price_date"`
+		PriceSource    *string    `json:"price_source"`
+		PriceCreatedAt *time.Time `json:"price_created_at"`
+		PriceUpdatedAt *time.Time `json:"price_updated_at"`
 	}
 
 	var results []balanceWithPrice
@@ -65,9 +75,9 @@ func fetchBalancesByVaultKeys(ecdsaPublicKey, eddsaPublicKey string, onlyRecent 
 	query := db.DB.Table("balances").
 		Select(`balances.id, balances.ecdsa, balances.eddsa, balances.chain, balances.address, balances.token,
 				balances.balance, balances.date, balances.price_id, balances.created_at, balances.updated_at,
-				balances.balance * prices.price as usd_balance,
+				COALESCE(balances.balance * prices.price, 0) as usd_balance,
 				prices.id as price_id, prices.chain as price_chain, prices.token as price_token, prices.price as price_price, prices.date as price_date, prices.source as price_source, prices.created_at as price_created_at, prices.updated_at as price_updated_at`).
-		Joins("JOIN prices ON balances.price_id = prices.id").
+		Joins("LEFT JOIN prices ON balances.price_id = prices.id").
 		Where("balances.ecdsa = ? AND balances.eddsa = ?", ecdsaPublicKey, eddsaPublicKey)
 
 	if onlyRecent {
@@ -100,15 +110,59 @@ func fetchBalancesByVaultKeys(ecdsaPublicKey, eddsaPublicKey string, onlyRecent 
 			CreatedAt:  result.CreatedAt,
 			UpdatedAt:  result.UpdatedAt,
 			Price: models.PriceResponse{
-				ID:        result.PriceID,
-				CreatedAt: result.PriceCreatedAt,
-				UpdatedAt: result.PriceUpdatedAt,
-				Chain:     result.PriceChain,
-				Token:     result.PriceToken,
-				Price:     result.PricePrice,
-				Date:      result.PriceDate,
-				Source:    result.PriceSource,
+				ID:        0,
+				CreatedAt: time.Time{},
+				UpdatedAt: time.Time{},
+				Chain:     "",
+				Token:     "",
+				Price:     0,
+				Date:      0,
+				Source:    "",
 			},
+		}
+		if result.PriceID != nil {
+			balance.Price.ID = *result.PriceID
+			if result.PriceCreatedAt != nil {
+				balance.Price.CreatedAt = *result.PriceCreatedAt
+			}
+			if result.PriceUpdatedAt != nil {
+				balance.Price.UpdatedAt = *result.PriceUpdatedAt
+			}
+			if result.PriceChain != nil {
+				balance.Price.Chain = *result.PriceChain
+			}
+			if result.PriceToken != nil {
+				balance.Price.Token = *result.PriceToken
+			}
+			if result.PricePrice != nil {
+				balance.Price.Price = *result.PricePrice
+			}
+			if result.PriceDate != nil {
+				balance.Price.Date = *result.PriceDate
+			}
+			if result.PriceSource != nil {
+				balance.Price.Source = *result.PriceSource
+			}
+		} else {
+			recentPrice, err := GetLatestPriceByToken(balance.Chain, balance.Token)
+			if err != nil {
+				recordNotFound := strings.Contains(err.Error(), "record not found")
+				if !recordNotFound {
+					return nil, err
+				}
+			}
+			if recentPrice != nil {
+				balance.Price.ID = recentPrice.ID
+				balance.Price.CreatedAt = recentPrice.CreatedAt
+				balance.Price.UpdatedAt = recentPrice.UpdatedAt
+				balance.Price.Chain = recentPrice.Chain
+				balance.Price.Token = recentPrice.Token
+				balance.Price.Price = recentPrice.Price
+				balance.Price.Date = recentPrice.Date
+				balance.Price.Source = recentPrice.Source
+
+				balance.UsdBalance = balance.Balance * recentPrice.Price
+			}
 		}
 		balances = append(balances, balance)
 	}

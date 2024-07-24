@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"time"
 
@@ -62,20 +63,40 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 		if err != nil {
 			return fmt.Errorf("balance.FetchTokensWithBalance failed: %v", err)
 		}
+
+		tokenAddresses := make([]string, 0, len(tokenBalances))
+		for tokenAddress := range tokenBalances {
+			tokenAddresses = append(tokenAddresses, tokenAddress)
+		}
+
+		tokenInfoMap, err := balance.GetTokenInfo(tokenAddresses, p.Chain)
+		if err != nil {
+			return fmt.Errorf("GetTokenInfo failed: %v", err)
+		}
+
 		for tokenAddress, tokenBalance := range tokenBalances {
 			tokenBalanceFloat, err := strconv.ParseFloat(tokenBalance, 64)
 			if err != nil {
 				return fmt.Errorf("strconv.ParseFloat failed: %v", err)
 			}
+
+			tokenInfo, ok := tokenInfoMap[tokenAddress]
+			if !ok {
+				return fmt.Errorf("token info not found for address: %s", tokenAddress)
+			}
+
+			adjustedBalance := tokenBalanceFloat / math.Pow(10, float64(tokenInfo.Decimals))
+
 			tb := &models.Balance{
 				ECDSA:   p.ECDSA,
 				EDDSA:   p.EDDSA,
 				Chain:   p.Chain,
 				Address: p.Address,
-				Balance: tokenBalanceFloat,
+				Balance: adjustedBalance,
 				Token:   tokenAddress,
 				Date:    time.Now().Unix(),
 			}
+
 			_, err = services.SaveBalanceWithLatestPrice(tb)
 			if err != nil {
 				return fmt.Errorf("services.SaveBalance failed: %v", err)
