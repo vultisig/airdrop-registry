@@ -48,6 +48,7 @@ func Schedule(redisConnOpt *asynq.RedisClientOpt) error {
 	}
 
 	// Runs at :15 every hour
+	// @TODO: Update to randomness or env
 	entryId, err = scheduler.Register("15 * * * * ", task, asynq.Queue(TypePointsCalculation), asynq.Retention(24*time.Hour))
 	if err != nil {
 		return err
