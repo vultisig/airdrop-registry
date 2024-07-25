@@ -25,7 +25,7 @@ func ConnectDatabase() {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
 
-	err = database.AutoMigrate(&models.Vault{}, &models.Balance{}, &models.Price{})
+	err = database.AutoMigrate(&models.Vault{}, &models.Balance{}, &models.Price{}, &models.Point{})
 	if err != nil {
 		log.Fatalf("failed to migrate database: %v", err)
 	}

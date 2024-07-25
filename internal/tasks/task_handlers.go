@@ -120,16 +120,66 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 func ProcessPointsCalculationTask(ctx context.Context, t *asynq.Task) error {
 	var p PointsCalculationPayload
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
-		return fmt.Errorf("json.Unmarshal failed: %v", err)
+		return fmt.Errorf("json.Unmarshal failed: %v, %w", err, asynq.SkipRetry)
 	}
 	log.Printf("Calculating points for Vault: ecdsa=%s, eddsa=%s", p.ECDSA, p.EDDSA)
+
+	vaults, err := services.GetAllVaults()
+	if err != nil {
+		return fmt.Errorf("services.GetAllVaults failed: %v", err)
+	}
+
+	totalUSD := 0.0
+	for _, vault := range vaults {
+		averageBalance, err := services.GetAverageBalanceLast24Hours(vault.ECDSA, vault.EDDSA)
+		if err != nil {
+			return fmt.Errorf("services.GetLatestBalancesByVaultKeys failed: %v", err)
+		}
+		totalUSD += averageBalance
+	}
+
+	averageBalance, err := services.GetAverageBalanceLast24Hours(p.ECDSA, p.EDDSA)
+	if err != nil {
+		return fmt.Errorf("services.GetLatestBalancesByVaultKeys failed: %v", err)
+	}
+
+	points := float64((averageBalance / totalUSD) * 10000)
+
+	point := &models.Point{
+		ECDSA:   p.ECDSA,
+		EDDSA:   p.EDDSA,
+		Balance: averageBalance,
+		Points:  points,
+	}
+
+	err = services.SavePoint(point)
+	if err != nil {
+		return fmt.Errorf("services.SavePoint failed: %v", err)
+	}
+
+	log.Printf("Points for Vault: ecdsa=%s, eddsa=%s is %f", p.ECDSA, p.EDDSA, points)
+
+	result := map[string]interface{}{
+		"points":  points,
+		"balance": averageBalance,
+	}
+
+	resultBytes, err := json.Marshal(result)
+	if err != nil {
+		return fmt.Errorf("json.Marshal failed: %v", err)
+	}
+
+	if _, err := t.ResultWriter().Write(resultBytes); err != nil {
+		return fmt.Errorf("t.ResultWriter.Write failed: %v", err)
+	}
+
 	return nil
 }
 
 func ProcessPriceFetchTask(ctx context.Context, t *asynq.Task) error {
 	var p PriceFetchPayload
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
-		return fmt.Errorf("json.Unmarshal failed: %v", err)
+		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
 	log.Printf("Fetching coin price for token: chain=%s, token=%s", p.Chain, p.Token)
 

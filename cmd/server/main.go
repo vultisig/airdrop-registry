@@ -41,6 +41,11 @@ func main() {
 	router.POST("/prices", handlers.StartPricesFetchHandler)
 	router.GET("/prices", handlers.GetPricesHandler)
 
+	// Points
+	router.GET("/points", handlers.GetPointsHandler)
+	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/points", handlers.GetVaultPointsHandler)
+	router.POST("/vault/:ecdsaPublicKey/:eddsaPublicKey/point", handlers.StartPointsFetchHandler)
+
 	go asynq.Initialize()
 	defer asynq.AsynqClient.Close()
 	defer db.CloseDatabase()

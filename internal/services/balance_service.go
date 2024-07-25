@@ -189,3 +189,21 @@ func GetUniqueActiveChainTokenPairs() ([]ChainTokenPair, error) {
 
 	return chainTokenPairs, err
 }
+
+func GetAverageBalanceLast24Hours(ecdsaPublicKey, eddsaPublicKey string) (float64, error) {
+	var avgBalance float64
+
+	twentyFourHoursAgo := time.Now().Add(-24 * time.Hour)
+
+	subquery := db.DB.Table("balances").
+		Select("AVG(balances.balance * prices.price)").
+		Joins("LEFT JOIN prices ON balances.price_id = prices.id").
+		Where("balances.ecdsa = ? AND balances.eddsa = ? AND balances.updated_at > ?", ecdsaPublicKey, eddsaPublicKey, twentyFourHoursAgo)
+
+	err := subquery.Row().Scan(&avgBalance)
+	if err != nil {
+		return 0, err
+	}
+
+	return avgBalance, nil
+}

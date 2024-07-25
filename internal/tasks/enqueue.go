@@ -7,7 +7,7 @@ import (
 	"github.com/hibiken/asynq"
 )
 
-// Balance fetch
+// Balance
 
 func newBalanceFetch(
 	ecdsa string,
@@ -63,6 +63,35 @@ func EnqueuePointsCalculationTask(
 	return err
 }
 
+// Enqueue all point calculations
+func EnqueueAllPointsCalculationTasks(
+	asynqClient *asynq.Client,
+	ecdsaList []string,
+	eddsaList []string,
+) error {
+	for i := range ecdsaList {
+		if err := EnqueuePointsCalculationTask(asynqClient, ecdsaList[i], eddsaList[i]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func EnqueuePointsCalculationAllTask(
+	asynqClient *asynq.Client,
+	ecdsaList []string,
+	eddsaList []string,
+) error {
+	allTask, err := NewPointsCalculationAll()
+	if err != nil {
+		return err
+	}
+	if _, err := asynqClient.Enqueue(allTask, asynq.MaxRetry(2), asynq.Unique(time.Minute*1), asynq.Retention(24*time.Hour), asynq.Queue(TypePointsCalculation)); err != nil {
+		return err
+	}
+	return EnqueueAllPointsCalculationTasks(asynqClient, ecdsaList, eddsaList)
+}
+
 // Price fetch
 
 func newPriceFetch(
@@ -99,4 +128,9 @@ func NewPriceFetchForAllActivePairs() (*asynq.Task, error) {
 // Balance fetch all
 func NewBalanceFetchAll() (*asynq.Task, error) {
 	return asynq.NewTask(TypeBalanceFetchAll, nil), nil
+}
+
+// Point calculation for all
+func NewPointsCalculationAll() (*asynq.Task, error) {
+	return asynq.NewTask(TypePointsCalculationAll, nil), nil
 }

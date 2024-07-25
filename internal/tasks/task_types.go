@@ -5,6 +5,7 @@ const (
 	TypeBalanceFetch             = "balance:fetch"
 	TypeBalanceFetchAll          = "balance:fetch_all"
 	TypePointsCalculation        = "points:calculate"
+	TypePointsCalculationAll     = "points:calculate:all"
 	TypePriceFetch               = "price:fetch"
 	TypePriceFetchAllActivePairs = "price:fetch_all_active_pairs"
 )
