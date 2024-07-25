@@ -51,7 +51,7 @@ func GetBaseTokenByChain(chain string) (string, error) {
 		return "LTC", nil
 	case "dash":
 		return "DASH", nil
-	case "bitcoin cash":
+	case "bitcoincash":
 		return "BCH", nil
 	case "dogecoin":
 		return "DOGE", nil

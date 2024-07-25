@@ -56,7 +56,7 @@ func GenerateChainKeys(chainName, hexPubKeyECDSA, hexPubKeyEdDSA, hexChainCode, 
 	keys.PublicKey = derivedKey
 
 	switch chainName {
-	case "bitcoin", "bitcoin cash", "dash", "dogecoin", "litecoin":
+	case "bitcoin", "bitcoincash", "dash", "dogecoin", "litecoin":
 		var net *chaincfg.Params
 		var prefix string
 
@@ -64,7 +64,7 @@ func GenerateChainKeys(chainName, hexPubKeyECDSA, hexPubKeyEdDSA, hexChainCode, 
 		case "bitcoin":
 			net = &chaincfg.MainNetParams
 			prefix = "bc1"
-		case "bitcoin cash":
+		case "bitcoincash":
 			net = &chaincfg.MainNetParams
 			prefix = "bitcoincash:"
 		case "dash":
@@ -87,7 +87,7 @@ func GenerateChainKeys(chainName, hexPubKeyECDSA, hexPubKeyEdDSA, hexChainCode, 
 		addressWithoutPrefix := strings.Split(address, "bc1")[1]
 		keys.Address = prefix + addressWithoutPrefix
 
-	case "ethereum", "arbitrum", "avalanche", "bsc", "base", "blast chain", "cronoschain", "optimism eth", "polygon", "zksync":
+	case "ethereum", "arbitrum", "avalanche", "bsc", "base", "blast", "cronos", "optimism", "polygon", "zksync":
 		pubKey, err := crypto.DecompressPubkey(pubKeyBytes)
 		if err != nil {
 			return ChainKeys{}, err
@@ -161,16 +161,16 @@ var supportedChains = []struct {
 	{name: "avalanche", derivePath: "m/44'/60'/0'/0/0"},
 	{name: "bsc", derivePath: "m/44'/60'/0'/0/0"},
 	{name: "base", derivePath: "m/44'/60'/0'/0/0"},
-	{name: "bitcoin cash", derivePath: "m/44'/145'/0'/0/0"},
-	{name: "blast chain", derivePath: "m/44'/60'/0'/0/0"},
-	{name: "cronoschain", derivePath: "m/44'/60'/0'/0/0"},
+	{name: "bitcoincash", derivePath: "m/44'/145'/0'/0/0"},
+	{name: "blast", derivePath: "m/44'/60'/0'/0/0"},
+	{name: "cronos", derivePath: "m/44'/60'/0'/0/0"},
 	{name: "dash", derivePath: "m/44'/5'/0'/0/0"},
 	{name: "dogecoin", derivePath: "m/44'/3'/0'/0/0"},
 	{name: "dydx", derivePath: "m/44'/118'/0'/0/0"},
 	{name: "gaia", derivePath: "m/44'/118'/0'/0/0"},
 	{name: "kujira", derivePath: "m/44'/118'/0'/0/0"},
 	{name: "litecoin", derivePath: "m/84'/2'/0'/0/0"},
-	{name: "optimism eth", derivePath: "m/44'/60'/0'/0/0"},
+	{name: "optimism", derivePath: "m/44'/60'/0'/0/0"},
 	{name: "polygon", derivePath: "m/44'/60'/0'/0/0"},
 	{name: "zksync", derivePath: "m/44'/60'/0'/0/0"},
 	// EDDSA

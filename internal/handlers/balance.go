@@ -59,7 +59,6 @@ func GetVaultBalancesHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, balances)
 }
 
-// fetches only latest balance
 func GetVaultBalanceHandler(c *gin.Context) {
 	ecdsaPublicKey := c.Param("ecdsaPublicKey")
 	eddsaPublicKey := c.Param("eddsaPublicKey")
