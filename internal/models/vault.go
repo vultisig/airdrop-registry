@@ -9,8 +9,8 @@ import (
 )
 
 type Vault struct {
-	ECDSA        string `gorm:"type:varchar(255);primaryKey" json:"ECDSA" binding:"required"`
-	EDDSA        string `gorm:"type:varchar(255);primaryKey" json:"EdDSA" binding:"required"`
+	ECDSA        string `gorm:"type:varchar(255);primaryKey" json:"ecdsa" binding:"required"`
+	EDDSA        string `gorm:"type:varchar(255);primaryKey" json:"eddsa" binding:"required"`
 	HexChainCode string `gorm:"type:varchar(255)" json:"hexChainCode" binding:"required"`
 }
 

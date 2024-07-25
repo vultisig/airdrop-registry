@@ -2,14 +2,15 @@ package models
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Balance struct {
-	gorm.Model
-	ECDSA   string  `gorm:"type:varchar(255)" json:"ECDSA" binding:"required"`
-	EDDSA   string  `gorm:"type:varchar(255)" json:"EdDSA" binding:"required"`
+	ID        uint      `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	ECDSA   string  `gorm:"type:varchar(255)" json:"ecdsa" binding:"required"`
+	EDDSA   string  `gorm:"type:varchar(255)" json:"eddsa" binding:"required"`
 	Chain   string  `json:"chain"`
 	Address string  `json:"address"`
 	Token   string  `json:"token"`

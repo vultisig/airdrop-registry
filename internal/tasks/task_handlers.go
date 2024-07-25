@@ -129,27 +129,30 @@ func ProcessPointsCalculationTask(ctx context.Context, t *asynq.Task) error {
 		return fmt.Errorf("services.GetAllVaults failed: %v", err)
 	}
 
+	// @TODO: Check when the latest scan was done instead of last 2 hours
+	timeSince := time.Now().Add(-2 * time.Hour)
+
 	totalUSD := 0.0
 	for _, vault := range vaults {
-		averageBalance, err := services.GetAverageBalanceLast24Hours(vault.ECDSA, vault.EDDSA)
+		averageBalance, err := services.GetAverageBalanceSince(vault.ECDSA, vault.EDDSA, timeSince)
 		if err != nil {
 			return fmt.Errorf("services.GetLatestBalancesByVaultKeys failed: %v", err)
 		}
 		totalUSD += averageBalance
 	}
 
-	averageBalance, err := services.GetAverageBalanceLast24Hours(p.ECDSA, p.EDDSA)
+	averageBalance, err := services.GetAverageBalanceSince(p.ECDSA, p.EDDSA, timeSince)
 	if err != nil {
 		return fmt.Errorf("services.GetLatestBalancesByVaultKeys failed: %v", err)
 	}
 
-	points := float64((averageBalance / totalUSD) * 10000)
+	share := float64((averageBalance / totalUSD) * 100)
 
 	point := &models.Point{
 		ECDSA:   p.ECDSA,
 		EDDSA:   p.EDDSA,
 		Balance: averageBalance,
-		Points:  points,
+		Share:   share,
 	}
 
 	err = services.SavePoint(point)
@@ -157,10 +160,10 @@ func ProcessPointsCalculationTask(ctx context.Context, t *asynq.Task) error {
 		return fmt.Errorf("services.SavePoint failed: %v", err)
 	}
 
-	log.Printf("Points for Vault: ecdsa=%s, eddsa=%s is %f", p.ECDSA, p.EDDSA, points)
+	log.Printf("Point share for Vault: ecdsa=%s, eddsa=%s is %f", p.ECDSA, p.EDDSA, share)
 
 	result := map[string]interface{}{
-		"points":  points,
+		"share":   share,
 		"balance": averageBalance,
 	}
 
