@@ -126,37 +126,44 @@ func ProcessPointsCalculationTask(ctx context.Context, t *asynq.Task) error {
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v, %w", err, asynq.SkipRetry)
 	}
-	log.Printf("Calculating points for Vault: ecdsa=%s, eddsa=%s, cycleID=%s", p.ECDSA, p.EDDSA, p.Cycle)
-
-	vaults, err := services.GetAllVaults()
-	if err != nil {
-		return fmt.Errorf("services.GetAllVaults failed: %v", err)
-	}
-
-	// @TODO: Check when the latest scan was done instead of last 2 hours
-	timeSince := time.Now().Add(-2 * time.Hour)
-
-	totalUSD := 0.0
-	for _, vault := range vaults {
-		averageBalance, err := services.GetAverageBalanceSince(vault.ECDSA, vault.EDDSA, timeSince)
-		if err != nil {
-			return fmt.Errorf("services.GetLatestBalancesByVaultKeys failed: %v", err)
-		}
-		totalUSD += averageBalance
-	}
-
-	averageBalance, err := services.GetAverageBalanceSince(p.ECDSA, p.EDDSA, timeSince)
-	if err != nil {
-		return fmt.Errorf("services.GetLatestBalancesByVaultKeys failed: %v", err)
-	}
-
-	share := utils.CalculateShare(averageBalance, totalUSD)
 
 	cycleID32, err := strconv.ParseUint(p.Cycle, 10, 32)
 	if err != nil {
 		return fmt.Errorf("strconv.ParseUint failed: %v", err)
 	}
 	cycleID := uint(cycleID32)
+
+	cycle, err := services.GetCycleByID(cycleID)
+	if err != nil {
+		return fmt.Errorf("services.GetCycleByID failed: %v", err)
+	}
+
+	endTime := cycle.CreatedAt
+	startTime := endTime.Add(-2 * time.Hour)
+
+	log.Printf("Calculating points for Vault: ecdsa=%s, eddsa=%s, cycleID=%s, timeRange=%v to %v",
+		p.ECDSA, p.EDDSA, p.Cycle, startTime, endTime)
+
+	vaults, err := services.GetAllVaults()
+	if err != nil {
+		return fmt.Errorf("services.GetAllVaults failed: %v", err)
+	}
+
+	totalUSD := 0.0
+	for _, vault := range vaults {
+		averageBalance, err := services.GetAverageBalanceForTimeRange(vault.ECDSA, vault.EDDSA, startTime, endTime)
+		if err != nil {
+			return fmt.Errorf("services.GetAverageBalanceForTimeRange failed for vault %s: %v", vault.ECDSA, err)
+		}
+		totalUSD += averageBalance
+	}
+
+	averageBalance, err := services.GetAverageBalanceForTimeRange(p.ECDSA, p.EDDSA, startTime, endTime)
+	if err != nil {
+		return fmt.Errorf("services.GetAverageBalanceForTimeRange failed: %v", err)
+	}
+
+	share := utils.CalculateShare(averageBalance, totalUSD)
 
 	point := &models.Point{
 		ECDSA:   p.ECDSA,

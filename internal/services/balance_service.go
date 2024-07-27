@@ -169,30 +169,60 @@ func GetUniqueActiveChainTokenPairs() ([]ChainTokenPair, error) {
 
 func GetAverageBalanceSince(ecdsaPublicKey, eddsaPublicKey string, since time.Time) (float64, error) {
 	query := `
-		SELECT COALESCE(AVG(balance_usd), 0) as avg_balance
-		FROM (
-			SELECT
-				b.chain,
-				b.token,
-				AVG(b.balance * COALESCE(p.price, (
-					SELECT price
-					FROM prices
-					WHERE chain = b.chain AND token = b.token
-					ORDER BY created_at DESC
-					LIMIT 1
-				))) as balance_usd
-			FROM balances b
-			LEFT JOIN prices p ON b.price_id = p.id
-			WHERE b.ecdsa = ? AND b.eddsa = ? AND b.updated_at > ?
-			GROUP BY b.chain, b.token
-		) as avg_balances
-	`
+        SELECT SUM(avg_balance_usd) as total_balance
+        FROM (
+            SELECT
+                b.chain,
+                b.token,
+                AVG(b.balance * COALESCE(p.price, (
+                    SELECT price
+                    FROM prices
+                    WHERE chain = b.chain AND token = b.token AND created_at <= b.updated_at
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                ))) as avg_balance_usd
+            FROM balances b
+            LEFT JOIN prices p ON b.price_id = p.id
+            WHERE b.ecdsa = ? AND b.eddsa = ? AND b.updated_at > ?
+            GROUP BY b.chain, b.token
+        ) as avg_balances
+    `
 
-	var avgBalance float64
-	err := db.DB.Raw(query, ecdsaPublicKey, eddsaPublicKey, since).Scan(&avgBalance).Error
+	var totalBalance float64
+	err := db.DB.Raw(query, ecdsaPublicKey, eddsaPublicKey, since).Scan(&totalBalance).Error
 	if err != nil {
-		return 0, fmt.Errorf("failed to get average balance: %w", err)
+		return 0, fmt.Errorf("failed to get total average balance: %w", err)
 	}
 
-	return avgBalance, nil
+	return totalBalance, nil
+}
+
+func GetAverageBalanceForTimeRange(ecdsaPublicKey, eddsaPublicKey string, startTime, endTime time.Time) (float64, error) {
+	query := `
+        SELECT SUM(avg_balance_usd) as total_balance
+        FROM (
+            SELECT
+                b.chain,
+                b.token,
+                AVG(b.balance * COALESCE(p.price, (
+                    SELECT price
+                    FROM prices
+                    WHERE chain = b.chain AND token = b.token AND created_at <= b.updated_at
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                ))) as avg_balance_usd
+            FROM balances b
+            LEFT JOIN prices p ON b.price_id = p.id
+            WHERE b.ecdsa = ? AND b.eddsa = ? AND b.updated_at > ? AND b.updated_at <= ?
+            GROUP BY b.chain, b.token
+        ) as avg_balances
+    `
+
+	var totalBalance float64
+	err := db.DB.Raw(query, ecdsaPublicKey, eddsaPublicKey, startTime, endTime).Scan(&totalBalance).Error
+	if err != nil {
+		return 0, fmt.Errorf("failed to get total average balance: %w", err)
+	}
+
+	return totalBalance, nil
 }
