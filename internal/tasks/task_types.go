@@ -19,6 +19,7 @@ type BalanceFetchPayload struct {
 type PointsCalculationPayload struct {
 	ECDSA string
 	EDDSA string
+	Cycle string
 }
 
 type PriceFetchPayload struct {

@@ -14,4 +14,7 @@ type Point struct {
 
 	Balance float64 `json:"balance"`
 	Share   float64 `json:"share"`
+
+	CycleID uint  `json:"-"`
+	Cycle   Cycle `json:"cycle" gorm:"foreignKey:CycleID"`
 }

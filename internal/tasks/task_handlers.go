@@ -123,7 +123,7 @@ func ProcessPointsCalculationTask(ctx context.Context, t *asynq.Task) error {
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v, %w", err, asynq.SkipRetry)
 	}
-	log.Printf("Calculating points for Vault: ecdsa=%s, eddsa=%s", p.ECDSA, p.EDDSA)
+	log.Printf("Calculating points for Vault: ecdsa=%s, eddsa=%s, cycleID=%d", p.ECDSA, p.EDDSA, p.Cycle)
 
 	vaults, err := services.GetAllVaults()
 	if err != nil {
@@ -149,11 +149,18 @@ func ProcessPointsCalculationTask(ctx context.Context, t *asynq.Task) error {
 
 	share := utils.CalculateShare(averageBalance, totalUSD)
 
+	cycleID32, err := strconv.ParseUint(p.Cycle, 10, 32)
+	if err != nil {
+		return fmt.Errorf("strconv.ParseUint failed: %v", err)
+	}
+	cycleID := uint(cycleID32)
+
 	point := &models.Point{
 		ECDSA:   p.ECDSA,
 		EDDSA:   p.EDDSA,
 		Balance: averageBalance,
 		Share:   share,
+		CycleID: cycleID,
 	}
 
 	err = services.SavePoint(point)
@@ -161,11 +168,12 @@ func ProcessPointsCalculationTask(ctx context.Context, t *asynq.Task) error {
 		return fmt.Errorf("services.SavePoint failed: %v", err)
 	}
 
-	log.Printf("Point share for Vault: ecdsa=%s, eddsa=%s is %f", p.ECDSA, p.EDDSA, share)
+	log.Printf("Point share for Vault: ecdsa=%s, eddsa=%s is %f for cycle %s", p.ECDSA, p.EDDSA, share, p.Cycle)
 
 	result := map[string]interface{}{
 		"share":   share,
 		"balance": averageBalance,
+		"cycle":   cycleID,
 	}
 
 	resultBytes, err := json.Marshal(result)
@@ -249,15 +257,46 @@ func ProcessPointsCalculationParentTask(ctx context.Context, t *asynq.Task) erro
 	clientAsynq.Initialize()
 	client := clientAsynq.AsynqClient
 
+	// currentCycle, err := services.GetCurrentCycle()
+	// if err != nil && err != gorm.ErrRecordNotFound {
+	// 	return fmt.Errorf("failed to get current cycle: %v", err)
+	// }
+
+	// if currentCycle != nil && time.Since(currentCycle.CreatedAt) < 24*time.Hour {
+	// 	return fmt.Errorf("cannot create a new cycle: the most recent cycle was created less than 24 hours ago: %v: %w", currentCycle.CreatedAt, asynq.SkipRetry)
+	// }
+
+	c := &models.Cycle{}
+	newCycle, err := services.CreateCycle(c)
+	if err != nil {
+		return fmt.Errorf("failed to create new cycle: %v", err)
+	}
+	cycleID := newCycle.ID
+
 	vaults, err := services.GetAllVaults()
 	if err != nil {
 		return fmt.Errorf("failed to get vaults: %v", err)
 	}
 
+	cycle := fmt.Sprintf("%d", cycleID)
+
 	for _, vault := range vaults {
-		if err := EnqueuePointsCalculationTask(client, vault.ECDSA, vault.EDDSA); err != nil {
+		if err := EnqueuePointsCalculationTask(client, vault.ECDSA, vault.EDDSA, cycle); err != nil {
 			return fmt.Errorf("failed to enqueue points calculation task: %v", err)
 		}
+	}
+
+	result := map[string]interface{}{
+		"cycle": cycleID,
+	}
+
+	resultBytes, err := json.Marshal(result)
+	if err != nil {
+		return fmt.Errorf("json.Marshal failed: %v", err)
+	}
+
+	if _, err := t.ResultWriter().Write(resultBytes); err != nil {
+		return fmt.Errorf("t.ResultWriter.Write failed: %v", err)
 	}
 
 	return nil

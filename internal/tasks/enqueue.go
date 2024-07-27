@@ -48,8 +48,8 @@ func EnqueueBalanceFetchParentTask(client *asynq.Client) error {
 
 // Points Calculation Tasks
 
-func EnqueuePointsCalculationTask(client *asynq.Client, ecdsa, eddsa string) error {
-	task, err := newTask(TypePointsCalculation, PointsCalculationPayload{ECDSA: ecdsa, EDDSA: eddsa})
+func EnqueuePointsCalculationTask(client *asynq.Client, ecdsa, eddsa, cycleID string) error {
+	task, err := newTask(TypePointsCalculation, PointsCalculationPayload{ECDSA: ecdsa, EDDSA: eddsa, Cycle: cycleID})
 	if err != nil {
 		return err
 	}
