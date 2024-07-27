@@ -2,135 +2,102 @@ package tasks
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/hibiken/asynq"
 )
 
-// Balance
-
-func newBalanceFetch(
-	ecdsa string,
-	eddsa string,
-	chain string,
-	address string,
-) (*asynq.Task, error) {
-	payload, err := json.Marshal(BalanceFetchPayload{ECDSA: ecdsa, EDDSA: eddsa, Chain: chain, Address: address})
+// Helper function to create a new task
+func newTask(taskType string, payload interface{}) (*asynq.Task, error) {
+	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal payload: %v", err)
 	}
-	return asynq.NewTask(TypeBalanceFetch, payload), nil
+	return asynq.NewTask(taskType, jsonPayload), nil
 }
 
-func EnqueueBalanceFetchTask(
-	asynqClient *asynq.Client,
-	ecdsa string,
-	eddsa string,
-	chain string,
-	address string,
-) error {
-	task, err := newBalanceFetch(ecdsa, eddsa, chain, address)
+// Balance Fetch Tasks
+
+func EnqueueBalanceFetchTask(client *asynq.Client, ecdsa, eddsa, chain, address string) error {
+	task, err := newTask(TypeBalanceFetch, BalanceFetchPayload{ECDSA: ecdsa, EDDSA: eddsa, Chain: chain, Address: address})
 	if err != nil {
 		return err
 	}
-	_, err = asynqClient.Enqueue(task, asynq.MaxRetry(3), asynq.Unique(time.Minute*1), asynq.Timeout(10*time.Second), asynq.Retention(24*time.Hour), asynq.Queue(TypeBalanceFetch))
+
+	_, err = client.Enqueue(task,
+		asynq.MaxRetry(3),
+		asynq.Unique(time.Minute),
+		asynq.Timeout(10*time.Second),
+		asynq.Retention(24*time.Hour),
+		asynq.Queue(TypeBalanceFetch),
+	)
 	return err
 }
 
-// Point calculation
-
-func newPointsCalculationPayload(
-	ecdsa string,
-	eddsa string,
-) (*asynq.Task, error) {
-	payload, err := json.Marshal(PointsCalculationPayload{ECDSA: ecdsa, EDDSA: eddsa})
-	if err != nil {
-		return nil, err
-	}
-	return asynq.NewTask(TypePointsCalculation, payload), nil
-}
-
-func EnqueuePointsCalculationTask(
-	asynqClient *asynq.Client,
-	ecdsa string,
-	eddsa string,
-) error {
-	task, err := newPointsCalculationPayload(ecdsa, eddsa)
-	if err != nil {
-		return err
-	}
-	_, err = asynqClient.Enqueue(task, asynq.MaxRetry(2), asynq.Unique(time.Minute*1), asynq.Retention(24*time.Hour), asynq.Queue(TypePointsCalculation))
+func EnqueueBalanceFetchParentTask(client *asynq.Client) error {
+	task := asynq.NewTask(TypeBalanceFetchParent, nil)
+	_, err := client.Enqueue(task,
+		asynq.MaxRetry(2),
+		asynq.Unique(time.Minute),
+		asynq.Retention(24*time.Hour),
+		asynq.Queue(TypeBalanceFetchParent),
+	)
 	return err
 }
 
-// Enqueue all point calculations
-func EnqueueAllPointsCalculationTasks(
-	asynqClient *asynq.Client,
-	ecdsaList []string,
-	eddsaList []string,
-) error {
-	for i := range ecdsaList {
-		if err := EnqueuePointsCalculationTask(asynqClient, ecdsaList[i], eddsaList[i]); err != nil {
-			return err
-		}
-	}
-	return nil
-}
+// Points Calculation Tasks
 
-func EnqueuePointsCalculationAllTask(
-	asynqClient *asynq.Client,
-	ecdsaList []string,
-	eddsaList []string,
-) error {
-	allTask, err := NewPointsCalculationAll()
-	if err != nil {
-		return err
-	}
-	if _, err := asynqClient.Enqueue(allTask, asynq.MaxRetry(2), asynq.Unique(time.Minute*1), asynq.Retention(24*time.Hour), asynq.Queue(TypePointsCalculation)); err != nil {
-		return err
-	}
-	return EnqueueAllPointsCalculationTasks(asynqClient, ecdsaList, eddsaList)
-}
-
-// Price fetch
-
-func newPriceFetch(
-	chain string,
-	token string,
-) (*asynq.Task, error) {
-	payload, err := json.Marshal(PriceFetchPayload{Chain: chain, Token: token})
-	if err != nil {
-		return nil, err
-	}
-	return asynq.NewTask(TypePriceFetch, payload), nil
-}
-
-func EnqueuePriceFetchTask(
-	asynqClient *asynq.Client,
-	chain string,
-	token string,
-) error {
-	task, err := newPriceFetch(chain, token)
+func EnqueuePointsCalculationTask(client *asynq.Client, ecdsa, eddsa string) error {
+	task, err := newTask(TypePointsCalculation, PointsCalculationPayload{ECDSA: ecdsa, EDDSA: eddsa})
 	if err != nil {
 		return err
 	}
 
-	_, err = asynqClient.Enqueue(task, asynq.MaxRetry(2), asynq.Unique(time.Minute*1), asynq.Retention(24*time.Hour), asynq.Queue(TypePriceFetch))
-
+	_, err = client.Enqueue(task,
+		asynq.MaxRetry(2),
+		asynq.Unique(time.Minute),
+		asynq.Retention(24*time.Hour),
+		asynq.Queue(TypePointsCalculation),
+	)
 	return err
 }
 
-// Price fetch for all active pairs
-func NewPriceFetchForAllActivePairs() (*asynq.Task, error) {
-	return asynq.NewTask(TypePriceFetchAllActivePairs, nil), nil
+func EnqueuePointsCalculationParentTask(client *asynq.Client) error {
+	task := asynq.NewTask(TypePointsCalculationParent, nil)
+	_, err := client.Enqueue(task,
+		asynq.MaxRetry(2),
+		asynq.Unique(time.Minute),
+		asynq.Retention(24*time.Hour),
+		asynq.Queue(TypePointsCalculationParent),
+	)
+	return err
 }
 
-// Balance fetch all
-func NewBalanceFetchAll() (*asynq.Task, error) {
-	return asynq.NewTask(TypeBalanceFetchAll, nil), nil
+// Price Fetch Tasks
+
+func EnqueuePriceFetchTask(client *asynq.Client, chain, token string) error {
+	task, err := newTask(TypePriceFetch, PriceFetchPayload{Chain: chain, Token: token})
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Enqueue(task,
+		asynq.MaxRetry(2),
+		asynq.Unique(time.Minute),
+		asynq.Retention(24*time.Hour),
+		asynq.Queue(TypePriceFetch),
+	)
+	return err
 }
 
-// Point calculation for all
-func NewPointsCalculationAll() (*asynq.Task, error) {
-	return asynq.NewTask(TypePointsCalculationAll, nil), nil
+func EnqueuePriceFetchParentTask(client *asynq.Client) error {
+	task := asynq.NewTask(TypePriceFetchParent, nil)
+	_, err := client.Enqueue(task,
+		asynq.MaxRetry(2),
+		asynq.Unique(time.Minute),
+		asynq.Retention(24*time.Hour),
+		asynq.Queue(TypePriceFetchParent),
+	)
+	return err
 }

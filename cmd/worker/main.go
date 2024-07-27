@@ -28,12 +28,12 @@ func main() {
 		asynq.Config{
 			Concurrency: 10, // process 1 task concurrently, prevents overloading external APIs
 			Queues: map[string]int{
-				tasks.TypeBalanceFetch:             2,
-				tasks.TypePointsCalculation:        1,
-				tasks.TypeVaultBalanceFetch:        3,
-				tasks.TypePriceFetch:               5,
-				tasks.TypePriceFetchAllActivePairs: 1, // because this only schedules new jobs that have a lower priority and this is only 1x job every x period
-				tasks.TypeBalanceFetchAll:          1, // same as above
+				tasks.TypeBalanceFetch:            2,
+				tasks.TypeBalanceFetchParent:      1,
+				tasks.TypePointsCalculation:       1,
+				tasks.TypePointsCalculationParent: 1,
+				tasks.TypePriceFetch:              5,
+				tasks.TypePriceFetchParent:        1,
 			},
 		},
 	)
@@ -52,10 +52,11 @@ func main() {
 
 	mux := asynq.NewServeMux()
 	mux.HandleFunc(tasks.TypeBalanceFetch, tasks.ProcessBalanceFetchTask)
+	mux.HandleFunc(tasks.TypeBalanceFetchParent, tasks.ProcessBalanceFetchParentTask)
 	mux.HandleFunc(tasks.TypePointsCalculation, tasks.ProcessPointsCalculationTask)
+	mux.HandleFunc(tasks.TypePointsCalculationParent, tasks.ProcessPointsCalculationParentTask)
 	mux.HandleFunc(tasks.TypePriceFetch, tasks.ProcessPriceFetchTask)
-	mux.HandleFunc(tasks.TypePriceFetchAllActivePairs, tasks.ProcessPriceFetchAllActivePairsTask)
-	mux.HandleFunc(tasks.TypeBalanceFetchAll, tasks.ProcessBalanceFetchAllTask)
+	mux.HandleFunc(tasks.TypePriceFetchParent, tasks.ProcessPriceFetchParentTask)
 
 	// Run server in a separate goroutine
 	go func() {

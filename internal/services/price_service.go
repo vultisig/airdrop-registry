@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/vultisig/airdrop-registry/internal/models"
 	"github.com/vultisig/airdrop-registry/pkg/db"
+	"gorm.io/gorm"
 )
 
 func SavePrice(price *models.Price) error {
@@ -29,8 +30,16 @@ func GetPricesByTokenAndDateRange(chain, token string, start int64, end int64) (
 
 func GetLatestPriceByToken(chain, token string) (*models.Price, error) {
 	var price models.Price
-	err := db.DB.Where("chain = ? AND token = ?", chain, token).Order("date desc").First(&price).Error
-	return &price, err
+	err := db.DB.Where("chain = ? AND token = ?", chain, token).
+		Order("created_at DESC").
+		First(&price).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &price, nil
 }
 
 func GetLatestPrices() ([]models.Price, error) {

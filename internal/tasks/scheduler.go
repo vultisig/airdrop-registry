@@ -2,7 +2,6 @@ package tasks
 
 import (
 	"log"
-
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -11,56 +10,43 @@ import (
 func Schedule(redisConnOpt *asynq.RedisClientOpt) error {
 	scheduler := asynq.NewScheduler(redisConnOpt, nil)
 
-	// Price
-
-	task, err := NewPriceFetchForAllActivePairs()
+	// Price fetch parent task
+	priceFetchTask := asynq.NewTask(TypePriceFetchParent, nil)
+	entryID, err := scheduler.Register("30 * * * *", priceFetchTask,
+		asynq.Queue(TypePriceFetchParent),
+		asynq.Retention(24*time.Hour),
+	)
 	if err != nil {
 		return err
 	}
+	log.Printf("Registered a scheduler entry for PriceFetchParent: %v", entryID)
 
-	// Runs at :30 every hour
-	entryId, err := scheduler.Register("30 * * * * ", task, asynq.Queue(TypePriceFetchAllActivePairs), asynq.Retention(24*time.Hour))
+	// Balance fetch parent task
+	balanceFetchTask := asynq.NewTask(TypeBalanceFetchParent, nil)
+	entryID, err = scheduler.Register("0 * * * *", balanceFetchTask,
+		asynq.Queue(TypeBalanceFetchParent),
+		asynq.Retention(24*time.Hour),
+	)
 	if err != nil {
 		return err
 	}
+	log.Printf("Registered a scheduler entry for BalanceFetchParent: %v", entryID)
 
-	log.Printf("Registered a scheduler entry for PriceFetchAllActivePairs: %v", entryId)
-
-	// Balance
-
-	task, err = NewBalanceFetchAll()
+	// Points calculation parent task
+	pointsCalcTask := asynq.NewTask(TypePointsCalculationParent, nil)
+	entryID, err = scheduler.Register("15 * * * *", pointsCalcTask,
+		asynq.Queue(TypePointsCalculationParent),
+		asynq.Retention(24*time.Hour),
+	)
 	if err != nil {
 		return err
 	}
-
-	// Runs at :00 every hour
-	entryId, err = scheduler.Register("0 * * * * ", task, asynq.Queue(TypeBalanceFetchAll), asynq.Retention(24*time.Hour))
-	if err != nil {
-		return err
-	}
-
-	log.Printf("Registered a scheduler entry for BalanceFetchAll: %v", entryId)
-
-	// Points calculation
-	task, err = NewPointsCalculationAll()
-	if err != nil {
-		return err
-	}
-
-	// Runs at :15 every hour
-	// @TODO: Update to randomness or env
-	entryId, err = scheduler.Register("15 * * * * ", task, asynq.Queue(TypePointsCalculation), asynq.Retention(24*time.Hour))
-	if err != nil {
-		return err
-	}
-
-	log.Printf("Registered a scheduler entry for PointsCalculationAll: %v", entryId)
+	log.Printf("Registered a scheduler entry for PointsCalculationParent: %v", entryID)
 
 	if err := scheduler.Run(); err != nil {
 		return err
 	}
 
-	log.Printf("Scheduler is running\n")
-
+	log.Printf("Scheduler is running")
 	return nil
 }

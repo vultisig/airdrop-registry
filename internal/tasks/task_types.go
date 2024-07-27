@@ -1,13 +1,12 @@
 package tasks
 
 const (
-	TypeVaultBalanceFetch        = "vault:balance:fetch"
-	TypeBalanceFetch             = "balance:fetch"
-	TypeBalanceFetchAll          = "balance:fetch_all"
-	TypePointsCalculation        = "points:calculate"
-	TypePointsCalculationAll     = "points:calculate:all"
-	TypePriceFetch               = "price:fetch"
-	TypePriceFetchAllActivePairs = "price:fetch_all_active_pairs"
+	TypeBalanceFetch            = "balance:fetch"
+	TypeBalanceFetchParent      = "balance:fetch:parent"
+	TypePointsCalculation       = "points:calculate"
+	TypePointsCalculationParent = "points:calculate:parent"
+	TypePriceFetch              = "price:fetch"
+	TypePriceFetchParent        = "price:fetch:parent"
 )
 
 type BalanceFetchPayload struct {

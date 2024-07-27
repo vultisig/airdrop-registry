@@ -16,6 +16,7 @@ import (
 	clientAsynq "github.com/vultisig/airdrop-registry/pkg/asynq"
 	"github.com/vultisig/airdrop-registry/pkg/balance"
 	"github.com/vultisig/airdrop-registry/pkg/price"
+	"github.com/vultisig/airdrop-registry/pkg/utils"
 )
 
 func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
@@ -146,7 +147,7 @@ func ProcessPointsCalculationTask(ctx context.Context, t *asynq.Task) error {
 		return fmt.Errorf("services.GetLatestBalancesByVaultKeys failed: %v", err)
 	}
 
-	share := float64((averageBalance / totalUSD) * 100)
+	share := utils.CalculateShare(averageBalance, totalUSD)
 
 	point := &models.Point{
 		ECDSA:   p.ECDSA,
@@ -217,55 +218,65 @@ func ProcessPriceFetchTask(ctx context.Context, t *asynq.Task) error {
 	return nil
 }
 
-func ProcessPriceFetchAllActivePairsTask(ctx context.Context, t *asynq.Task) error {
+// Parent task processors
+
+func ProcessBalanceFetchParentTask(ctx context.Context, t *asynq.Task) error {
 	clientAsynq.Initialize()
-	asynqClient := clientAsynq.AsynqClient
-
-	pairs, err := services.GetUniqueActiveChainTokenPairs()
-	if err != nil {
-		return fmt.Errorf("services.GetUniqueActiveChainTokenPairs failed: %v", err)
-	}
-
-	for _, pair := range pairs {
-		fmt.Printf("Enqueuing price fetch task for pair: chain=%s, token=%s\n", pair.Chain, pair.Token)
-		err := EnqueuePriceFetchTask(asynqClient, pair.Chain, pair.Token)
-		if err != nil {
-			return fmt.Errorf("failed to enqueue price fetch tasks: %v", err)
-		}
-		fmt.Printf("Enqueued price fetch task for pair: chain=%s, token=%s\n", pair.Chain, pair.Token)
-	}
-
-	log.Printf("Enqueued price fetch tasks for all active pairs")
-
-	return nil
-}
-
-func ProcessBalanceFetchAllTask(ctx context.Context, t *asynq.Task) error {
-	clientAsynq.Initialize()
-	asynqClient := clientAsynq.AsynqClient
+	client := clientAsynq.AsynqClient
 
 	vaults, err := services.GetAllVaults()
 	if err != nil {
-		return fmt.Errorf("services.GetVaults failed: %v", err)
+		return fmt.Errorf("failed to get vaults: %v", err)
 	}
 
 	for _, vault := range vaults {
 		addresses, err := address.GenerateSupportedChainAddresses(vault.ECDSA, vault.HexChainCode, vault.EDDSA)
 		if err != nil {
-			return fmt.Errorf("address.GenerateSupportedChainAddresses failed: %v", err)
+			return fmt.Errorf("failed to generate addresses: %v", err)
 		}
 
-		for chain, address := range addresses {
-			fmt.Printf("Enqueuing balance fetch task for vault: ecdsa=%s, eddsa=%s, chain=%s, address=%s\n", vault.ECDSA, vault.EDDSA, chain, address)
-			err := EnqueueBalanceFetchTask(asynqClient, vault.ECDSA, vault.EDDSA, chain, address)
-			if err != nil {
-				return fmt.Errorf("failed to enqueue balance fetch tasks: %v", err)
+		for chain, addr := range addresses {
+			if err := EnqueueBalanceFetchTask(client, vault.ECDSA, vault.EDDSA, chain, addr); err != nil {
+				return fmt.Errorf("failed to enqueue balance fetch task: %v", err)
 			}
 		}
-		fmt.Printf("Enqueued balance fetch tasks for vault: ecdsa=%s, eddsa=%s\n", vault.ECDSA, vault.EDDSA)
 	}
 
-	log.Printf("Enqueued balance fetch tasks for all vaults")
+	return nil
+}
+
+func ProcessPointsCalculationParentTask(ctx context.Context, t *asynq.Task) error {
+	clientAsynq.Initialize()
+	client := clientAsynq.AsynqClient
+
+	vaults, err := services.GetAllVaults()
+	if err != nil {
+		return fmt.Errorf("failed to get vaults: %v", err)
+	}
+
+	for _, vault := range vaults {
+		if err := EnqueuePointsCalculationTask(client, vault.ECDSA, vault.EDDSA); err != nil {
+			return fmt.Errorf("failed to enqueue points calculation task: %v", err)
+		}
+	}
+
+	return nil
+}
+
+func ProcessPriceFetchParentTask(ctx context.Context, t *asynq.Task) error {
+	clientAsynq.Initialize()
+	client := clientAsynq.AsynqClient
+
+	pairs, err := services.GetUniqueActiveChainTokenPairs()
+	if err != nil {
+		return fmt.Errorf("failed to get active chain-token pairs: %v", err)
+	}
+
+	for _, pair := range pairs {
+		if err := EnqueuePriceFetchTask(client, pair.Chain, pair.Token); err != nil {
+			return fmt.Errorf("failed to enqueue price fetch task: %v", err)
+		}
+	}
 
 	return nil
 }

@@ -32,5 +32,5 @@ type BalanceResponse struct {
 	Balance  float64 `json:"balance"`
 	Date     int64   `json:"date"`
 	UsdValue float64 `json:"usd_value"`
-	Price    Price   `json:"price"`
+	Price    *Price  `json:"price,omitempty"`
 }

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/vultisig/airdrop-registry/internal/services"
@@ -12,22 +11,13 @@ import (
 )
 
 func StartPointsFetchHandler(c *gin.Context) {
-	vaults, err := services.GetAllVaults()
+	err := tasks.EnqueuePointsCalculationParentTask(asynqClient.AsynqClient)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	for _, vault := range vaults {
-		err := tasks.EnqueuePointsCalculationTask(asynqClient.AsynqClient, vault.ECDSA, vault.EDDSA)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		log.Printf("Enqueued task: PointsCalculation for Vault: ecdsa=%s, eddsa=%s", vault.ECDSA, vault.EDDSA)
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Points calculation task enqueued", "vaults": vaults})
+	c.JSON(http.StatusOK, gin.H{"message": "Points calculation task enqueued"})
 }
 
 func GetPointsHandler(c *gin.Context) {
@@ -56,5 +46,10 @@ func GetVaultPointsHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, balances)
+	totalPoints := 0.0
+	for _, balance := range balances {
+		totalPoints += balance.Share
+	}
+
+	c.JSON(http.StatusOK, gin.H{"total": totalPoints, "points": balances})
 }
