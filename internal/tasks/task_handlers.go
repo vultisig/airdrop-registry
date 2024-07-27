@@ -3,9 +3,11 @@ package tasks
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math"
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -17,6 +19,7 @@ import (
 	"github.com/vultisig/airdrop-registry/pkg/balance"
 	"github.com/vultisig/airdrop-registry/pkg/price"
 	"github.com/vultisig/airdrop-registry/pkg/utils"
+	"gorm.io/gorm"
 )
 
 func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
@@ -123,7 +126,7 @@ func ProcessPointsCalculationTask(ctx context.Context, t *asynq.Task) error {
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v, %w", err, asynq.SkipRetry)
 	}
-	log.Printf("Calculating points for Vault: ecdsa=%s, eddsa=%s, cycleID=%d", p.ECDSA, p.EDDSA, p.Cycle)
+	log.Printf("Calculating points for Vault: ecdsa=%s, eddsa=%s, cycleID=%s", p.ECDSA, p.EDDSA, p.Cycle)
 
 	vaults, err := services.GetAllVaults()
 	if err != nil {
@@ -257,46 +260,68 @@ func ProcessPointsCalculationParentTask(ctx context.Context, t *asynq.Task) erro
 	clientAsynq.Initialize()
 	client := clientAsynq.AsynqClient
 
-	// currentCycle, err := services.GetCurrentCycle()
-	// if err != nil && err != gorm.ErrRecordNotFound {
-	// 	return fmt.Errorf("failed to get current cycle: %v", err)
-	// }
-
-	// if currentCycle != nil && time.Since(currentCycle.CreatedAt) < 24*time.Hour {
-	// 	return fmt.Errorf("cannot create a new cycle: the most recent cycle was created less than 24 hours ago: %v: %w", currentCycle.CreatedAt, asynq.SkipRetry)
-	// }
-
-	c := &models.Cycle{}
-	newCycle, err := services.CreateCycle(c)
-	if err != nil {
-		return fmt.Errorf("failed to create new cycle: %v", err)
+	currentCycle, err := services.GetCurrentCycle()
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return fmt.Errorf("failed to get current cycle: %w", err)
 	}
-	cycleID := newCycle.ID
+
+	now := time.Now()
+	if currentCycle != nil {
+		timeSinceLastCycle := now.Sub(currentCycle.CreatedAt)
+
+		if timeSinceLastCycle < 24*time.Hour {
+			return fmt.Errorf("too soon for a new cycle: the most recent cycle was created %v ago: %w", timeSinceLastCycle, asynq.SkipRetry)
+		}
+
+		r := rand.New(rand.NewSource(now.UnixNano()))
+		randomValue := r.Float64()
+
+		if timeSinceLastCycle < 36*time.Hour {
+			if randomValue > 0.2 { // 20% chance
+				return fmt.Errorf("randomly decided not to create a new cycle (20%% chance): the most recent cycle was created %v ago: %w", timeSinceLastCycle, asynq.SkipRetry)
+			}
+		} else {
+			if randomValue > 0.5 { // 50% chance
+				return fmt.Errorf("randomly decided not to create a new cycle (50%% chance): the most recent cycle was created %v ago: %w", timeSinceLastCycle, asynq.SkipRetry)
+			}
+		}
+	}
+
+	newCycle, err := services.CreateCycle(&models.Cycle{CreatedAt: now})
+	if err != nil {
+		return fmt.Errorf("failed to create new cycle: %w", err)
+	}
 
 	vaults, err := services.GetAllVaults()
 	if err != nil {
-		return fmt.Errorf("failed to get vaults: %v", err)
+		return fmt.Errorf("failed to get vaults: %w", err)
 	}
 
-	cycle := fmt.Sprintf("%d", cycleID)
-
+	var enqueueErrors []error
 	for _, vault := range vaults {
-		if err := EnqueuePointsCalculationTask(client, vault.ECDSA, vault.EDDSA, cycle); err != nil {
-			return fmt.Errorf("failed to enqueue points calculation task: %v", err)
+		if err := EnqueuePointsCalculationTask(client, vault.ECDSA, vault.EDDSA, fmt.Sprintf("%d", newCycle.ID)); err != nil {
+			enqueueErrors = append(enqueueErrors, err)
 		}
 	}
 
 	result := map[string]interface{}{
-		"cycle": cycleID,
+		"cycle_id":         newCycle.ID,
+		"cycle_created_at": newCycle.CreatedAt,
+		"vaults_processed": len(vaults),
+		"enqueue_errors":   len(enqueueErrors),
 	}
 
 	resultBytes, err := json.Marshal(result)
 	if err != nil {
-		return fmt.Errorf("json.Marshal failed: %v", err)
+		return fmt.Errorf("json.Marshal failed: %w", err)
 	}
 
 	if _, err := t.ResultWriter().Write(resultBytes); err != nil {
-		return fmt.Errorf("t.ResultWriter.Write failed: %v", err)
+		return fmt.Errorf("t.ResultWriter.Write failed: %w", err)
+	}
+
+	if len(enqueueErrors) > 0 {
+		return fmt.Errorf("failed to enqueue some points calculation tasks: %v", enqueueErrors)
 	}
 
 	return nil
