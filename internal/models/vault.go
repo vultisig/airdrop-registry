@@ -3,12 +3,17 @@ package models
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/vultisig/airdrop-registry/pkg/utils"
 	"gorm.io/gorm"
 )
 
 type Vault struct {
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
 	ECDSA        string `gorm:"type:varchar(255);primaryKey" json:"ecdsa" binding:"required"`
 	EDDSA        string `gorm:"type:varchar(255);primaryKey" json:"eddsa" binding:"required"`
 	HexChainCode string `gorm:"type:varchar(255)" json:"hexChainCode" binding:"required"`
@@ -35,9 +40,6 @@ func (v *Vault) BeforeCreate(tx *gorm.DB) (err error) {
 	if count > 0 {
 		return fmt.Errorf("vault with given ECDSA and EDDSA already exists")
 	}
-	return
-}
 
-func AutoMigrate(db *gorm.DB) {
-	db.AutoMigrate(&Vault{})
+	return nil
 }

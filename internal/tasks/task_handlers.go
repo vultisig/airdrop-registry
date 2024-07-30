@@ -29,6 +29,7 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 	}
 	log.Printf("Fetching balance for vault: ecdsa=%s, eddsa=%s, chain=%s, address=%s", p.ECDSA, p.EDDSA, p.Chain, p.Address)
 
+	// Fetch native balance
 	balanceAmount, err := balance.FetchBalanceOfAddress(p.Chain, p.Address)
 	if err != nil {
 		return fmt.Errorf("services.GetBalanceOfAddress failed: %v", err)
@@ -46,14 +47,12 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 		Address: p.Address,
 		Balance: balanceAmount,
 		Token:   token,
-		Date:    time.Now().Unix(),
 	}
 
-	if balanceAmount > 0 {
-		_, err = services.SaveBalanceWithLatestPrice(b)
-		if err != nil {
-			return fmt.Errorf("services.SaveBalance failed: %v", err)
-		}
+	// Always save the balance, even if it's zero
+	_, err = services.SaveBalanceWithLatestPrice(b)
+	if err != nil {
+		return fmt.Errorf("services.SaveBalance failed: %v", err)
 	}
 
 	log.Printf("Balance for vault: ecdsa=%s, eddsa=%s, chain=%s, address=%s is %f", p.ECDSA, p.EDDSA, p.Chain, p.Address, balanceAmount)
@@ -78,6 +77,19 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 			return fmt.Errorf("GetTokenInfo failed: %v", err)
 		}
 
+		// Fetch existing token balances
+		existingBalances, err := services.GetLatestBalancesByVaultKeys(p.ECDSA, p.EDDSA)
+		if err != nil {
+			return fmt.Errorf("services.GetLatestBalancesByVaultKeys failed: %v", err)
+		}
+
+		existingTokens := make(map[string]bool)
+		for _, eb := range existingBalances {
+			if eb.Chain == p.Chain && eb.Address == p.Address && eb.Token != token {
+				existingTokens[eb.Token] = true
+			}
+		}
+
 		for tokenAddress, tokenBalance := range tokenBalances {
 			tokenBalanceFloat, err := strconv.ParseFloat(tokenBalance, 64)
 			if err != nil {
@@ -98,14 +110,32 @@ func ProcessBalanceFetchTask(ctx context.Context, t *asynq.Task) error {
 				Address: p.Address,
 				Balance: adjustedBalance,
 				Token:   tokenAddress,
-				Date:    time.Now().Unix(),
 			}
 
 			_, err = services.SaveBalanceWithLatestPrice(tb)
 			if err != nil {
 				return fmt.Errorf("services.SaveBalance failed: %v", err)
 			}
+
+			delete(existingTokens, tokenAddress)
 		}
+
+		for tokenAddress := range existingTokens {
+			tb := &models.Balance{
+				ECDSA:   p.ECDSA,
+				EDDSA:   p.EDDSA,
+				Chain:   p.Chain,
+				Address: p.Address,
+				Balance: 0,
+				Token:   tokenAddress,
+			}
+
+			_, err = services.SaveBalanceWithLatestPrice(tb)
+			if err != nil {
+				return fmt.Errorf("services.SaveBalance failed for zero balance: %v", err)
+			}
+		}
+
 		result["token_balances"] = tokenBalances
 	}
 
@@ -144,7 +174,7 @@ func ProcessPointsCalculationTask(ctx context.Context, t *asynq.Task) error {
 	log.Printf("Calculating points for Vault: ecdsa=%s, eddsa=%s, cycleID=%s, timeRange=%v to %v",
 		p.ECDSA, p.EDDSA, p.Cycle, startTime, endTime)
 
-	vaults, err := services.GetAllVaults()
+	vaults, err := services.GetAllVaults(0, 0)
 	if err != nil {
 		return fmt.Errorf("services.GetAllVaults failed: %v", err)
 	}
@@ -216,7 +246,6 @@ func ProcessPriceFetchTask(ctx context.Context, t *asynq.Task) error {
 		Chain:  p.Chain,
 		Token:  p.Token,
 		Price:  usdPrice,
-		Date:   time.Now().Unix(),
 		Source: "coingecko",
 	}
 
@@ -242,7 +271,7 @@ func ProcessBalanceFetchParentTask(ctx context.Context, t *asynq.Task) error {
 	clientAsynq.Initialize()
 	client := clientAsynq.AsynqClient
 
-	vaults, err := services.GetAllVaults()
+	vaults, err := services.GetAllVaults(0, 0)
 	if err != nil {
 		return fmt.Errorf("failed to get vaults: %v", err)
 	}
@@ -299,7 +328,7 @@ func ProcessPointsCalculationParentTask(ctx context.Context, t *asynq.Task) erro
 		return fmt.Errorf("failed to create new cycle: %w", err)
 	}
 
-	vaults, err := services.GetAllVaults()
+	vaults, err := services.GetAllVaults(0, 0)
 	if err != nil {
 		return fmt.Errorf("failed to get vaults: %w", err)
 	}

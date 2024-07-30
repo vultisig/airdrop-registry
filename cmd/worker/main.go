@@ -26,7 +26,7 @@ func main() {
 	server := asynq.NewServer(
 		redis,
 		asynq.Config{
-			Concurrency: 10, // process 1 task concurrently, prevents overloading external APIs
+			Concurrency: 5,
 			Queues: map[string]int{
 				tasks.TypeBalanceFetch:            2,
 				tasks.TypeBalanceFetchParent:      1,

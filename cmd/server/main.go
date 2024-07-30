@@ -29,22 +29,32 @@ func main() {
 	router.GET("/vaults", handlers.ListVaultsHandler)
 	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey", handlers.GetVaultHandler)
 
-	// Address
+	// Addresses
 	router.POST("/vault/:ecdsaPublicKey/:eddsaPublicKey/address", handlers.FetchVaultBalancesHandler)
 	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/address", handlers.GetVaultAddressesHandler)
 
 	// Balances
 	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/balances", handlers.GetVaultBalancesHandler)
 	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/balance", handlers.GetVaultBalanceHandler)
+	router.GET("/balances", handlers.GetAllBalancesHandler)
+	router.GET("/balance/:id", handlers.GetBalanceByIDHandler)
+	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/average-balance", handlers.GetAverageBalanceSinceHandler)
+	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/average-balance-range", handlers.GetAverageBalanceForTimeRangeHandler)
 
 	// Prices
 	router.POST("/prices", handlers.StartPricesFetchHandler)
 	router.GET("/prices", handlers.GetPricesHandler)
+	router.GET("/price/:id", handlers.GetPriceByIDHandler)
+	router.GET("/prices/by-token", handlers.GetPricesByTokenHandler)
+	router.GET("/prices/by-token-range", handlers.GetPricesByTokenAndTimeRangeHandler)
+	router.GET("/price/latest", handlers.GetLatestPriceByTokenHandler)
 
 	// Points
-	router.GET("/points", handlers.GetPointsHandler)
 	router.POST("/points", handlers.StartPointsFetchHandler)
+	router.GET("/points", handlers.GetPointsHandler)
+	router.GET("/point/:id", handlers.GetPointByIDHandler)
 	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/points", handlers.GetVaultPointsHandler)
+	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/points/:cycleID", handlers.GetPointsForVaultByCycleHandler)
 
 	go asynq.Initialize()
 	defer asynq.AsynqClient.Close()
