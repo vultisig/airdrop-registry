@@ -27,6 +27,10 @@ github.com/DataDog/datadog-go v3.2.0+incompatible h1:qSG2N4FghB1He/r2mFrWKCaL7dX
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/zstd v1.5.5 h1:oWf5W7GtOLgp6bciQYDmhHHjdhYkALu6S/5Ni9ZgSvQ=
 github.com/DataDog/zstd v1.5.5/go.mod h1:g4AWEaM3yOg3HYfnJ3YIawPnVdXJh9QME85blwSAmyw=
+github.com/JulianToledano/goingecko v0.3.1-0.20240710164717-6cf1fd93f269 h1:9dunZHVff+f+WV6Gt3xy7nnGw3zeDzhirfd8ZIH2eD0=
+github.com/JulianToledano/goingecko v0.3.1-0.20240710164717-6cf1fd93f269/go.mod h1:oH/2pOWrtVbvgGk3n3rX3+/1wSXm2Pg9Bu8YvxgZkOQ=
+github.com/JulianToledano/goingecko v1.0.1 h1:NV5+X4IqU5XT0jiZALMpk/jGkSlSXmos/VjHkpeIIUw=
+github.com/JulianToledano/goingecko v1.0.1/go.mod h1:AmjWjcyDXqUKq8tLu4avYrGx8x2ZWTpZjaExX6re+us=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/OneOfOne/xxhash v1.2.8 h1:31czK/TI9sNkxIKfaUfGlU47BAxQ0ztGgd9vPyqimf8=
 github.com/OneOfOne/xxhash v1.2.8/go.mod h1:eZbhyaAYD41SGSSsnmcpxVoRiQ/MPUTjUdIIOT9Um7Q=

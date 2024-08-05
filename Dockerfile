@@ -2,14 +2,19 @@ FROM golang:alpine
 
 WORKDIR /app
 
-COPY go.mod .
-COPY go.sum .
+COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN go build -o /airdrop-registry
+# Build both binaries
+RUN go build -o airdrop-server ./cmd/server/main.go && \
+    go build -o airdrop-worker ./cmd/worker/main.go
 
 EXPOSE 8080
 
-CMD ["/airdrop-registry"]
+# Use an entrypoint script to allow choosing which binary to run
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
