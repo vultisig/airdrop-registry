@@ -13,7 +13,7 @@ RUN go build -o airdrop-server ./cmd/server/main.go && \
 
 EXPOSE 8080
 
-# Use an entrypoint script to allow choosing which binary to run
+# Copy the entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
