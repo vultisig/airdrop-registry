@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -35,9 +36,10 @@ func LoadConfig() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
-	viper.AutomaticEnv()
 
-	// Set default values
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
 	viper.SetDefault("server.port", 8080)
 	viper.SetDefault("server.host", "localhost")
 	viper.SetDefault("mysql.database", "airdrop")
@@ -52,7 +54,11 @@ func LoadConfig() {
 	viper.SetDefault("coingecko.key", "x-cg-demo-api-key")
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Printf("Error reading config file, %s", err)
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			log.Println("No config file found, using environment variables and defaults")
+		} else {
+			log.Printf("Error reading config file: %s", err)
+		}
 	} else {
 		log.Println("Config file loaded successfully")
 	}
