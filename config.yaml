@@ -1,0 +1,18 @@
+server:
+  port: 8181
+
+mysql:
+  database: airdrop
+  user: root
+  password: password
+  host: localhost
+  port: 3301
+
+redis:
+  host: localhost
+  port: 6372
+  password: ""
+  db: 0
+
+coingecko:
+  key: "CG-UZW5UirZRV4TKnj3Ebi2mFnJ"
