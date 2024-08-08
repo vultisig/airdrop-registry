@@ -4,12 +4,17 @@ go 1.22.2
 
 require (
 	github.com/JulianToledano/goingecko v0.3.1-0.20240710164717-6cf1fd93f269
+	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/cosmos/btcutil v1.0.5
 	github.com/cosmos/cosmos-sdk v0.50.7
 	github.com/ethereum/go-ethereum v1.14.6
+	github.com/gcash/bchd v0.17.2-0.20201218180520-5708823e0e99
+	github.com/gcash/bchutil v0.0.0-20210113190856-6ea28dff4000
 	github.com/gin-gonic/gin v1.10.0
 	github.com/hibiken/asynq v0.24.1
+	github.com/ltcsuite/ltcd v0.23.5
+	github.com/ltcsuite/ltcd/ltcutil v1.1.3
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 	github.com/vultisig/mobile-tss-lib v0.0.0-20240705062349-155dfd486626
@@ -33,7 +38,6 @@ require (
 	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bnb-chain/tss-lib/v2 v2.0.2 // indirect
-	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240606204812-0bbfbd93a7ce // indirect
@@ -48,6 +52,7 @@ require (
 	github.com/cosmos/gogoproto v1.4.12 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/dchest/siphash v1.2.2 // indirect
 	github.com/decred/dcrd/dcrec/edwards/v2 v2.0.3 // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.4 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
@@ -80,6 +85,8 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/linxGnu/grocksdb v1.8.14 // indirect
+	github.com/ltcsuite/ltcd/btcec/v2 v2.3.2 // indirect
+	github.com/ltcsuite/ltcd/chaincfg/chainhash v1.0.2 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
@@ -102,12 +109,13 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20240311132316-a219d84964c2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240401170217-c3f982113cda // indirect
 	google.golang.org/grpc v1.63.2 // indirect
+	lukechampine.com/blake3 v1.2.1 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
 require (
 	github.com/btcsuite/btcd v0.24.0
-	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
+	github.com/btcsuite/btcd/btcec/v2 v2.3.2
 	github.com/btcsuite/btcd/btcutil v1.1.5
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect

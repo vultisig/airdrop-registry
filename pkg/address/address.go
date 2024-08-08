@@ -3,17 +3,20 @@ package address
 import (
 	"encoding/hex"
 	"fmt"
-	"strings"
 
+	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcutil/base58"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	bchchaincfg "github.com/gcash/bchd/chaincfg"
+	"github.com/gcash/bchutil"
+	ltcchaincfg "github.com/ltcsuite/ltcd/chaincfg"
+	ltcutil "github.com/ltcsuite/ltcd/ltcutil"
 	"github.com/vultisig/airdrop-registry/pkg/utils"
 	tss "github.com/vultisig/mobile-tss-lib/tss"
-
-	"golang.org/x/crypto/ed25519"
 )
 
 type ChainKeys struct {
@@ -23,9 +26,8 @@ type ChainKeys struct {
 }
 
 func GenerateChainKeys(chainName, hexPubKeyECDSA, hexPubKeyEdDSA, hexChainCode, path string) (ChainKeys, error) {
-	var derivedKey string
-	var err error
 	var pubKeyBytes []byte
+	var err error
 
 	keys := ChainKeys{
 		ChainName: chainName,
@@ -36,56 +38,84 @@ func GenerateChainKeys(chainName, hexPubKeyECDSA, hexPubKeyEdDSA, hexChainCode, 
 		if hexPubKeyEdDSA == "" {
 			return ChainKeys{}, fmt.Errorf("EdDSA public key required for %s", chainName)
 		}
-		derivedKey = hexPubKeyEdDSA
-		pubKeyBytes, err = hex.DecodeString(derivedKey)
+		pubKeyBytes, err = hex.DecodeString(hexPubKeyEdDSA)
+		if err != nil {
+			return ChainKeys{}, fmt.Errorf("invalid EdDSA public key: %w", err)
+		}
+		keys.PublicKey = hexPubKeyEdDSA
 	default:
 		if hexPubKeyECDSA == "" || hexChainCode == "" {
 			return ChainKeys{}, fmt.Errorf("ECDSA public key and chain code required for %s", chainName)
 		}
-		derivedKey, err = tss.GetDerivedPubKey(hexPubKeyECDSA, hexChainCode, path, false)
+		derivedKey, err := tss.GetDerivedPubKey(hexPubKeyECDSA, hexChainCode, path, false)
 		if err != nil {
 			return ChainKeys{}, err
 		}
 		pubKeyBytes, err = hex.DecodeString(derivedKey)
+		if err != nil {
+			return ChainKeys{}, fmt.Errorf("invalid derived ECDSA public key: %w", err)
+		}
+		keys.PublicKey = derivedKey
 	}
-
-	if err != nil {
-		return ChainKeys{}, err
-	}
-
-	keys.PublicKey = derivedKey
 
 	switch chainName {
-	case "bitcoin", "bitcoincash", "dash", "dogecoin", "litecoin":
+	case "bitcoin", "dash", "dogecoin":
 		var net *chaincfg.Params
-		var prefix string
+		var prefix byte
 
 		switch chainName {
 		case "bitcoin":
 			net = &chaincfg.MainNetParams
-			prefix = "bc1"
-		case "bitcoincash":
-			net = &chaincfg.MainNetParams
-			prefix = "bitcoincash:"
 		case "dash":
 			net = &chaincfg.MainNetParams
-			prefix = "X"
+			prefix = 76
 		case "dogecoin":
 			net = &chaincfg.MainNetParams
-			prefix = "D"
-		case "litecoin":
-			net = &chaincfg.MainNetParams
-			prefix = "ltc1"
+			prefix = 30
 		}
 
-		witnessProgram := btcutil.Hash160(pubKeyBytes)
-		conv, err := btcutil.NewAddressWitnessPubKeyHash(witnessProgram, net)
+		if chainName == "bitcoin" {
+			witnessProgram := btcutil.Hash160(pubKeyBytes)
+			conv, err := btcutil.NewAddressWitnessPubKeyHash(witnessProgram, net)
+			if err != nil {
+				return ChainKeys{}, err
+			}
+			keys.Address = conv.EncodeAddress()
+		} else {
+			pubKey, err := btcec.ParsePubKey(pubKeyBytes)
+			if err != nil {
+				return ChainKeys{}, err
+			}
+			pubKeyHash := btcutil.Hash160(pubKey.SerializeCompressed())
+			address := make([]byte, 25)
+			address[0] = prefix
+			copy(address[1:], pubKeyHash)
+			checksum := chainhash.DoubleHashB(address[:21])
+			copy(address[21:], checksum[:4])
+			keys.Address = base58.Encode(address)
+		}
+
+	case "bitcoincash":
+		pubKey, err := btcec.ParsePubKey(pubKeyBytes)
 		if err != nil {
 			return ChainKeys{}, err
 		}
-		address := conv.EncodeAddress()
-		addressWithoutPrefix := strings.Split(address, "bc1")[1]
-		keys.Address = prefix + addressWithoutPrefix
+		pubKeyHash := btcutil.Hash160(pubKey.SerializeCompressed())
+		addr, err := bchutil.NewAddressPubKeyHash(pubKeyHash, &bchchaincfg.MainNetParams)
+		if err != nil {
+			return ChainKeys{}, err
+		}
+		keys.Address = addr.EncodeAddress()
+		keys.Address = fmt.Sprintf("bitcoincash:%s", keys.Address)
+
+	case "litecoin":
+		net := &ltcchaincfg.MainNetParams
+		witnessProgram := btcutil.Hash160(pubKeyBytes)
+		conv, err := ltcutil.NewAddressWitnessPubKeyHash(witnessProgram, net)
+		if err != nil {
+			return ChainKeys{}, err
+		}
+		keys.Address = conv.EncodeAddress()
 
 	case "ethereum", "arbitrum", "avalanche", "bsc", "base", "blast", "cronos", "optimism", "polygon", "zksync":
 		pubKey, err := crypto.DecompressPubkey(pubKeyBytes)
@@ -110,14 +140,13 @@ func GenerateChainKeys(chainName, hexPubKeyECDSA, hexPubKeyEdDSA, hexChainCode, 
 		keys.Address = addr
 
 	case "solana":
-		pubKey := ed25519.PublicKey(pubKeyBytes)
-		keys.Address = base58.Encode(pubKey)
+		keys.Address = base58.Encode(pubKeyBytes)
 
 	case "polkadot":
 		keys.Address = utils.SS58Encode(pubKeyBytes, 0)
 
 	case "sui":
-		keys.Address = fmt.Sprintf("0x%x", pubKeyBytes)
+		keys.Address = "0x" + hex.EncodeToString(pubKeyBytes)
 
 	default:
 		return ChainKeys{}, fmt.Errorf("unsupported chain: %s", chainName)
@@ -134,7 +163,7 @@ func GenerateSupportedChainAddresses(hexPubKeyECDSA, hexPubKeyEdDSA, hexChainCod
 		var err error
 
 		switch chain.name {
-		case "solana", "sui", "polkadot":
+		case "solana", "polkadot":
 			keys, err = GenerateChainKeys(chain.name, "", hexPubKeyEdDSA, "", chain.derivePath)
 		default:
 			keys, err = GenerateChainKeys(chain.name, hexPubKeyECDSA, "", hexChainCode, chain.derivePath)

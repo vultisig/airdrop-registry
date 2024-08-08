@@ -153,7 +153,7 @@ func TestGenerateSpecificAddresses(t *testing.T) {
 		{
 			name:            "Litecoin",
 			chain:           "litecoin",
-			derivePath:      "m/44'/2'/0'/0/0",
+			derivePath:      "m/84'/2'/0'/0/0",
 			expectedAddress: "ltc1qxv03l5rzukwcqgrkea385lw6v85rngpc249vzr",
 		},
 		{
