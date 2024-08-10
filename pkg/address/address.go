@@ -163,7 +163,7 @@ func GenerateSupportedChainAddresses(hexPubKeyECDSA, hexPubKeyEdDSA, hexChainCod
 		var err error
 
 		switch chain.name {
-		case "solana", "polkadot":
+		case "solana", "sui", "polkadot":
 			keys, err = GenerateChainKeys(chain.name, "", hexPubKeyEdDSA, "", chain.derivePath)
 		default:
 			keys, err = GenerateChainKeys(chain.name, hexPubKeyECDSA, "", hexChainCode, chain.derivePath)
