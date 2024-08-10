@@ -101,19 +101,47 @@ body {
     margin-bottom: 2rem;
   }
 
-  .qr-code {
-    height: 40px;
+  .icon {
+    height: 3rem;
     margin: 0 auto 1.5rem;
   }
 
   .title {
     font-size: 1.25rem;
     font-weight: 600;
-    margin-bottom: 0.5rem;
   }
 
   .text {
     font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+
+  .close {
+    background-image: url(/images/icon-close.svg);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    height: 0.875rem;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    width: 0.875rem;
+  }
+
+  .image {
+    height: 8rem;
+    margin: 0 auto 1.5rem;
+    max-width: 100%;
+  }
+
+  .name {
+    font-weight: 700;
+  }
+
+  .error {
+    color: $red-base;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
   }
 
   .hint {
@@ -130,13 +158,30 @@ body {
       background-color: $blue-base;
       border: solid 1px rgba($color: $gray-1, $alpha: 0.15);
       border-radius: 0.5rem;
-      height: 48px;
+      height: 3rem;
       margin-bottom: 0.875rem;
     }
 
-    span {
+    .image {
+      position: relative;
+      top: 0;
+      transition: all 0.3s;
+
+      &:hover {
+        top: -0.25rem;
+      }
+    }
+
+    .text {
+      color: $gray-1;
       font-size: 0.875rem;
       font-weight: 500;
+      opacity: 1;
+      transition: opacity 0.3s;
+
+      &:hover {
+        opacity: 0.6;
+      }
     }
   }
 
