@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-import { useTranslation } from "react-i18next";
-import { ConfigProvider } from "antd";
+import { useTranslation } from 'react-i18next';
+import { ConfigProvider } from 'antd';
 
-import translation from "i18n/constant-keys";
+import translation from 'i18n/constant-keys';
 
-import Routes from "routes";
+import Routes from 'routes';
 
 const App = () => {
   const { t } = useTranslation();
@@ -15,16 +15,17 @@ const App = () => {
 
   useEffect(() => {
     setTimeout(() => {
-      setState((prevState) => ({ ...prevState, loaded: true }));
+      setState(prevState => ({ ...prevState, loaded: true }));
     }, 1000);
+    console.log('test lint');
   }, []);
 
   return (
     <ConfigProvider
       theme={{
         token: {
-          colorPrimary: "#33e6bf",
-          fontFamily: "Montserrat",
+          colorPrimary: '#33e6bf',
+          fontFamily: 'Montserrat',
         },
       }}
     >
