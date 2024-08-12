@@ -17,7 +17,6 @@ const App = () => {
     setTimeout(() => {
       setState(prevState => ({ ...prevState, loaded: true }));
     }, 1000);
-    console.log('test lint');
   }, []);
 
   return (
