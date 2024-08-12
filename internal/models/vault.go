@@ -5,8 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vultisig/airdrop-registry/pkg/utils"
 	"gorm.io/gorm"
+
+	"github.com/vultisig/airdrop-registry/pkg/utils"
 )
 
 type Vault struct {
