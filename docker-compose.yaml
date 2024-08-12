@@ -14,7 +14,7 @@ services:
       - "${REDIS_PORT:-6372}:6379"
 
   asynqmon:
-    image: asynqmon
+    image: hibiken/asynqmon:latest
     container_name: signer-asynqmon
     ports:
       - "${ASYNQMON_PORT:-8022}:8080"

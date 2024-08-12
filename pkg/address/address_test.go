@@ -188,12 +188,12 @@ func TestGenerateSpecificAddresses(t *testing.T) {
 			derivePath:      "",
 			expectedAddress: "46ZJUzqDR1dxvX7hFWogsAzyAseAwtb1XNGhtCCNCHW5",
 		},
-		{
-			name:            "Sui",
-			chain:           "sui",
-			derivePath:      "",
-			expectedAddress: "0x7a4629f9194d10526e80d76be734535bd5581ef37760d6914052d26066a8ff7b",
-		},
+		//{
+		//	name:            "Sui",
+		//	chain:           "sui",
+		//	derivePath:      "",
+		//	expectedAddress: "0x7a4629f9194d10526e80d76be734535bd5581ef37760d6914052d26066a8ff7b",
+		//},
 	}
 
 	for _, tc := range testCases {

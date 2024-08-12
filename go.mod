@@ -11,6 +11,7 @@ require (
 	github.com/ethereum/go-ethereum v1.14.6
 	github.com/gcash/bchd v0.17.2-0.20201218180520-5708823e0e99
 	github.com/gcash/bchutil v0.0.0-20210113190856-6ea28dff4000
+	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/hibiken/asynq v0.24.1
 	github.com/ltcsuite/ltcd v0.23.5
@@ -171,9 +172,7 @@ require (
 )
 
 replace (
-	//	github.com/JulianToledano/goingecko => ../coingecko
 	github.com/agl/ed25519 => github.com/binance-chain/edwards25519 v0.0.0-20200305024217-f36fc4b53d43
 	github.com/cwespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.1
 	github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
-// github.com/vultisig/mobile-tss-lib => ../Voltix/mobile-tss-lib
 )
