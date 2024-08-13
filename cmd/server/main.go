@@ -1,72 +1,33 @@
 package main
 
 import (
-	"fmt"
-	"time"
+	"log"
 
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/handlers"
-	"github.com/vultisig/airdrop-registry/pkg/asynq"
-	"github.com/vultisig/airdrop-registry/pkg/db"
-
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
+	"github.com/vultisig/airdrop-registry/internal/services"
 )
 
 func main() {
-	config.LoadConfig()
-	db.ConnectDatabase()
-	router := gin.Default()
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"}, // Replace with your allowed origins
-		AllowMethods:     []string{"GET", "POST"},
-		AllowHeaders:     []string{"Origin", "Content-Type"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		panic(err)
+	}
 
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Vultisig Airdrop Registry",
-		})
-	})
-
-	// Vaults
-	router.POST("/vault", handlers.RegisterVaultHandler)
-	router.GET("/vaults", handlers.ListVaultsHandler)
-	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey", handlers.GetVaultHandler)
-
-	// Addresses
-	router.POST("/vault/:ecdsaPublicKey/:eddsaPublicKey/address", handlers.FetchVaultBalancesHandler)
-	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/address", handlers.GetVaultAddressesHandler)
-
-	// Balances
-	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/balances", handlers.GetVaultBalancesHandler)
-	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/balance", handlers.GetVaultBalanceHandler)
-	router.GET("/balances", handlers.GetAllBalancesHandler)
-	router.GET("/balance/:id", handlers.GetBalanceByIDHandler)
-	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/average-balance", handlers.GetAverageBalanceSinceHandler)
-	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/average-balance-range", handlers.GetAverageBalanceForTimeRangeHandler)
-
-	// Prices
-	router.POST("/prices", handlers.StartPricesFetchHandler)
-	router.GET("/prices", handlers.GetPricesHandler)
-	router.GET("/price/:id", handlers.GetPriceByIDHandler)
-	router.GET("/prices/by-token", handlers.GetPricesByTokenHandler)
-	router.GET("/prices/by-token-range", handlers.GetPricesByTokenAndTimeRangeHandler)
-	router.GET("/price/latest", handlers.GetLatestPriceByTokenHandler)
-
-	// Points
-	router.POST("/points", handlers.StartPointsFetchHandler)
-	router.GET("/points", handlers.GetPointsHandler)
-	router.GET("/point/:id", handlers.GetPointByIDHandler)
-	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/points", handlers.GetVaultPointsHandler)
-	router.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey/points/:cycleID", handlers.GetPointsForVaultByCycleHandler)
-
-	go asynq.Initialize()
-	defer asynq.AsynqClient.Close()
-	defer db.CloseDatabase()
-
-	router.Run(fmt.Sprintf("%s:%d", config.Cfg.Server.Host, config.Cfg.Server.Port))
+	storage, err := services.NewStorage(cfg)
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err := storage.Close(); err != nil {
+			log.Printf("failed to close database: %v", err)
+		}
+	}()
+	api, err := handlers.NewApi(cfg, storage)
+	if err != nil {
+		panic(err)
+	}
+	if err := api.Start(); err != nil {
+		panic(err)
+	}
 }

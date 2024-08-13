@@ -14,9 +14,10 @@ import (
 	bchchaincfg "github.com/gcash/bchd/chaincfg"
 	"github.com/gcash/bchutil"
 	ltcchaincfg "github.com/ltcsuite/ltcd/chaincfg"
-	ltcutil "github.com/ltcsuite/ltcd/ltcutil"
+	"github.com/ltcsuite/ltcd/ltcutil"
+	"github.com/vultisig/mobile-tss-lib/tss"
+
 	"github.com/vultisig/airdrop-registry/pkg/utils"
-	tss "github.com/vultisig/mobile-tss-lib/tss"
 )
 
 type ChainKeys struct {
