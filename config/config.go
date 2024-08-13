@@ -1,12 +1,15 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"strings"
 
 	"github.com/spf13/viper"
 )
 
+// Config is a struct that holds the configuration for the application
 type Config struct {
 	Server struct {
 		Host string `mapstructure:"host"`
@@ -25,18 +28,13 @@ type Config struct {
 		Password string `mapstructure:"password"`
 		DB       int    `mapstructure:"db"`
 	}
-	CoinGecko struct {
-		Key string `mapstructure:"key"`
-	}
 }
 
-var Cfg Config
-
-func LoadConfig() {
+func LoadConfig() (*Config, error) {
+	var cfg Config
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
-
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
@@ -51,20 +49,17 @@ func LoadConfig() {
 	viper.SetDefault("redis.port", 6381)
 	viper.SetDefault("redis.password", "")
 	viper.SetDefault("redis.db", 0)
-	viper.SetDefault("coingecko.key", "x-cg-demo-api-key")
 
 	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if errors.As(err, &configFileNotFoundError) {
 			log.Println("No config file found, using environment variables and defaults")
-		} else {
-			log.Printf("Error reading config file: %s", err)
 		}
-	} else {
-		log.Println("Config file loaded successfully")
 	}
 
-	err := viper.Unmarshal(&Cfg)
+	err := viper.Unmarshal(&cfg)
 	if err != nil {
-		log.Fatalf("Unable to decode into struct, %v", err)
+		return nil, fmt.Errorf("unable to decode into struct, %w", err)
 	}
+	return &cfg, nil
 }

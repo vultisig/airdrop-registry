@@ -3,19 +3,20 @@ module github.com/vultisig/airdrop-registry
 go 1.22.2
 
 require (
-	github.com/JulianToledano/goingecko v0.3.1-0.20240710164717-6cf1fd93f269
-	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
-	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/cosmos/btcutil v1.0.5
 	github.com/cosmos/cosmos-sdk v0.50.7
+	github.com/dashpay/dashd-go v0.25.0
+	github.com/dashpay/dashd-go/btcutil v1.2.0
+	github.com/eager7/dogd v0.0.0-20200427085516-2caf59f59dbb
+	github.com/eager7/dogutil v0.0.0-20200427040807-200e961ba4b5
 	github.com/ethereum/go-ethereum v1.14.6
 	github.com/gcash/bchd v0.17.2-0.20201218180520-5708823e0e99
 	github.com/gcash/bchutil v0.0.0-20210113190856-6ea28dff4000
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
-	github.com/hibiken/asynq v0.24.1
 	github.com/ltcsuite/ltcd v0.23.5
 	github.com/ltcsuite/ltcd/ltcutil v1.1.3
+	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 	github.com/vultisig/mobile-tss-lib v0.0.0-20240705062349-155dfd486626
@@ -39,6 +40,8 @@ require (
 	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bnb-chain/tss-lib/v2 v2.0.2 // indirect
+	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
+	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240606204812-0bbfbd93a7ce // indirect
@@ -52,6 +55,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
 	github.com/cosmos/gogoproto v1.4.12 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
+	github.com/dashpay/dashd-go/btcec/v2 v2.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dchest/siphash v1.2.2 // indirect
 	github.com/decred/dcrd/dcrec/edwards/v2 v2.0.3 // indirect
@@ -116,7 +120,7 @@ require (
 
 require (
 	github.com/btcsuite/btcd v0.24.0
-	github.com/btcsuite/btcd/btcec/v2 v2.3.2
+	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.5
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
@@ -124,7 +128,6 @@ require (
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
-	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -134,7 +137,6 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
@@ -147,8 +149,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
-	github.com/redis/go-redis/v9 v9.0.3 // indirect
-	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
@@ -165,7 +165,6 @@ require (
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
-	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

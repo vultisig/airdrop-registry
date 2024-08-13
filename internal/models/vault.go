@@ -1,46 +1,68 @@
 package models
 
 import (
+	"errors"
 	"fmt"
-	"strings"
-	"time"
 
+	"github.com/vultisig/mobile-tss-lib/tss"
 	"gorm.io/gorm"
 
-	"github.com/vultisig/airdrop-registry/pkg/utils"
+	"github.com/vultisig/airdrop-registry/internal/address"
+	"github.com/vultisig/airdrop-registry/internal/common"
 )
 
-type Vault struct {
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+var ErrAlreadyExist = errors.New("already exist")
 
-	ECDSA        string `gorm:"type:varchar(255);primaryKey" json:"ecdsa" binding:"required"`
-	EDDSA        string `gorm:"type:varchar(255);primaryKey" json:"eddsa" binding:"required"`
-	HexChainCode string `gorm:"type:varchar(255)" json:"hexChainCode" binding:"required"`
+type Vault struct {
+	gorm.Model
+	Name         string  `gorm:"type:varchar(255)" json:"name" binding:"required"`
+	ECDSA        string  `gorm:"type:varchar(255);uniqueIndex:ecdsa_eddsa_idx;not null" json:"ecdsa" binding:"required"`
+	EDDSA        string  `gorm:"type:varchar(255);uniqueIndex:ecdsa_eddsa_idx;not null" json:"eddsa" binding:"required"`
+	HexChainCode string  `gorm:"type:varchar(255)" json:"hex_chain_code" binding:"required"`
+	Uid          string  `gorm:"type:varchar(255)" json:"uid" binding:"required"`
+	TotalPoint   float64 `json:"total_point"`  // total point of the vault
+	JoinAirdrop  bool    `json:"join_airdrop"` // join airdrop or not
 }
 
-func (Vault) TableName() string {
+func (*Vault) TableName() string {
 	return "vaults"
 }
-
-func (v *Vault) BeforeCreate(tx *gorm.DB) (err error) {
-	v.ECDSA = strings.ToLower(v.ECDSA)
-	v.EDDSA = strings.ToLower(v.EDDSA)
-
-	if !utils.IsValidHex(v.ECDSA) || !utils.IsValidHex(v.EDDSA) {
-		return fmt.Errorf("invalid ECDSA or EdDSA format")
+func (v *Vault) GetAddress(chain common.Chain) (string, error) {
+	derivePath := chain.GetDerivePath()
+	childPublicKey, err := tss.GetDerivedPubKey(v.ECDSA, v.HexChainCode, derivePath, false)
+	if err != nil {
+		return "", fmt.Errorf("fail to get child public key")
 	}
-
-	if !utils.IsValidHex(v.HexChainCode) {
-		return fmt.Errorf("invalid hex chain code format")
+	switch chain {
+	case common.THORChain:
+		return address.GetBech32Address(childPublicKey, "thor")
+	case common.MayaChain:
+		return address.GetBech32Address(childPublicKey, "maya")
+	case common.Kujira:
+		return address.GetBech32Address(childPublicKey, "kujira")
+	case common.GaiaChain:
+		return address.GetBech32Address(childPublicKey, "cosmos")
+	case common.Dydx:
+		return address.GetBech32Address(childPublicKey, "dydx")
+	case common.Solana:
+		return address.GetSolAddress(v.EDDSA)
+	case common.Bitcoin:
+		return address.GetBitcoinAddress(childPublicKey)
+	case common.Litecoin:
+		return address.GetLitecoinAddress(childPublicKey)
+	case common.BitcoinCash:
+		return address.GetBitcoinCashAddress(childPublicKey)
+	case common.Dogecoin:
+		return address.GetDogeAddress(childPublicKey)
+	case common.Dash:
+		return address.GetDashAddress(childPublicKey)
+	case common.Ethereum, common.BscChain, common.Polygon, common.Base, common.Avalanche, common.Arbitrum, common.Blast, common.CronosChain, common.Zksync, common.Optimism:
+		return address.GetEVMAddress(childPublicKey)
+	case common.Polkadot:
+		return address.GetDotAddress(v.EDDSA)
+	case common.Sui:
+		return "", nil
+	default:
+		return "", fmt.Errorf("unsupported chain %s", chain)
 	}
-
-	var count int64
-	tx.Model(&Vault{}).Where("ecdsa = ? AND eddsa = ?", v.ECDSA, v.EDDSA).Count(&count)
-	if count > 0 {
-		return fmt.Errorf("vault with given ECDSA and EDDSA already exists")
-	}
-
-	return nil
 }
