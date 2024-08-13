@@ -3,10 +3,12 @@ module github.com/vultisig/airdrop-registry
 go 1.22.2
 
 require (
-	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
-	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/cosmos/btcutil v1.0.5
 	github.com/cosmos/cosmos-sdk v0.50.7
+	github.com/dashpay/dashd-go v0.25.0
+	github.com/dashpay/dashd-go/btcutil v1.2.0
+	github.com/eager7/dogd v0.0.0-20200427085516-2caf59f59dbb
+	github.com/eager7/dogutil v0.0.0-20200427040807-200e961ba4b5
 	github.com/ethereum/go-ethereum v1.14.6
 	github.com/gcash/bchd v0.17.2-0.20201218180520-5708823e0e99
 	github.com/gcash/bchutil v0.0.0-20210113190856-6ea28dff4000
@@ -38,6 +40,8 @@ require (
 	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bnb-chain/tss-lib/v2 v2.0.2 // indirect
+	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
+	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240606204812-0bbfbd93a7ce // indirect
@@ -51,6 +55,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
 	github.com/cosmos/gogoproto v1.4.12 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
+	github.com/dashpay/dashd-go/btcec/v2 v2.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dchest/siphash v1.2.2 // indirect
 	github.com/decred/dcrd/dcrec/edwards/v2 v2.0.3 // indirect
@@ -115,7 +120,7 @@ require (
 
 require (
 	github.com/btcsuite/btcd v0.24.0
-	github.com/btcsuite/btcd/btcec/v2 v2.3.2
+	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.5
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect

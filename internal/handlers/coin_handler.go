@@ -34,8 +34,16 @@ func (a *Api) addCoin(c *gin.Context) {
 		c.Status(http.StatusForbidden)
 		return
 	}
-	// TODO: ensure sub public key is correct
-	//
+	addr, err := vault.GetAddress(coin.Chain)
+	if err != nil {
+		a.logger.Error(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "fail to get address"})
+		return
+	}
+	if coin.Address != addr {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "address is not match"})
+		return
+	}
 	coinDB := models.CoinDBModel{
 		ID:       fmt.Sprintf("%s-%s-%s", coin.Chain, coin.Ticker, coin.Address),
 		CoinBase: coin,

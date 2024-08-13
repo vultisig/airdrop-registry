@@ -155,6 +155,12 @@ github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46t
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/danieljoos/wincred v1.1.2 h1:QLdCxFs1/Yl4zduvBdcHB8goaYk9RARS2SgLLRuAyr0=
 github.com/danieljoos/wincred v1.1.2/go.mod h1:GijpziifJoIBfYh+S7BbkdUTU4LfM+QnGqR5Vl2tAx0=
+github.com/dashpay/dashd-go v0.25.0 h1:tswVRmM2fLHC/JhpuAZ5Oa0TpOO6L+tqiE+QLTCvIQc=
+github.com/dashpay/dashd-go v0.25.0/go.mod h1:4yuk/laGME2RnQRTdqTbw87PhT+42hE1anLCnpkgls8=
+github.com/dashpay/dashd-go/btcec/v2 v2.1.0 h1:fXwlLf5H+TtgHxjGMU74NesKzk6NisjKMPF04pBcygk=
+github.com/dashpay/dashd-go/btcec/v2 v2.1.0/go.mod h1:1i8XtxdOmvK6mYEUCneVXTzFbrCUw3wq1u91j8gvsns=
+github.com/dashpay/dashd-go/btcutil v1.2.0 h1:YMq7L0V0au5bbphIhpsBBc+nfOZqU+gJ4pkgRZB7Eiw=
+github.com/dashpay/dashd-go/btcutil v1.2.0/go.mod h1:7UHoqUh3LY3OI4mEcogx0CnL3rtzDQyoqvsOCZZtvzE=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -187,6 +193,14 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/dvsekhvalnov/jose2go v1.6.0 h1:Y9gnSnP4qEI0+/uQkHvFXeD2PLPJeXEL+ySMEA2EjTY=
 github.com/dvsekhvalnov/jose2go v1.6.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
+github.com/eager7/dogd v0.0.0-20200427033722-13db756ab6a8/go.mod h1:5IBAcuraCh1ftcUzA8D+RqiPTfip1HmqCpiFA7DV8Y0=
+github.com/eager7/dogd v0.0.0-20200427085516-2caf59f59dbb h1:YH+i2oQCof4buKeHtjCXqppMfZQ5P0YvTUQcrTO5G7o=
+github.com/eager7/dogd v0.0.0-20200427085516-2caf59f59dbb/go.mod h1:fpLV30Ek7iCGesvxt8Y+WI87q4s/auwdwokoWctdnZk=
+github.com/eager7/doglog v0.0.0-20200426084830-384027fc4565/go.mod h1:bFnpHxKLVu82/oWCKTdMmC7Z79FFMbMJ+ylJQicf7dI=
+github.com/eager7/doglog v0.0.0-20200427040431-a0db59f0a792/go.mod h1:bFnpHxKLVu82/oWCKTdMmC7Z79FFMbMJ+ylJQicf7dI=
+github.com/eager7/dogutil v0.0.0-20200427033507-8353d4a5b7fd/go.mod h1:wHHELBR7B/P0Dyvy0vdrx/JI3bi2sDQGn7bZzwf/TSw=
+github.com/eager7/dogutil v0.0.0-20200427040807-200e961ba4b5 h1:lOGAC6H9SF5UeJV6dQ45bzYBglPGYAdBj338GH10xXE=
+github.com/eager7/dogutil v0.0.0-20200427040807-200e961ba4b5/go.mod h1:2JTeuOR+QrfOi6LR2FDH/RTi/k9+Npzye5y0YDMoXEw=
 github.com/emicklei/dot v1.6.1 h1:ujpDlBkkwgWUY+qPId5IwapRW/xEoligRSYjioR6DFI=
 github.com/emicklei/dot v1.6.1/go.mod h1:DeV7GvQtIw4h2u73RKBkkFdvVAz0D9fzeJrgPW6gy/s=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
@@ -644,6 +658,7 @@ golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392/go.mod h1:/lpIB1dKB+9EgE3
 golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
+golang.org/x/crypto v0.0.0-20200423211502-4bdfaf469ed5/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a/go.mod h1:P+XmwS30IXTQdn5tA2iutPOUgjI07+tq3H3K9MVA1s8=

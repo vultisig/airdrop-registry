@@ -1,4 +1,4 @@
-package models
+package common
 
 import (
 	"database/sql/driver"
@@ -59,6 +59,31 @@ var chainToString = map[Chain]string{
 	Zksync:      "Zksync",
 	Dydx:        "Dydx",
 }
+var chainDerivePath = map[Chain]string{
+	Bitcoin:     "m/84'/0'/0'/0/0",
+	Ethereum:    "m/44'/60'/0'/0/0",
+	THORChain:   "m/44'/931'/0'/0/0",
+	MayaChain:   "m/44'/931'/0'/0/0",
+	Arbitrum:    "m/44'/60'/0'/0/0",
+	Avalanche:   "m/44'/60'/0'/0/0",
+	BscChain:    "m/44'/60'/0'/0/0",
+	Base:        "m/44'/60'/0'/0/0",
+	BitcoinCash: "m/44'/145'/0'/0/0",
+	Blast:       "m/44'/60'/0'/0/0",
+	CronosChain: "m/44'/60'/0'/0/0",
+	Dash:        "m/44'/5'/0'/0/0",
+	Dogecoin:    "m/44'/3'/0'/0/0",
+	Dydx:        "m/44'/118'/0'/0/0",
+	GaiaChain:   "m/44'/118'/0'/0/0",
+	Kujira:      "m/44'/118'/0'/0/0",
+	Litecoin:    "m/84'/2'/0'/0/0",
+	Optimism:    "m/44'/60'/0'/0/0",
+	Polygon:     "m/44'/60'/0'/0/0",
+	Zksync:      "m/44'/60'/0'/0/0",
+	Solana:      "",
+	Sui:         "",
+	Polkadot:    "",
+}
 
 func (c Chain) String() string {
 	if str, ok := chainToString[c]; ok {
@@ -104,4 +129,11 @@ func (c *Chain) Scan(value interface{}) error {
 		}
 	}
 	return nil
+}
+
+func (c *Chain) GetDerivePath() string {
+	if str, ok := chainDerivePath[*c]; ok {
+		return str
+	}
+	return ""
 }
