@@ -5,8 +5,13 @@ import {
   createBrowserRouter,
 } from "react-router-dom";
 import React from "react";
-import paths from "./constant-paths";
-import LandingPage from "../pages/landing";
+import paths from "routes/constant-paths";
+
+import DefaultLayout from "layouts/default";
+
+import AssetPage from "pages/asset";
+import BalancePage from "pages/balance";
+import LandingPage from "pages/landing";
 
 interface RouteConfig {
   path: string;
@@ -44,10 +49,37 @@ const Component = () => {
     {
       path: paths.root,
       redirect: paths.landing,
+      //should remove when redux added to project
     },
     {
       path: paths.landing,
       element: <LandingPage />,
+    },
+    {
+      path: paths.root,
+      element: <DefaultLayout />,
+      children: [
+        {
+          path: paths.root,
+          redirect: paths.balance,
+        },
+        {
+          path: paths.balance,
+          element: <BalancePage />,
+        },
+        {
+          path: paths.asset,
+          element: <AssetPage />,
+        },
+        {
+          path: "*",
+          redirect: paths.root,
+        },
+      ],
+    },
+    {
+      path: "*",
+      redirect: paths.root,
     },
   ];
 
