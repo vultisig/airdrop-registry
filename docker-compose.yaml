@@ -7,19 +7,19 @@ services:
     ports:
       - "${MYSQL_PORT:-3301}:3306"
 
-  redis:
-    image: redis:alpine
-    command: ["redis-server"]
-    ports:
-      - "${REDIS_PORT:-6372}:6379"
-
-  asynqmon:
-    image: hibiken/asynqmon:latest
-    container_name: signer-asynqmon
-    ports:
-      - "${ASYNQMON_PORT:-8022}:8080"
-    environment:
-      REDIS_URL: redis://redis:6379/0
+#  redis:
+#    image: redis:alpine
+#    command: ["redis-server"]
+#    ports:
+#      - "${REDIS_PORT:-6372}:6379"
+#
+#  asynqmon:
+#    image: hibiken/asynqmon:latest
+#    container_name: signer-asynqmon
+#    ports:
+#      - "${ASYNQMON_PORT:-8022}:8080"
+#    environment:
+#      REDIS_URL: redis://redis:6379/0
 
   # app:
   #   build: .

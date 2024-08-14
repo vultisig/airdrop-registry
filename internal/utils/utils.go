@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"regexp"
 	"strings"
+
+	"github.com/ethereum/go-ethereum/common/math"
 )
 
 func IsValidHex(s string) bool {
@@ -13,7 +15,7 @@ func IsValidHex(s string) bool {
 	return re.MatchString(s)
 }
 
-func HexToFloat64(hexStr string) (float64, error) {
+func HexToFloat64(hexStr string, decimals int64) (float64, error) {
 	if strings.HasPrefix(hexStr, "0x") {
 		hexStr = hexStr[2:]
 	}
@@ -22,7 +24,8 @@ func HexToFloat64(hexStr string) (float64, error) {
 	if !ok {
 		return 0, fmt.Errorf("invalid hexadecimal string")
 	}
+
 	fValue := new(big.Float).SetInt(value)
-	result, _ := new(big.Float).Quo(fValue, big.NewFloat(1e18)).Float64()
+	result, _ := new(big.Float).Quo(fValue, new(big.Float).SetInt(math.BigPow(10, decimals))).Float64()
 	return result, nil
 }

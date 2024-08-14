@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/vultisig/airdrop-registry/pkg/utils"
+	"github.com/vultisig/airdrop-registry/internal/utils"
 )
 
 func GetDotAddress(hexPublicKey string) (string, error) {

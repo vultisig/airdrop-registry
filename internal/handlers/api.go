@@ -50,15 +50,14 @@ func (a *Api) setupRouting() {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	// register api group
+	rg := a.router.Group("/api")
 	// endpoint for health check
-	a.router.GET("/ping", func(c *gin.Context) {
+	rg.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Vultisig Airdrop Registry",
 		})
 	})
-	// register api group
-	rg := a.router.Group("/api")
-
 	// Derive PublicKey
 	rg.POST("/derive-public-key", a.derivePublicKeyHandler)
 	// Vaults
