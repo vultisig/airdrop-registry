@@ -1,15 +1,9 @@
 import axios from "axios";
 
+import CaseConverter from "utils/case-converter";
+import VaultManager from "utils/vault-manager";
+
 //import paths from "routes/constant-paths";
-
-interface PublicKeys {
-  ecdsa: string;
-  eddsa: string;
-}
-
-interface HexChainCode extends PublicKeys {
-  hexChainCode: string;
-}
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_SERVER_ADDRESS,
@@ -18,6 +12,8 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
+    config.data = CaseConverter.toSnake(config.data);
+
     return config;
   },
   (error) => {
@@ -26,13 +22,15 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  ({ data }) => {
-    return data;
+  (response) => {
+    response.data = CaseConverter.toCamel(response.data);
+
+    return response;
   },
-  ({ response: { status } }) => {
+  ({ response }) => {
     //if (data?.message) message.error(data?.message);
 
-    switch (status) {
+    switch (response.status) {
       case 401:
         break;
       case 403:
@@ -41,29 +39,15 @@ api.interceptors.response.use(
         break;
     }
 
-    return Promise.reject(status);
+    return Promise.reject(response.status);
   }
 );
 
-const get = async (url: string, params = {}) => {
-  return await api.get(url, { params });
-};
-
-const post = async (url: string, params = {}) => {
-  return await api.post(url, params);
-};
-
 export default {
-  stepOne: async (params: HexChainCode) => {
-    return post("vault", params);
+  register: async (params: VaultManager.Vault) => {
+    return await api.post("vault", params);
   },
-  stepTwo: ({ ecdsa, eddsa }: PublicKeys) => {
-    return get(`vault/:${ecdsa}/:${eddsa}/address`);
-  },
-  stepThree: ({ ecdsa, eddsa }: PublicKeys) => {
-    return post(`vault/:${ecdsa}/:${eddsa}/address`);
-  },
-  stepFour: ({ ecdsa, eddsa }: PublicKeys) => {
-    return get(`vault/:${ecdsa}/:${eddsa}/balance`);
+  derivePublicKey: async (params: VaultManager.Derivation) => {
+    return await api.post<{ publicKey: string }>("derive-public-key", params);
   },
 };

@@ -3,6 +3,8 @@ import { fromBinary } from "@bufbuild/protobuf";
 import crypto from "crypto-js";
 import jsQR from "jsqr";
 
+import CaseConverter from "utils/case-converter";
+
 import { VaultContainerSchema } from "gen/vault/vault_container_pb";
 import { VaultSchema } from "gen/vault/vault_pb";
 
@@ -40,7 +42,7 @@ namespace VaultDecryptor {
     "application/pdf",
   ];
 
-  //const fileFormats: string[] = [];
+  const fileFormats: string[] = [];
 
   const validateBase64 = (str: string): boolean => {
     const regex =
@@ -90,8 +92,7 @@ namespace VaultDecryptor {
         type = Type.IMAGE;
 
         reader.readAsDataURL(file);
-      } else if (true) {
-        //fileFormats.indexOf(file.type) >= 0
+      } else if (fileFormats.indexOf(file.type) >= 0) {
         type = Type.DATA;
 
         reader.readAsText(file);
@@ -126,7 +127,9 @@ namespace VaultDecryptor {
           const qrData = jsQR(imageData, image.width, image.height);
 
           if (qrData) {
-            const vaultData: Vault = JSON.parse(qrData.data);
+            const vaultData: Vault = CaseConverter.toCamel(
+              JSON.parse(qrData.data)
+            );
 
             resolve(vaultData);
           } else {
@@ -147,7 +150,7 @@ namespace VaultDecryptor {
     file: File,
     setData: (props: FileProps) => void,
     getPasswd: () => Promise<string>
-  ): Promise<any> => {
+  ): Promise<Vault> => {
     return new Promise((resolve, reject) => {
       readFile(file)
         .then(({ data, name, type }) => {

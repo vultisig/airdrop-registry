@@ -1,17 +1,16 @@
 import { FC, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button, Form, Input, Modal, Space, Upload, message } from "antd";
-import { initWasm, WalletCore } from "@trustwallet/wallet-core";
-
 import type { UploadProps } from "antd";
 
 import { modals } from "utils/constants";
 import VaultDecryptor from "utils/vault-decryptor";
+import VaultManager from "utils/vault-manager";
+import paths from "routes/constant-paths";
 
 type Status = "default" | "error" | "success";
 
 interface InitialState {
-  core?: WalletCore;
   file?: VaultDecryptor.FileProps;
   status: Status;
 }
@@ -89,51 +88,9 @@ const PasswdModal: FC<PasswdModalProps> = ({ onCancel, onConfirm }) => {
 const Component: FC = () => {
   const initialState: InitialState = { status: "default" };
   const [state, setState] = useState(initialState);
-  const { core, file, status } = state;
+  const { file, status } = state;
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
-
-  const handleAddress = (ecdsa: string, eddsa: string): void => {
-    if (core) {
-      const ecdsaBytes = core.HexCoding.decode(ecdsa);
-      const eddsaBytes = core.HexCoding.decode(eddsa);
-
-      const ecdsaKey = core.PublicKey.createWithData(
-        ecdsaBytes,
-        core.PublicKeyType.secp256k1
-      );
-
-      const eddsaKey = core.PublicKey.createWithData(
-        eddsaBytes,
-        core.PublicKeyType.ed25519
-      );
-
-      const bitcoin = core.AnyAddress.createWithPublicKey(
-        ecdsaKey,
-        core.CoinType.bitcoin
-      ).description();
-
-      const ethereum = core.AnyAddress.createWithPublicKey(
-        ecdsaKey,
-        core.CoinType.ethereum
-      ).description();
-
-      const solana = core.AnyAddress.createWithPublicKey(
-        eddsaKey,
-        core.CoinType.solana
-      ).description();
-
-      const thorchain = core.AnyAddress.createWithPublicKey(
-        eddsaKey,
-        core.CoinType.thorchain
-      ).description();
-
-      console.log(`bitcoin: ${bitcoin}`);
-      console.log(`ethereum: ${ethereum}`);
-      console.log(`solana: ${solana}`);
-      console.log(`thorchain: ${thorchain}`);
-    }
-  };
 
   const handleData = (file: VaultDecryptor.FileProps) => {
     setState((prevState) => ({ ...prevState, file }));
@@ -161,71 +118,65 @@ const Component: FC = () => {
     setState(initialState);
   };
 
+  const handleUpload = (file: File): false => {
+    setState(initialState);
+
+    VaultDecryptor.decryptor(file, handleData, handlePassword)
+      .then((vault) => {
+        setState((prevState) => ({ ...prevState, status: "success" }));
+
+        VaultManager.register(vault)
+          .then(() => {})
+          .catch(() => {})
+          .finally(() => {
+            navigate(paths.balance);
+          });
+      })
+      .catch((error) => {
+        setState((prevState) => ({ ...prevState, status: "error" }));
+
+        switch (error) {
+          case VaultDecryptor.Error.INVALID_CONTAINER:
+            messageApi.error("Invalid vault container data");
+            break;
+          case VaultDecryptor.Error.INVALID_ENCODING:
+            messageApi.error("Invalid file encode");
+            break;
+          case VaultDecryptor.Error.INVALID_EXTENSION:
+            messageApi.error("Invalid file extension");
+            break;
+          case VaultDecryptor.Error.INVALID_FILE:
+            messageApi.error("Invalid file");
+            break;
+          case VaultDecryptor.Error.PASSWD_REQUIRED:
+            messageApi.error("Password is required");
+            break;
+          case VaultDecryptor.Error.INVALID_PASSWD:
+            messageApi.error("Invalid vault data");
+            break;
+          case VaultDecryptor.Error.INVALID_QRCODE:
+            messageApi.error("Invalid qr code");
+            break;
+          case VaultDecryptor.Error.INVALID_VAULT:
+            messageApi.error("Invalid vault data");
+            break;
+          default:
+            messageApi.error("Someting is wrong");
+            break;
+        }
+      });
+
+    return false;
+  };
+
   const props: UploadProps = {
     multiple: false,
     showUploadList: false,
-    beforeUpload: (file) => {
-      setState(initialState);
-
-      VaultDecryptor.decryptor(file, handleData, handlePassword)
-        .then((result) => {
-          setState((prevState) => ({ ...prevState, status: "success" }));
-
-          handleAddress(
-            result.publicKeyEcdsa || result.public_key_ecdsa,
-            result.publicKeyEddsa || result.public_key_eddsa
-          );
-
-          console.log(result);
-        })
-        .catch((error) => {
-          setState((prevState) => ({ ...prevState, status: "error" }));
-
-          switch (error) {
-            case VaultDecryptor.Error.INVALID_CONTAINER:
-              messageApi.error("Invalid vault container data");
-              break;
-            case VaultDecryptor.Error.INVALID_ENCODING:
-              messageApi.error("Invalid file encode");
-              break;
-            case VaultDecryptor.Error.INVALID_EXTENSION:
-              messageApi.error("Invalid file extension");
-              break;
-            case VaultDecryptor.Error.INVALID_FILE:
-              messageApi.error("Invalid file");
-              break;
-            case VaultDecryptor.Error.PASSWD_REQUIRED:
-              messageApi.error("Password is required");
-              break;
-            case VaultDecryptor.Error.INVALID_PASSWD:
-              messageApi.error("Invalid vault data");
-              break;
-            case VaultDecryptor.Error.INVALID_QRCODE:
-              messageApi.error("Invalid qr code");
-              break;
-            case VaultDecryptor.Error.INVALID_VAULT:
-              messageApi.error("Invalid vault data");
-              break;
-            default:
-              messageApi.error("Someting is wrong");
-              break;
-          }
-        });
-
-      return false;
-    },
+    beforeUpload: handleUpload,
     fileList: [],
   };
 
-  const componentDidMount = () => {
-    initWasm()
-      .then((core) => {
-        setState((prevState) => ({ ...prevState, core }));
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
+  const componentDidMount = () => {};
 
   useEffect(componentDidMount, []);
 

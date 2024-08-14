@@ -11,13 +11,22 @@ import type { Message } from "@bufbuild/protobuf";
 /**
  * Describes the file vault.proto.
  */
-export const file_vault: GenFile = /*@__PURE__*/
-  fileDesc("Cgt2YXVsdC5wcm90bxIRdnVsdGlzaWcudmF1bHQudjEiuwIKBVZhdWx0EgwKBG5hbWUYASABKAkSGAoQcHVibGljX2tleV9lY2RzYRgCIAEoCRIYChBwdWJsaWNfa2V5X2VkZHNhGAMgASgJEg8KB3NpZ25lcnMYBCADKAkSLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASFgoOaGV4X2NoYWluX2NvZGUYBiABKAkSNQoKa2V5X3NoYXJlcxgHIAMoCzIhLnZ1bHRpc2lnLnZhdWx0LnYxLlZhdWx0LktleVNoYXJlEhYKDmxvY2FsX3BhcnR5X2lkGAggASgJEhYKDnJlc2hhcmVfcHJlZml4GAkgASgJGjAKCEtleVNoYXJlEhIKCnB1YmxpY19rZXkYASABKAkSEAoIa2V5c2hhcmUYAiABKAlCKwoRdnVsdGlzaWcudmF1bHQudjFaEXZ1bHRpc2lnL3ZhdWx0L3YxugICVlNiBnByb3RvMw", [file_google_protobuf_timestamp]);
+export const file_vault: GenFile =
+  /*@__PURE__*/
+  fileDesc(
+    "Cgt2YXVsdC5wcm90bxIRdnVsdGlzaWcudmF1bHQudjEiuwIKBVZhdWx0EgwKBG5hbWUYASABKAkSGAoQcHVibGljX2tleV9lY2RzYRgCIAEoCRIYChBwdWJsaWNfa2V5X2VkZHNhGAMgASgJEg8KB3NpZ25lcnMYBCADKAkSLgoKY3JlYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASFgoOaGV4X2NoYWluX2NvZGUYBiABKAkSNQoKa2V5X3NoYXJlcxgHIAMoCzIhLnZ1bHRpc2lnLnZhdWx0LnYxLlZhdWx0LktleVNoYXJlEhYKDmxvY2FsX3BhcnR5X2lkGAggASgJEhYKDnJlc2hhcmVfcHJlZml4GAkgASgJGjAKCEtleVNoYXJlEhIKCnB1YmxpY19rZXkYASABKAkSEAoIa2V5c2hhcmUYAiABKAlCKwoRdnVsdGlzaWcudmF1bHQudjFaEXZ1bHRpc2lnL3ZhdWx0L3YxugICVlNiBnByb3RvMw",
+    [file_google_protobuf_timestamp]
+  );
 
 /**
  * @generated from message vultisig.vault.v1.Vault
  */
 export type Vault = Message<"vultisig.vault.v1.Vault"> & {
+  /**
+   * @generated from field: string uid = 1;
+   */
+  uid: string;
+
   /**
    * @generated from field: string name = 1;
    */
@@ -68,7 +77,8 @@ export type Vault = Message<"vultisig.vault.v1.Vault"> & {
  * Describes the message vultisig.vault.v1.Vault.
  * Use `create(VaultSchema)` to create a new message.
  */
-export const VaultSchema: GenMessage<Vault> = /*@__PURE__*/
+export const VaultSchema: GenMessage<Vault> =
+  /*@__PURE__*/
   messageDesc(file_vault, 0);
 
 /**
@@ -90,6 +100,6 @@ export type Vault_KeyShare = Message<"vultisig.vault.v1.Vault.KeyShare"> & {
  * Describes the message vultisig.vault.v1.Vault.KeyShare.
  * Use `create(Vault_KeyShareSchema)` to create a new message.
  */
-export const Vault_KeyShareSchema: GenMessage<Vault_KeyShare> = /*@__PURE__*/
+export const Vault_KeyShareSchema: GenMessage<Vault_KeyShare> =
+  /*@__PURE__*/
   messageDesc(file_vault, 0, 0);
-
