@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import WebFont from "webfontloader";
 import { useTranslation } from "react-i18next";
 import { ConfigProvider } from "antd";
 
@@ -12,14 +11,7 @@ const App = () => {
   const initialState = { loaded: false };
   const [state, setState] = useState(initialState);
   const { loaded } = state;
-  useEffect(() => {
-    WebFont.load({
-      custom: {
-        families: ["Montserrat"],
-        urls: ["./styles/_montserrat.scss"],
-      },
-    });
-  }, []);
+
   useEffect(() => {
     setTimeout(() => {
       setState((prevState) => ({ ...prevState, loaded: true }));
