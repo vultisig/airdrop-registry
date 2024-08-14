@@ -1,0 +1,39 @@
+.default-layout {
+  padding: 8.25rem 0 2rem;
+
+  .header {
+    align-items: center;
+    border-bottom: solid 1px $blue-light;
+    display: flex;
+    height: 6.25rem;
+    justify-content: space-between;
+    left: 0;
+    min-width: 22.5rem;
+    padding: 1.875rem 1rem;
+    position: absolute;
+    right: 0;
+    top: 0;
+
+    .logo {
+      img {
+        height: 100%;
+      }
+    }
+
+    .menu {
+      svg {
+        fill: $gray-1;
+        height: 1.5rem;
+        width: 1.5rem;
+      }
+    }
+  }
+}
+
+@media (min-width: 72.5rem) {
+  .default-layout {
+    .header {
+      padding: 1.875rem 2.5rem;
+    }
+  }
+}
