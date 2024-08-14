@@ -34,3 +34,9 @@ type CoinDBModel struct {
 func (CoinDBModel) TableName() string {
 	return "coins"
 }
+
+type CoinIdentity struct {
+	Chain           common.Chain
+	Ticker          string
+	ContractAddress string
+}

@@ -17,7 +17,7 @@ func (s *Storage) AddCoin(coin *models.CoinDBModel) error {
 // DeleteCoin deletes a coin by its ID , and the vault id
 func (s *Storage) DeleteCoin(coinID string, vaultID uint) error {
 	if err := s.db.Where("id = ? AND vault_id = ?", coinID, vaultID).Unscoped().Delete(&models.CoinDBModel{}).Error; err != nil {
-		return fmt.Errorf("failed to delete coin with ID %d: %w", coinID, err)
+		return fmt.Errorf("failed to delete coin with ID %s: %w", coinID, err)
 	}
 	return nil
 }
