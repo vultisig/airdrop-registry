@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/vultisig/airdrop-registry/pkg/utils"
+	"github.com/vultisig/airdrop-registry/internal/utils"
 )
 
 func FetchEvmBalanceOfAddress(chain, address string) (float64, error) {
