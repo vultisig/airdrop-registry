@@ -4,38 +4,43 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 )
 
-func FetchSolanaBalanceOfAddress(address string) (float64, error) {
-	payload := fmt.Sprintf(`{"jsonrpc":"2.0","method":"getBalance","params":["%s"],"id":1}`, address)
-	response, err := http.Post("https://api.mainnet-beta.solana.com", "application/json", bytes.NewBuffer([]byte(payload)))
+type RpcSolanaResp struct {
+	Jsonrpc string `json:"jsonrpc"`
+	Id      int    `json:"id"`
+	Result  struct {
+		Value float64 `json:"value"`
+	} `json:"result"`
+}
+
+func (b *BalanceResolver) FetchSolanaBalanceOfAddress(address string) (float64, error) {
+	// Create parameters array
+	params := []interface{}{
+		address,
+	}
+
+	// Create RPC request
+	rpcReq := RpcRequest{
+		Jsonrpc: "2.0",
+		Method:  "getBalance",
+		Params:  params,
+		Id:      1,
+	}
+	// Convert RPC request to JSON
+	reqBody, err := json.Marshal(rpcReq)
 	if err != nil {
-		return 0, fmt.Errorf("error fetching balance of address %s on Solana: %v", address, err)
+		return 0, fmt.Errorf("error marshalling RPC request: %w", err)
 	}
-	defer response.Body.Close()
-
-	body, err := io.ReadAll(response.Body)
+	response, err := http.Post("https://api.mainnet-beta.solana.com", "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
-		return 0, fmt.Errorf("error reading response body: %v", err)
+		return 0, fmt.Errorf("error fetching balance of address %s on Solana: %w", address, err)
 	}
-
-	var data map[string]interface{}
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		return 0, fmt.Errorf("error unmarshalling response body: %v", err)
+	defer b.closer(response.Body)
+	var rpcResp RpcSolanaResp
+	if err := json.NewDecoder(response.Body).Decode(&rpcResp); err != nil {
+		return 0, fmt.Errorf("error decoding response: %v", err)
 	}
-
-	result, ok := data["result"].(map[string]interface{})
-	if !ok {
-		return 0, fmt.Errorf("unexpected response format")
-	}
-
-	value, ok := result["value"].(float64)
-	if !ok {
-		return 0, fmt.Errorf("unexpected response format")
-	}
-
-	return value / 1000000000, nil // convert lamports to SOL
+	return rpcResp.Result.Value / 1000000000, nil
 }

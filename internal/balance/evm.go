@@ -7,23 +7,61 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/vultisig/airdrop-registry/internal/common"
 	"github.com/vultisig/airdrop-registry/internal/utils"
 )
 
-func FetchEvmBalanceOfAddress(chain, address string) (float64, error) {
-	rpcUrl := getRpcUrlForChain(chain)
-	if rpcUrl == "" {
-		return 0, fmt.Errorf("unsupported EVM chain: %s", chain)
+func (b *BalanceResolver) getRpcUrlForChain(chain common.Chain) (string, error) {
+	switch chain {
+	case common.Ethereum:
+		return "https://ethereum-rpc.publicnode.com", nil
+	case common.Avalanche:
+		return "https://avalanche-c-chain-rpc.publicnode.com", nil
+	case common.BscChain:
+		return "https://bsc-rpc.publicnode.com", nil
+	case common.Base:
+		return "https://base-rpc.publicnode.com", nil
+	case common.Blast:
+		return "https://rpc.ankr.com/blast", nil
+	case common.Optimism:
+		return "https://optimism-rpc.publicnode.com", nil
+	case common.Polygon:
+		return "https://polygon-bor-rpc.publicnode.com", nil
+	case common.Zksync:
+		return "https://mainnet.era.zksync.io", nil
+	//case common.Sui:
+	//	return "https://sui-rpc.publicnode.com"
+	default:
+		return "", fmt.Errorf("chain: %s doesn't support", chain)
 	}
+}
 
-	payload := fmt.Sprintf(`{"jsonrpc":"2.0","method":"eth_getBalance","params":["%s", "latest"],"id":1}`, address)
-	response, err := http.Post(rpcUrl, "application/json", strings.NewReader(payload))
+const EVM_ETH_BALANCE_TEMPLATE = `
+{
+    "jsonrpc": "2.0",
+    "method": "eth_getBalance",
+    "params": [
+        "%s",
+        "latest"
+    ],
+    "id": 1
+}
+`
+
+func (b *BalanceResolver) FetchEvmBalanceOfAddress(chain common.Chain, address string) (float64, error) {
+	rpcUrl, err := b.getRpcUrlForChain(chain)
 	if err != nil {
-		return 0, fmt.Errorf("error fetching balance of address %s on %s: %v", address, chain, err)
+		return 0, fmt.Errorf("error getting rpc url for chain %s: %w", chain, err)
 	}
-	defer response.Body.Close()
 
-	body, err := io.ReadAll(response.Body)
+	payload := fmt.Sprintf(EVM_ETH_BALANCE_TEMPLATE, address)
+	resp, err := http.Post(rpcUrl, "application/json", strings.NewReader(payload))
+	if err != nil {
+		return 0, fmt.Errorf("error fetching balance of address %s on %s: %w", address, chain, err)
+	}
+	defer b.closer(resp.Body)
+
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return 0, fmt.Errorf("error reading response body: %v", err)
 	}
@@ -35,7 +73,7 @@ func FetchEvmBalanceOfAddress(chain, address string) (float64, error) {
 	}
 
 	balanceHex := data["result"].(string)
-	balance, err := utils.HexToFloat64(balanceHex)
+	balance, err := utils.HexToFloat64(balanceHex, 18)
 	if err != nil {
 		return 0, fmt.Errorf("error converting balance to float: %v", err)
 	}

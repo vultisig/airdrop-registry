@@ -1,92 +1,86 @@
 package balance
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
+
+	"github.com/vultisig/airdrop-registry/internal/common"
+	"github.com/vultisig/airdrop-registry/internal/utils"
 )
 
-type TokenInfo struct {
-	Address  string   `json:"address"`
-	Symbol   string   `json:"symbol"`
-	Decimals int      `json:"decimals"`
-	Name     string   `json:"name"`
-	LogoURI  string   `json:"logoURI"`
-	Eip2612  bool     `json:"eip2612"`
-	Tags     []string `json:"tags"`
+type RpcParams struct {
+	To   string `json:"to"`
+	Data string `json:"data"`
 }
 
-func GetTokenInfo(addresses []string, chain string) (map[string]TokenInfo, error) {
-	chainToId := GetChainIDByChain(chain)
-	if chainToId == 0 {
-		return nil, fmt.Errorf("unsupported chain: %s", chain)
-	}
-
-	var addressesLower []string
-	for _, address := range addresses {
-		addressesLower = append(addressesLower, strings.ToLower(address))
-	}
-	addressesParam := strings.Join(addressesLower, ",")
-
-	apiURL := fmt.Sprintf("https://api.vultisig.com/1inch/token/v1.2/%d/custom?addresses=%s", chainToId, addressesParam)
-	response, err := http.Get(apiURL)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching token info: %v", err)
-	}
-	defer response.Body.Close()
-
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, fmt.Errorf("error reading response body: %v", err)
-	}
-
-	var result map[string]TokenInfo
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling response body: %v", err)
-	}
-
-	return result, nil
+type RpcRequest struct {
+	Jsonrpc string        `json:"jsonrpc"`
+	Method  string        `json:"method"`
+	Params  []interface{} `json:"params"`
+	Id      int           `json:"id"`
 }
 
-func FetchTokensWithBalance(address, chain string) (map[string]string, error) {
-	chainToId := GetChainIDByChain(chain)
-	if chainToId == 0 {
-		return nil, fmt.Errorf("unsupported chain: %s", chain)
-	}
+type RpcResponse struct {
+	Jsonrpc string `json:"jsonrpc"`
+	Id      int    `json:"id"`
+	Result  string `json:"result"`
+}
 
-	address = strings.ToLower(address)
-	// @TEST
-	if chain == "ethereum" {
-		address = "0xaA11EA95475341c4dDb83aF141B01e52500c23d6"
+func (b *BalanceResolver) fetchERC20TokenBalance(chain common.Chain, contractAddress, address string, decimals int64) (float64, error) {
+	if contractAddress == "" {
+		return 0, fmt.Errorf("contract address cannot be empty")
 	}
-	apiURL := fmt.Sprintf("https://api.vultisig.com/1inch/balance/v1.2/%d/balances/%s", chainToId, address)
-
-	response, err := http.Get(apiURL)
+	if address == "" {
+		return 0, fmt.Errorf("address cannot be empty")
+	}
+	baseUrl, err := b.getRpcUrlForChain(chain)
 	if err != nil {
-		return nil, fmt.Errorf("error fetching token balances: %v", err)
+		return 0, fmt.Errorf("error getting rpc url for chain %s: %w", chain, err)
 	}
-	defer response.Body.Close()
+	// Function signature hash of `balanceOf(address)` is `0x70a08231`
+	functionSignature := "0x70a08231"
+	// The wallet address is stripped of '0x', left-padded with zeros to 64 characters
+	strippedWalletAddress := strings.TrimPrefix(address, "0x")
+	paddedWalletAddress := fmt.Sprintf("%064s", strippedWalletAddress)
 
-	body, err := io.ReadAll(response.Body)
+	// Concatenate function signature and padded wallet address
+	data := functionSignature + paddedWalletAddress
+
+	// Create parameters array
+	params := []interface{}{
+		RpcParams{
+			To:   contractAddress,
+			Data: data,
+		},
+	}
+
+	// Create RPC request
+	rpcRequest := RpcRequest{
+		Jsonrpc: "2.0",
+		Method:  "eth_call",
+		Params:  params,
+		Id:      1,
+	}
+
+	// Convert RPC request to JSON
+	requestBody, err := json.Marshal(rpcRequest)
 	if err != nil {
-		return nil, fmt.Errorf("error reading response body: %v", err)
+		return 0, fmt.Errorf("error marshalling RPC request: %w", err)
 	}
-
-	var balances map[string]string
-	err = json.Unmarshal(body, &balances)
+	// Send HTTP POST request
+	resp, err := http.Post(baseUrl, "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling response body: %v", err)
+		return 0, fmt.Errorf("error sending HTTP request: %w", err)
+	}
+	defer b.closer(resp.Body)
+	// Parse response
+	var rpcResponse RpcResponse
+	if err := json.NewDecoder(resp.Body).Decode(&rpcResponse); err != nil {
+		return 0, fmt.Errorf("error decoding RPC response: %w", err)
 	}
 
-	nonZeroBalances := make(map[string]string)
-	for address, balance := range balances {
-		if balance != "0" {
-			nonZeroBalances[address] = balance
-		}
-	}
-
-	return nonZeroBalances, nil
+	return utils.HexToFloat64(rpcResponse.Result, decimals)
 }

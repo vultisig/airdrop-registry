@@ -1,53 +1,54 @@
 package balance
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
-func FetchSuiBalanceOfAddress(address string) (float64, error) {
-	chain := "sui"
-	rpcUrl := getRpcUrlForChain(chain)
-
-	if rpcUrl == "" {
-		return 0, fmt.Errorf("unsupported chain: %s", chain)
+func (b *BalanceResolver) FetchSuiBalanceOfAddress(address string) (float64, error) {
+	rpcUrl := "https://sui-rpc.publicnode.com"
+	// Create parameters array
+	params := []interface{}{
+		address,
 	}
 
-	payload := fmt.Sprintf(`{"jsonrpc":"2.0","method":"suix_getBalance","params":["%s"],"id":1}`, address)
-	response, err := http.Post(rpcUrl, "application/json", strings.NewReader(payload))
+	// Create RPC request
+	rpcReq := RpcRequest{
+		Jsonrpc: "2.0",
+		Method:  "suix_getBalance",
+		Params:  params,
+		Id:      1,
+	}
+
+	// Convert RPC request to JSON
+	reqBody, err := json.Marshal(rpcReq)
 	if err != nil {
-		return 0, fmt.Errorf("error fetching balance of address %s on %s: %v", address, chain, err)
+		return 0, fmt.Errorf("error marshalling RPC request: %w", err)
 	}
-	defer response.Body.Close()
 
-	body, err := io.ReadAll(response.Body)
+	response, err := http.Post(rpcUrl, "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
-		return 0, fmt.Errorf("error reading response body: %v", err)
+		return 0, fmt.Errorf("error fetching balance of address %s on SUI: %w", address, err)
+	}
+	defer b.closer(response.Body)
+	type RpcSuiResp struct {
+		Jsonrpc string `json:"jsonrpc"`
+		Id      int    `json:"id"`
+		Result  struct {
+			TotalBalance string `json:"totalBalance"`
+		} `json:"result"`
+	}
+	var rpcResp RpcSuiResp
+	if err := json.NewDecoder(response.Body).Decode(&rpcResp); err != nil {
+		return 0, fmt.Errorf("error decoding response: %w", err)
 	}
 
-	var data map[string]interface{}
-	err = json.Unmarshal(body, &data)
+	balance, err := strconv.ParseFloat(rpcResp.Result.TotalBalance, 64)
 	if err != nil {
-		return 0, fmt.Errorf("error unmarshalling response body: %v", err)
-	}
-
-	result, ok := data["result"].(map[string]interface{})
-	if !ok {
-		return 0, fmt.Errorf("unexpected response format")
-	}
-
-	totalBalance, ok := result["totalBalance"].(string)
-	if !ok {
-		return 0, fmt.Errorf("unexpected response format for totalBalance")
-	}
-
-	balance, err := strconv.ParseFloat(totalBalance, 64)
-	if err != nil {
-		return 0, fmt.Errorf("error converting balance to float: %v", err)
+		return 0, fmt.Errorf("error converting balance to float: %w", err)
 	}
 
 	balance = balance / 1e9

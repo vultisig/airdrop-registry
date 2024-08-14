@@ -28,12 +28,12 @@ func (b *BalanceResolver) FetchCosmosBalanceOfAddress(address string) (float64, 
 
 func (b *BalanceResolver) FetchKujiraBalanceOfAddress(address string) (float64, error) {
 	url := fmt.Sprintf("https://kujira-rest.publicnode.com/cosmos/bank/v1beta1/balances/%s", address)
-	return b.fetchSpecificCosmosBalance(url, "ukujira", 6)
+	return b.fetchSpecificCosmosBalance(url, "ukuji", 6)
 }
 
 func (b *BalanceResolver) FetchDydxBalanceOfAddress(address string) (float64, error) {
 	url := fmt.Sprintf("https://dydx-rest.publicnode.com/cosmos/bank/v1beta1/balances/%s", address)
-	return b.fetchSpecificCosmosBalance(url, "udydx", 6)
+	return b.fetchSpecificCosmosBalance(url, "adydx", 18)
 }
 
 type CosmosData struct {

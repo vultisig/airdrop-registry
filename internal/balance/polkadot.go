@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 )
@@ -53,7 +52,7 @@ type SubscanResponse struct {
 	} `json:"data"`
 }
 
-func FetchPolkadotBalanceOfAddress(address string) (float64, error) {
+func (b *BalanceResolver) FetchPolkadotBalanceOfAddress(address string) (float64, error) {
 	payload := fmt.Sprintf(`{"key":"%s"}`, address)
 	response, err := http.Post(
 		"https://polkadot.api.subscan.io/api/v2/scan/search",
@@ -61,30 +60,25 @@ func FetchPolkadotBalanceOfAddress(address string) (float64, error) {
 		bytes.NewBuffer([]byte(payload)),
 	)
 	if err != nil {
-		return 0, fmt.Errorf("error fetching balance of address %s on Polkadot: %v", address, err)
+		return 0, fmt.Errorf("error fetching balance of address %s on Polkadot: %w", address, err)
 	}
-	defer response.Body.Close()
-
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return 0, fmt.Errorf("error reading response body: %v", err)
+	if response.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("error fetching balance of address %s on Polkadot: %s", address, response.Status)
 	}
+	defer b.closer(response.Body)
 
 	var subscanResp SubscanResponse
-	err = json.Unmarshal(body, &subscanResp)
-	if err != nil {
-		return 0, fmt.Errorf("error unmarshalling response body: %v", err)
+	if err := json.NewDecoder(response.Body).Decode(&subscanResp); err != nil {
+		return 0, fmt.Errorf("error unmarshalling response: %w", err)
 	}
 
 	if subscanResp.Code != 0 {
 		return 0, fmt.Errorf("error from subscan API: %s", subscanResp.Message)
 	}
-
 	balanceStr := subscanResp.Data.Account.Balance
 	balance, err := strconv.ParseFloat(balanceStr, 64)
 	if err != nil {
 		return 0, fmt.Errorf("error converting balance to float: %v", err)
 	}
-
 	return balance, nil
 }
