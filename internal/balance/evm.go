@@ -1,11 +1,10 @@
 package balance
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"strings"
 
 	"github.com/vultisig/airdrop-registry/internal/common"
 	"github.com/vultisig/airdrop-registry/internal/utils"
@@ -29,53 +28,58 @@ func (b *BalanceResolver) getRpcUrlForChain(chain common.Chain) (string, error) 
 		return "https://polygon-bor-rpc.publicnode.com", nil
 	case common.Zksync:
 		return "https://mainnet.era.zksync.io", nil
-	//case common.Sui:
-	//	return "https://sui-rpc.publicnode.com"
 	default:
 		return "", fmt.Errorf("chain: %s doesn't support", chain)
 	}
 }
-
-const EVM_ETH_BALANCE_TEMPLATE = `
-{
-    "jsonrpc": "2.0",
-    "method": "eth_getBalance",
-    "params": [
-        "%s",
-        "latest"
-    ],
-    "id": 1
-}
-`
 
 func (b *BalanceResolver) FetchEvmBalanceOfAddress(chain common.Chain, address string) (float64, error) {
 	rpcUrl, err := b.getRpcUrlForChain(chain)
 	if err != nil {
 		return 0, fmt.Errorf("error getting rpc url for chain %s: %w", chain, err)
 	}
+	// Create parameters array
+	params := []interface{}{
+		address,
+		"latest",
+	}
 
-	payload := fmt.Sprintf(EVM_ETH_BALANCE_TEMPLATE, address)
-	resp, err := http.Post(rpcUrl, "application/json", strings.NewReader(payload))
+	// Create RPC request
+	rpcRequest := RpcRequest{
+		Jsonrpc: "2.0",
+		Method:  "eth_getBalance",
+		Params:  params,
+		Id:      1,
+	}
+	buf, err := json.Marshal(rpcRequest)
+	if err != nil {
+		return 0, fmt.Errorf("error marshalling RPC request: %w", err)
+	}
+	resp, err := http.Post(rpcUrl, "application/json", bytes.NewBuffer(buf))
 	if err != nil {
 		return 0, fmt.Errorf("error fetching balance of address %s on %s: %w", address, chain, err)
 	}
 	defer b.closer(resp.Body)
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return 0, fmt.Errorf("error reading response body: %v", err)
+	if resp.StatusCode == http.StatusTooManyRequests {
+		// rate limited, need to backoff and then retry
+		return 0, ErrRateLimited
+	}
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("error fetching balance of address %s on %s: %s", address, chain, resp.Status)
+	}
+	type EthBalanceResult struct {
+		Jsonrpc string `json:"jsonrpc"`
+		Id      int    `json:"id"`
+		Result  string `json:"result"`
+	}
+	var result EthBalanceResult
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return 0, fmt.Errorf("error decoding response: %w", err)
 	}
 
-	var data map[string]interface{}
-	err = json.Unmarshal(body, &data)
+	balance, err := utils.HexToFloat64(result.Result, 18)
 	if err != nil {
-		return 0, fmt.Errorf("error unmarshalling response body: %v", err)
-	}
-
-	balanceHex := data["result"].(string)
-	balance, err := utils.HexToFloat64(balanceHex, 18)
-	if err != nil {
-		return 0, fmt.Errorf("error converting balance to float: %v", err)
+		return 0, fmt.Errorf("error converting balance to float: %w", err)
 	}
 
 	return balance, nil

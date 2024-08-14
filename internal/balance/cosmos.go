@@ -50,16 +50,20 @@ func (b *BalanceResolver) fetchSpecificCosmosBalance(url, denom string, decimals
 	if denom == "" {
 		return 0, fmt.Errorf("denom cannot be empty")
 	}
-	response, err := http.Get(url)
+	resp, err := http.Get(url)
 	if err != nil {
 		return 0, fmt.Errorf("error fetching balance from %s: %w", url, err)
 	}
-	defer b.closer(response.Body)
-	if response.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf("error fetching balance from %s: %s", url, response.Status)
+	defer b.closer(resp.Body)
+	if resp.StatusCode == http.StatusTooManyRequests {
+		// rate limited, need to backoff and then retry
+		return 0, ErrRateLimited
+	}
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("error fetching balance from %s: %s", url, resp.Status)
 	}
 	var result CosmosData
-	if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return 0, fmt.Errorf("error unmarshalling response: %w", err)
 	}
 

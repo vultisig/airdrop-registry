@@ -29,11 +29,19 @@ func (b *BalanceResolver) FetchSuiBalanceOfAddress(address string) (float64, err
 		return 0, fmt.Errorf("error marshalling RPC request: %w", err)
 	}
 
-	response, err := http.Post(rpcUrl, "application/json", bytes.NewBuffer(reqBody))
+	resp, err := http.Post(rpcUrl, "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
 		return 0, fmt.Errorf("error fetching balance of address %s on SUI: %w", address, err)
 	}
-	defer b.closer(response.Body)
+	defer b.closer(resp.Body)
+	if resp.StatusCode == http.StatusTooManyRequests {
+		// rate limited, need to backoff and then retry
+		return 0, ErrRateLimited
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("error fetching balance of address %s on SUI: %s", address, resp.Status)
+	}
 	type RpcSuiResp struct {
 		Jsonrpc string `json:"jsonrpc"`
 		Id      int    `json:"id"`
@@ -42,7 +50,7 @@ func (b *BalanceResolver) FetchSuiBalanceOfAddress(address string) (float64, err
 		} `json:"result"`
 	}
 	var rpcResp RpcSuiResp
-	if err := json.NewDecoder(response.Body).Decode(&rpcResp); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&rpcResp); err != nil {
 		return 0, fmt.Errorf("error decoding response: %w", err)
 	}
 

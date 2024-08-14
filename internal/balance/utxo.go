@@ -45,17 +45,22 @@ func (b *BalanceResolver) FetchUtxoBalanceOfAddress(address string, chain common
 		return 0, 0, fmt.Errorf("unsupported chain: %s", chain)
 	}
 	url := fmt.Sprintf("%s/blockchair/%s/dashboards/address/%s?state=latest", vultisigApiProxy, chainName, address)
-	response, err := http.Get(url)
+	resp, err := http.Get(url)
 	if err != nil {
 		return 0, 0, fmt.Errorf("error fetching UTXO balance of address %s: %w", address, err)
 	}
 
-	defer b.closer(response.Body)
-	if response.StatusCode != http.StatusOK {
-		return 0, 0, fmt.Errorf("error fetching UTXO balance of address %s: %s", address, response.Status)
+	defer b.closer(resp.Body)
+	if resp.StatusCode == http.StatusTooManyRequests {
+		// rate limited, need to backoff and then retry
+		return 0, 0, ErrRateLimited
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return 0, 0, fmt.Errorf("error fetching UTXO balance of address %s: %s", address, resp.Status)
 	}
 	var result UtxoResult
-	if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return 0, 0, fmt.Errorf("error unmarshalling response: %w", err)
 	}
 	data, ok := result.Data[address]

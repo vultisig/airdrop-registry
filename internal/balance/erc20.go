@@ -3,6 +3,7 @@ package balance
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -10,6 +11,8 @@ import (
 	"github.com/vultisig/airdrop-registry/internal/common"
 	"github.com/vultisig/airdrop-registry/internal/utils"
 )
+
+var ErrRateLimited = errors.New("rate limited")
 
 type RpcParams struct {
 	To   string `json:"to"`
@@ -76,6 +79,15 @@ func (b *BalanceResolver) fetchERC20TokenBalance(chain common.Chain, contractAdd
 		return 0, fmt.Errorf("error sending HTTP request: %w", err)
 	}
 	defer b.closer(resp.Body)
+
+	if resp.StatusCode == http.StatusTooManyRequests {
+		// rate limited, need to backoff and then retry
+		return 0, ErrRateLimited
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("error fetching balance of address %s on %s: %s", address, chain, resp.Status)
+	}
 	// Parse response
 	var rpcResponse RpcResponse
 	if err := json.NewDecoder(resp.Body).Decode(&rpcResponse); err != nil {

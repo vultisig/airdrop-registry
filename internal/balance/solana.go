@@ -38,6 +38,12 @@ func (b *BalanceResolver) FetchSolanaBalanceOfAddress(address string) (float64, 
 		return 0, fmt.Errorf("error fetching balance of address %s on Solana: %w", address, err)
 	}
 	defer b.closer(response.Body)
+	if response.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("error fetching balance of address %s on Solana: %s", address, response.Status)
+	}
+	if response.StatusCode == http.StatusTooManyRequests {
+		return 0, ErrRateLimited
+	}
 	var rpcResp RpcSolanaResp
 	if err := json.NewDecoder(response.Body).Decode(&rpcResp); err != nil {
 		return 0, fmt.Errorf("error decoding response: %v", err)

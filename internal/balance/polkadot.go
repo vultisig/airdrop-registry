@@ -54,7 +54,7 @@ type SubscanResponse struct {
 
 func (b *BalanceResolver) FetchPolkadotBalanceOfAddress(address string) (float64, error) {
 	payload := fmt.Sprintf(`{"key":"%s"}`, address)
-	response, err := http.Post(
+	resp, err := http.Post(
 		"https://polkadot.api.subscan.io/api/v2/scan/search",
 		"application/json",
 		bytes.NewBuffer([]byte(payload)),
@@ -62,13 +62,17 @@ func (b *BalanceResolver) FetchPolkadotBalanceOfAddress(address string) (float64
 	if err != nil {
 		return 0, fmt.Errorf("error fetching balance of address %s on Polkadot: %w", address, err)
 	}
-	if response.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf("error fetching balance of address %s on Polkadot: %s", address, response.Status)
+	defer b.closer(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("error fetching balance of address %s on Polkadot: %s", address, resp.Status)
 	}
-	defer b.closer(response.Body)
 
+	if resp.StatusCode == http.StatusTooManyRequests {
+		// rate limited, need to backoff and then retry
+		return 0, ErrRateLimited
+	}
 	var subscanResp SubscanResponse
-	if err := json.NewDecoder(response.Body).Decode(&subscanResp); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&subscanResp); err != nil {
 		return 0, fmt.Errorf("error unmarshalling response: %w", err)
 	}
 
