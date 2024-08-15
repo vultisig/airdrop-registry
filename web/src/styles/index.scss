@@ -27,6 +27,11 @@ body {
 .ant-dropdown {
   width: 17.5rem;
 
+  .ant-dropdown-menu-item-icon {
+    fill: $gray-1;
+    height: 1.25rem;
+  }
+
   .ant-dropdown-menu-item-group-title {
     color: $gray-6 !important;
     font-weight: 500;

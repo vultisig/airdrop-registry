@@ -62,15 +62,15 @@
   }
 
   .close {
-    background-image: url(/images/icon-close.svg);
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-size: contain;
     height: 0.875rem;
     position: absolute;
     right: 1rem;
     top: 1rem;
     width: 0.875rem;
+
+    svg {
+      fill: $gray-1;
+    }
   }
 
   .image {

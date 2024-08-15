@@ -12,11 +12,13 @@ const App = () => {
   const [state, setState] = useState(initialState);
   const { loaded } = state;
 
-  useEffect(() => {
+  const componentDidMount = () => {
     setTimeout(() => {
       setState((prevState) => ({ ...prevState, loaded: true }));
     }, 1000);
-  }, []);
+  };
+
+  useEffect(componentDidMount, []);
 
   return (
     <ConfigProvider
