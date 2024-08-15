@@ -1,8 +1,6 @@
 package models
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 
 	"github.com/vultisig/airdrop-registry/internal/common"
@@ -18,15 +16,12 @@ type CoinBase struct {
 	IsNativeToken   bool         `json:"is_native_token" binding:"required"`
 	HexPublicKey    string       `json:"hex_public_key" binding:"required" gorm:"type:varchar(255);not null"`
 	Balance         string       `json:"balance" gorm:"type:varchar(50)"`
-	Price           string       `json:"price" gorm:"type:varchar(50)"`
+	PriceUSD        string       `json:"price" gorm:"type:varchar(50)"`
+	USDValue        string       `json:"usd_value" gorm:"type:varchar(50)"`
 }
 
 type CoinDBModel struct {
-	ID        string `gorm:"type:varchar(255);not null;primarykey"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
-
+	gorm.Model
 	CoinBase
 	VaultID uint `json:"vault_id" binding:"required" gorm:"not null"`
 }

@@ -22,11 +22,9 @@ type Config struct {
 		Host     string `mapstructure:"host"`
 		Port     int    `mapstructure:"port"`
 	}
-	Redis struct {
-		Host     string `mapstructure:"host"`
-		Port     int    `mapstructure:"port"`
-		Password string `mapstructure:"password"`
-		DB       int    `mapstructure:"db"`
+	Worker struct {
+		StartID     int64 `mapstructure:"start_id"`
+		Concurrency int64 `mapstructure:"concurrency"`
 	}
 }
 
@@ -45,10 +43,8 @@ func LoadConfig() (*Config, error) {
 	viper.SetDefault("mysql.password", "password")
 	viper.SetDefault("mysql.host", "localhost")
 	viper.SetDefault("mysql.port", 3301)
-	viper.SetDefault("redis.host", "localhost")
-	viper.SetDefault("redis.port", 6381)
-	viper.SetDefault("redis.password", "")
-	viper.SetDefault("redis.db", 0)
+	viper.SetDefault("worker.start_id", 0)
+	viper.SetDefault("worker.concurrency", 10)
 
 	if err := viper.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
