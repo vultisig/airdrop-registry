@@ -42,7 +42,7 @@ func TestHexToFloat64(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		result, err := HexToFloat64(tc.hexStr)
+		result, err := HexToFloat64(tc.hexStr, 18)
 		if tc.hasError {
 			if err == nil {
 				t.Errorf("Expected error for hex string %s, but got none", tc.hexStr)

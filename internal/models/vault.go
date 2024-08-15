@@ -20,7 +20,7 @@ type Vault struct {
 	EDDSA        string  `gorm:"type:varchar(255);uniqueIndex:ecdsa_eddsa_idx;not null" json:"eddsa" binding:"required"`
 	HexChainCode string  `gorm:"type:varchar(255)" json:"hex_chain_code" binding:"required"`
 	Uid          string  `gorm:"type:varchar(255)" json:"uid" binding:"required"`
-	TotalPoint   float64 `json:"total_point"`  // total point of the vault
+	TotalPoints  float64 `json:"total_points"` // total point of the vault
 	JoinAirdrop  bool    `json:"join_airdrop"` // join airdrop or not
 }
 
