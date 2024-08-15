@@ -32,7 +32,7 @@ func NewStorage(cfg *config.Config) (*Storage, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	err = database.AutoMigrate(&models.Vault{}, &models.CoinDBModel{})
+	err = database.AutoMigrate(&models.Vault{}, &models.CoinDBModel{}, &models.Job{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
@@ -48,4 +48,28 @@ func (s *Storage) Close() error {
 	}
 
 	return sqlDB.Close()
+}
+
+func (s *Storage) CreateJob(job *models.Job) error {
+	result := s.db.Create(job)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+func (s *Storage) GetLastJob() (*models.Job, error) {
+	var job models.Job
+	result := s.db.Model(&models.Job{}).Last(&job)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &job, nil
+}
+func (s *Storage) UpdateJob(job *models.Job) error {
+	result := s.db.Save(job)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }

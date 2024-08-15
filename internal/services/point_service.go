@@ -1,10 +1,14 @@
 package services
 
 import (
+	"errors"
 	"fmt"
+	"strconv"
 	"sync"
+	"time"
 
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/balance"
@@ -18,7 +22,6 @@ type PointWorker struct {
 	priceResolver   *PriceResolver
 	balanceResolver *balance.BalanceResolver
 	startCoinID     int64
-	workerChan      chan models.CoinDBModel
 	wg              *sync.WaitGroup
 	stopChan        chan struct{}
 	cfg             *config.Config
@@ -38,7 +41,6 @@ func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceRe
 		priceResolver:   priceResolver,
 		balanceResolver: balanceResolver,
 		startCoinID:     cfg.Worker.StartID,
-		workerChan:      make(chan models.CoinDBModel, cfg.Worker.Concurrency),
 		stopChan:        make(chan struct{}),
 		wg:              &sync.WaitGroup{},
 		cfg:             cfg,
@@ -46,17 +48,92 @@ func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceRe
 }
 
 func (p *PointWorker) Run() error {
-	if err := p.updateCoinPrice(); err != nil {
-		return fmt.Errorf("fail to update coin prices,err: %w", err)
-	}
 	p.wg.Add(1)
-	go p.taskProvider()
+	go p.scheduler()
+	return nil
+}
+func (p *PointWorker) scheduler() {
+	p.logger.Info("start scheduler")
+	defer p.logger.Info("scheduler stopped")
+	defer p.wg.Done()
+	for {
+		select {
+		case <-p.stopChan:
+			return
+		case <-time.After(time.Minute):
+			p.ensureJobs()
+		}
+	}
+}
+
+func (p *PointWorker) ensureJobs() {
+	lastJob, err := p.storage.GetLastJob()
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			p.logger.Errorf("failed to get last job: %v", err)
+			return
+		}
+		// create a job for today
+		lastJob = &models.Job{
+			JobDate:    time.Now(),
+			Multiplier: 1,
+			IsSuccess:  false,
+		}
+		if err := p.storage.CreateJob(lastJob); err != nil {
+			p.logger.Errorf("failed to create job: %v", err)
+			return
+		}
+	}
+
+	lastJob, err = p.storage.GetLastJob()
+	if err != nil {
+		p.logger.Errorf("failed to get last job: %v", err)
+		return
+	}
+
+	if !lastJob.IsSuccess {
+		p.startJob(lastJob)
+		return
+	}
+
+	multiplier := lastJob.DaysSince()
+	if multiplier < 1 {
+		// last job has been finished , but not 24 hours yet
+		return
+	}
+	newJob := &models.Job{
+		JobDate:    time.Now(),
+		Multiplier: multiplier,
+		IsSuccess:  false,
+	}
+	if err := p.storage.CreateJob(newJob); err != nil {
+		p.logger.Errorf("failed to create job: %v", err)
+		return
+	}
+	p.startJob(newJob)
+}
+
+func (p *PointWorker) startJob(job *models.Job) {
+	if job.CurrentID == 0 {
+		p.logger.Infof("start job %s", job.JobDate.Format("2006-01-02"))
+	} else {
+		p.logger.Infof("continue job %s from %d", job.JobDate.Format("2006-01-02"), job.CurrentID)
+	}
+
+	if err := p.updateCoinPrice(); err != nil {
+		p.logger.Errorf("failed to update coin prices: %w", err)
+		return
+	}
+
+	p.wg.Add(1)
+	workChan := make(chan models.CoinDBModel)
+	go p.taskProvider(job, workChan)
 	for i := 0; i < int(p.cfg.Worker.Concurrency); i++ {
 		p.wg.Add(1)
 		idx := i
-		go p.taskWorker(idx)
+		go p.taskWorker(idx, workChan, *job)
 	}
-	return nil
+
 }
 
 func (p *PointWorker) Stop() {
@@ -64,28 +141,40 @@ func (p *PointWorker) Stop() {
 	p.wg.Wait()
 }
 
-func (p *PointWorker) taskProvider() {
+func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBModel) {
 	defer p.wg.Done()
-	currentID := uint64(p.startCoinID)
+	currentID := uint64(job.CurrentID)
 	for {
 		coins, err := p.storage.GetCoinsWithPage(currentID, 1000)
 		if err != nil {
 			p.logger.Errorf("failed to get coins: %v", err)
 			continue
 		}
-		if len(coins) == 0 {
-			p.logger.Info("no more coins to process, stopping task provider")
-			close(p.workerChan)
-			return
-		}
 
 		for _, coin := range coins {
 			currentID = uint64(coin.ID)
-			p.workerChan <- coin
+			job.CurrentID = int64(coin.ID)
+			workChan <- coin
+		}
+
+		if len(coins) == 0 {
+			p.logger.Info("no more coins to process, stopping task provider")
+			// no more to process
+			close(workChan)
+			job.IsSuccess = true
+		}
+
+		if err := p.storage.UpdateJob(job); err != nil {
+			p.logger.Errorf("failed to update job: %v", err)
+		}
+
+		if job.IsSuccess {
+			return
 		}
 	}
 }
-func (p *PointWorker) taskWorker(idx int) {
+
+func (p *PointWorker) taskWorker(idx int, workerChan <-chan models.CoinDBModel, job models.Job) {
 	p.logger.Infof("worker %d started", idx)
 	defer p.wg.Done()
 	for {
@@ -93,24 +182,36 @@ func (p *PointWorker) taskWorker(idx int) {
 		case <-p.stopChan:
 			p.logger.Infof("worker %d stop signal received, stopping worker", idx)
 			return
-		case t, more := <-p.workerChan:
+		case t, more := <-workerChan:
 			if !more {
 				return
 			}
-			if err := p.updateBalance(t); err != nil {
+			if err := p.updateBalance(t, job.Multiplier); err != nil {
 				p.logger.Errorf("failed to update balance: %v", err)
 			}
 		}
 	}
 }
 
-func (p *PointWorker) updateBalance(coin models.CoinDBModel) error {
+func (p *PointWorker) updateBalance(coin models.CoinDBModel, multiplier int64) error {
 	coinBalance, err := p.balanceResolver.GetBalanceWithRetry(coin)
 	if err != nil {
 		return fmt.Errorf("failed to get balance: %w", err)
 	}
 	if err := p.storage.UpdateCoinBalance(uint64(coin.ID), coinBalance); err != nil {
 		return fmt.Errorf("failed to update coin balance: %w", err)
+	}
+	// increase vault's point
+	price, err := strconv.ParseFloat(coin.PriceUSD, 64)
+	if err != nil {
+		return fmt.Errorf("failed to parse coin price: %w", err)
+	}
+	newPoints := int64(coinBalance * price * float64(multiplier))
+	if newPoints == 0 {
+		return nil
+	}
+	if err := p.storage.IncreaseVaultTotalPoints(coin.VaultID, newPoints); err != nil {
+		return fmt.Errorf("failed to increase vault total points: %w", err)
 	}
 	return nil
 }
@@ -129,6 +230,7 @@ func (p *PointWorker) updateCoinPrice() error {
 	if err != nil {
 		return fmt.Errorf("failed to get all token prices: %w", err)
 	}
+	p.logger.Infof("%+v", coinPrices)
 	for _, coinIden := range coinIdentities {
 		key := fmt.Sprintf("%s-%s", coinIden.Chain, coinIden.Ticker)
 		price, ok := coinPrices[key]

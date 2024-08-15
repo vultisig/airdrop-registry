@@ -118,7 +118,7 @@ func (p *PriceResolver) GetAllTokenPrices(coinIds []models.CoinIdentity) (map[st
 	}
 	priceMap := make(map[string]float64)
 	for _, item := range cmcQuoteResp.Data {
-		key := fmt.Sprintf("%d-%s-%s", item.ID, item.Name, item.Symbol)
+		key := fmt.Sprintf("%s-%s", item.Name, item.Symbol)
 		priceMap[key] = item.Quote.USD.Price
 	}
 	return priceMap, nil
