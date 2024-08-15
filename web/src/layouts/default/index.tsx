@@ -4,7 +4,15 @@ import { Button, Dropdown } from "antd";
 
 import type { MenuProps } from "antd";
 
-import { UserOutlined } from "utils/icons";
+import {
+  ChainOutlined,
+  CurrencyOutlined,
+  GearOutlined,
+  GlobeOutlined,
+  QuestionOutlined,
+  ShareOutlined,
+  UserOutlined,
+} from "utils/icons";
 import paths from "routes/constant-paths";
 
 const Component: FC = () => {
@@ -12,22 +20,27 @@ const Component: FC = () => {
     {
       key: "1",
       label: "Vault Settings",
+      icon: <GearOutlined />,
     },
     {
       key: "2",
       label: "Language",
+      icon: <GlobeOutlined />,
     },
     {
       key: "3",
       label: "Currency",
+      icon: <CurrencyOutlined />,
     },
     {
       key: "4",
       label: "Default Chains",
+      icon: <ChainOutlined />,
     },
     {
       key: "5",
       label: "FAQ",
+      icon: <QuestionOutlined />,
     },
     {
       key: "6",
@@ -41,6 +54,7 @@ const Component: FC = () => {
         {
           key: "6-2",
           label: "Share The App",
+          icon: <ShareOutlined />,
         },
       ],
     },
@@ -52,7 +66,7 @@ const Component: FC = () => {
         <Link to={paths.root} className="logo">
           <img src="/images/logo-type.svg" alt="logo" />
         </Link>
-        <Dropdown menu={{ items }} className="menu">
+        <Dropdown menu={{ items }} className="menu" >
           <Button type="link">
             <UserOutlined />
           </Button>

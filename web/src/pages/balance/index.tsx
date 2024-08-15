@@ -12,60 +12,87 @@ import {
 } from "utils/icons";
 import VaultManager from "utils/vault-manager";
 
-interface Chain {
-  address?: string;
-  icon: string;
-  key: VaultManager.ChainType;
-  name: string;
-}
 interface InitialState {
-  chains: Chain[];
+  chains: VaultManager.CoinMeta[];
 }
 
-const Component: FC = () => {
-  const initialState: InitialState = {
-    chains: [
-      {
-        icon: "/images/chain-bitcoin.png",
-        key: VaultManager.ChainType.BITCOIN,
-        name: "Bitcoin",
-      },
-      {
-        icon: "/images/chain-ethereum.png",
-        key: VaultManager.ChainType.ETHEREUM,
-        name: "Ethereum",
-      },
-      {
-        icon: "/images/chain-solana.png",
-        key: VaultManager.ChainType.SOLANA,
-        name: "Solana",
-      },
-      {
-        icon: "/images/chain-thor.png",
-        key: VaultManager.ChainType.THORCHAIN,
-        name: "Thorchain",
-      },
-    ],
+const Chain: FC<VaultManager.CoinMeta> = ({
+  icon,
+  chainID: id,
+  name,
+  ticker,
+}) => {
+  const initialState = { address: "" };
+  const [state, setState] = useState(initialState);
+  const { address } = state;
+
+  const componentDidMount = () => {
+    VaultManager.getAddress(id)
+      .then((address) => {
+        setState((prevState) => ({ ...prevState, address }));
+      })
+      .catch(() => {});
   };
+
+  useEffect(componentDidMount, []);
+
+  return (
+    <div className="chain">
+      <div className="type">
+        <img src={icon} alt="bitcoin" className="logo" />
+        <span className="name">{name}</span>
+        <span className="text">{ticker}</span>
+      </div>
+      <div className="key">
+        {address ? (
+          <Truncate end={10} middle>
+            {address}
+          </Truncate>
+        ) : (
+          <Spin />
+        )}
+      </div>
+      <span className="asset">12,000.12</span>
+      <span className="amount">$65,899</span>
+      <div className="actions">
+        <Button type="link">
+          <CopyOutlined />
+        </Button>
+        <Button type="link">
+          <QRCodeOutlined />
+        </Button>
+        <Button type="link">
+          <CubeOutlined />
+        </Button>
+      </div>
+      <Button type="link" className="arrow">
+        <CaretRightOutlined />
+      </Button>
+    </div>
+  );
+};
+
+const Component: FC = () => {
+  const initialState: InitialState = { chains: [] };
   const [state, setState] = useState(initialState);
   const { chains } = state;
 
   const componentDidMount = () => {
-    VaultManager.initiate()
+    VaultManager.init()
       .then(() => {
-        chains.forEach((chain) => {
-          VaultManager.getAddress(chain.key)
-            .then((address) => {
-              setState((prevState) => {
-                const _chains = prevState.chains.map((obj) =>
-                  obj.key === chain.key ? { ...obj, address } : obj
-                );
+        const _chains = [
+          VaultManager.Chain.BITCOIN,
+          VaultManager.Chain.THORCHAIN,
+          VaultManager.Chain.BSCCHAIN,
+          VaultManager.Chain.ETHEREUM,
+          VaultManager.Chain.SOLANA,
+        ];
 
-                return { ...prevState, chains: _chains };
-              });
-            })
-            .catch(() => {});
-        });
+        VaultManager.getChains(_chains)
+          .then((chains) => {
+            setState((prevState) => ({ ...prevState, chains }));
+          })
+          .catch(() => {});
       })
       .catch(() => {});
   };
@@ -78,6 +105,7 @@ const Component: FC = () => {
         <Select
           rootClassName="vault-select"
           popupClassName="vault-select-popup"
+          defaultValue={0}
           options={[
             { label: "Main Vault", value: 0 },
             { label: "Test Vault", value: 1 },
@@ -91,39 +119,8 @@ const Component: FC = () => {
         <span className="title">Total Balance</span>
         <span className="value">$365,899.00</span>
       </div>
-      {chains.map(({ address, icon, key, name }) => (
-        <div className="chain" key={key}>
-          <div className="type">
-            <img src={icon} alt="bitcoin" className="logo" />
-            <span className="name">{name}</span>
-            <span className="text">BTC</span>
-          </div>
-          <div className="key">
-            {address ? (
-              <Truncate end={10} middle>
-                {address}
-              </Truncate>
-            ) : (
-              <Spin />
-            )}
-          </div>
-          <span className="asset">12,000.12</span>
-          <span className="amount">$65,899</span>
-          <div className="actions">
-            <Button type="link">
-              <CopyOutlined />
-            </Button>
-            <Button type="link">
-              <QRCodeOutlined />
-            </Button>
-            <Button type="link">
-              <CubeOutlined />
-            </Button>
-          </div>
-          <Button type="link" className="arrow">
-            <CaretRightOutlined />
-          </Button>
-        </div>
+      {chains.map(({ chainID: id, ...res }) => (
+        <Chain key={id} {...{ ...res, chainID: id }} />
       ))}
       <Button type="link" className="add">
         <PlusFilled /> Choose Chains
