@@ -27,7 +27,7 @@ func (a *Api) registerVaultHandler(c *gin.Context) {
 		EDDSA:        vault.PublicKeyEDDSA,
 		Uid:          vault.Uid,
 		HexChainCode: vault.HexChainCode,
-		TotalPoint:   0,
+		TotalPoints:  0,
 		JoinAirdrop:  false,
 	}
 
@@ -63,7 +63,7 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		Name:           vault.Name,
 		PublicKeyECDSA: vault.ECDSA,
 		PublicKeyEDDSA: vault.EDDSA,
-		TotalPoints:    vault.TotalPoint,
+		TotalPoints:    vault.TotalPoints,
 		JoinAirdrop:    vault.JoinAirdrop,
 	}
 	for _, coin := range coins {
