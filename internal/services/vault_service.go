@@ -31,7 +31,13 @@ func (s *Storage) UpdateVault(vault *models.Vault) error {
 	}
 	return nil
 }
-
+func (s *Storage) IncreaseVaultTotalPoints(id uint, newPoints int64) error {
+	qry := `UPDATE vaults SET total_points = total_points + ? WHERE id = ?`
+	if err := s.db.Exec(qry, newPoints, id).Error; err != nil {
+		return fmt.Errorf("failed to update vault total points: %w", err)
+	}
+	return nil
+}
 func (s *Storage) DeleteVault(ecdsa, eddsa string) error {
 	ecdsa = strings.ToLower(ecdsa)
 	eddsa = strings.ToLower(eddsa)

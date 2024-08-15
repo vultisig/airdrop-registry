@@ -28,6 +28,8 @@ func (b *BalanceResolver) getRpcUrlForChain(chain common.Chain) (string, error) 
 		return "https://polygon-bor-rpc.publicnode.com", nil
 	case common.Zksync:
 		return "https://mainnet.era.zksync.io", nil
+	case common.CronosChain:
+		return "https://cronos-evm-rpc.publicnode.com", nil
 	default:
 		return "", fmt.Errorf("chain: %s doesn't support", chain)
 	}

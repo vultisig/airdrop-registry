@@ -65,6 +65,7 @@ func (a *Api) setupRouting() {
 	rg.DELETE("/vault", a.deleteVaultHandler)
 	rg.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey", a.getVaultHandler)
 	rg.POST("/vault/join-airdrop", a.joinAirdrop)
+	rg.POST("/vault/exit-airdrop", a.exitAirdrop)
 
 	// Coins
 	rg.DELETE("/coin/:ecdsaPublicKey/:eddsaPublicKey/:coinID", a.deleteCoin)

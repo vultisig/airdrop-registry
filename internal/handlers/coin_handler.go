@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -45,7 +44,6 @@ func (a *Api) addCoin(c *gin.Context) {
 		return
 	}
 	coinDB := models.CoinDBModel{
-		ID:       fmt.Sprintf("%s-%s-%s", coin.Chain, coin.Ticker, coin.Address),
 		CoinBase: coin,
 		VaultID:  vault.ID,
 	}
