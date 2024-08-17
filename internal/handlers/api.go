@@ -49,7 +49,16 @@ func (a *Api) setupRouting() {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
-
+	a.router.GET("/webapp", func(c *gin.Context) {
+		//server index.html file in demo folder
+		c.File("web/dist/index.html")
+	})
+	a.router.Static("/assets", "web/dist/assets")
+	a.router.Static("/fonts", "web/dist/fonts")
+	a.router.Static("/images", "web/dist/images")
+	a.router.Static("/chains", "web/dist/chains")
+	a.router.StaticFile("/wallet-core.wasm", "web/dist/wallet-core.wasm")
+	a.router.StaticFile("/favicon.ico", "web/dist/favicon.ico")
 	// register api group
 	rg := a.router.Group("/api")
 	// endpoint for health check
