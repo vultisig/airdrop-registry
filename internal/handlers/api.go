@@ -50,7 +50,6 @@ func (a *Api) setupRouting() {
 		MaxAge:           12 * time.Hour,
 	}))
 	a.router.GET("/webapp", func(c *gin.Context) {
-		//server index.html file in demo folder
 		c.File("web/dist/index.html")
 	})
 	a.router.Static("/assets", "web/dist/assets")
