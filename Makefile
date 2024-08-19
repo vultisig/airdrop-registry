@@ -14,4 +14,4 @@ server:
 	go run cmd/server/main.go
 
 generate-webapp:
-	yes | rm -rf web/dist/* && cd web && npm i && VITE_SERVER_ADDRESS="http://127.0.0.1/api/" npm run build
+	yes | rm -rf web/dist/* && cd web && npm i && VITE_SERVER_ADDRESS="http://127.0.0.1:8080/api/" npm run build
