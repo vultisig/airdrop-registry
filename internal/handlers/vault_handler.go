@@ -64,10 +64,10 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		PublicKeyEDDSA: vault.EDDSA,
 		TotalPoints:    vault.TotalPoints,
 		JoinAirdrop:    vault.JoinAirdrop,
-		Coins:          []models.CoinDBModel{},
+		Coins:          []models.CoinBase{},
 	}
 	for _, coin := range coins {
-		vaultResp.Coins = append(vaultResp.Coins, coin)
+		vaultResp.Coins = append(vaultResp.Coins, coin.CoinBase)
 	}
 	c.JSON(http.StatusOK, vaultResp)
 }
