@@ -12,13 +12,13 @@ import (
 func (a *Api) registerVaultHandler(c *gin.Context) {
 	var vault models.VaultRequest
 	if err := c.ShouldBindJSON(&vault); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errInvalidRequest)
 		return
 	}
 	// check vault already exists , should we tell front-end that vault already registered?
 	if _, err := a.s.GetVault(vault.PublicKeyECDSA, vault.PublicKeyEDDSA); err == nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "already registered"})
+		c.Error(errVaultAlreadyRegist)
 		return
 	}
 	vaultModel := models.Vault{
@@ -33,12 +33,11 @@ func (a *Api) registerVaultHandler(c *gin.Context) {
 
 	if err := a.s.RegisterVault(&vaultModel); err != nil {
 		if errors.Is(err, models.ErrAlreadyExist) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "already registered"})
+			c.Error(errVaultAlreadyRegist)
 			return
 		}
 		a.logger.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "fail to register vault"})
+		c.Error(errFailedToRegisterVault)
 		return
 	}
 	c.Status(http.StatusCreated)
@@ -50,13 +49,13 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 	vault, err := a.s.GetVault(ecdsaPublicKey, eddsaPublicKey)
 	if err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusNotFound, gin.H{"error": "vault not found"})
+		c.Error(errFailedToGetVault)
 		return
 	}
 	coins, err := a.s.GetCoins(vault.ID)
 	if err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "fail to get coins"})
+		c.Error(errFailedToGetCoin)
 		return
 	}
 	vaultResp := models.VaultResponse{
@@ -65,6 +64,7 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		PublicKeyEDDSA: vault.EDDSA,
 		TotalPoints:    vault.TotalPoints,
 		JoinAirdrop:    vault.JoinAirdrop,
+		Coins:          []models.CoinBase{},
 	}
 	for _, coin := range coins {
 		vaultResp.Coins = append(vaultResp.Coins, coin.CoinBase)
@@ -75,25 +75,25 @@ func (a *Api) joinAirdrop(c *gin.Context) {
 	var vault models.VaultRequest
 	if err := c.ShouldBindJSON(&vault); err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errInvalidRequest)
 		return
 	}
 	// check vault already exists , should we tell front-end that vault already registered?
 	v, err := a.s.GetVault(vault.PublicKeyECDSA, vault.PublicKeyEDDSA)
 	if err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "fail to get vault"})
+		c.Error(errFailedToGetVault)
 		return
 	}
 	if v == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "vault not found"})
+		c.Error(errVaultNotFound)
 		return
 	}
 	if v.HexChainCode == vault.HexChainCode && v.Uid == vault.Uid {
 		v.JoinAirdrop = true
 		if err := a.s.UpdateVault(v); err != nil {
 			a.logger.Error(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "fail to join airdrop registry"})
+			c.Error(errFailedToJoinRegistry)
 			return
 		}
 	}
@@ -103,25 +103,25 @@ func (a *Api) exitAirdrop(c *gin.Context) {
 	var vault models.VaultRequest
 	if err := c.ShouldBindJSON(&vault); err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errInvalidRequest)
 		return
 	}
 	// check vault already exists , should we tell front-end that vault already registered?
 	v, err := a.s.GetVault(vault.PublicKeyECDSA, vault.PublicKeyEDDSA)
 	if err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "fail to get vault"})
+		c.Error(errFailedToGetVault)
 		return
 	}
 	if v == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "vault not found"})
+		c.Error(errVaultNotFound)
 		return
 	}
 	if v.HexChainCode == vault.HexChainCode && v.Uid == vault.Uid {
 		v.JoinAirdrop = false
 		if err := a.s.UpdateVault(v); err != nil {
 			a.logger.Error(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "fail to exit from airdrop registry"})
+			c.Error(errFailedToExitRegistry)
 			return
 		}
 	}
@@ -130,24 +130,24 @@ func (a *Api) exitAirdrop(c *gin.Context) {
 func (a *Api) deleteVaultHandler(c *gin.Context) {
 	var vault models.VaultRequest
 	if err := c.ShouldBindJSON(&vault); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errInvalidRequest)
 		return
 	}
 	// check vault already exists , should we tell front-end that vault already registered?
 	v, err := a.s.GetVault(vault.PublicKeyECDSA, vault.PublicKeyEDDSA)
 	if err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "fail to get vault"})
+		c.Error(errFailedToGetVault)
 		return
 	}
 	if v == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "vault not found"})
+		c.Error(errVaultNotFound)
 		return
 	}
 	if v.HexChainCode == vault.HexChainCode && v.Uid == vault.Uid {
 		if err := a.s.DeleteVault(vault.PublicKeyECDSA, vault.PublicKeyEDDSA); err != nil {
 			a.logger.Error(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "fail to delete vault"})
+			c.Error(errFailedToDeleteVault)
 			return
 		}
 	}

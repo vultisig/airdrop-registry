@@ -49,6 +49,8 @@ func (a *Api) setupRouting() {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+	a.router.Use(ErrorHandler())
+
 	a.router.GET("/webapp", func(c *gin.Context) {
 		c.File("web/dist/index.html")
 	})
@@ -58,6 +60,7 @@ func (a *Api) setupRouting() {
 	a.router.Static("/chains", "web/dist/chains")
 	a.router.StaticFile("/wallet-core.wasm", "web/dist/wallet-core.wasm")
 	a.router.StaticFile("/favicon.ico", "web/dist/favicon.ico")
+	
 	// register api group
 	rg := a.router.Group("/api")
 	// endpoint for health check
@@ -91,13 +94,13 @@ func (a *Api) derivePublicKeyHandler(c *gin.Context) {
 	var req models.DerivePublicKeyRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errInvalidRequest)
 		return
 	}
 	result, err := tss.GetDerivedPubKey(req.PublicKeyECDSA, req.HexChainCode, req.DerivePath, false)
 	if err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "fail to derive public key"})
+		c.Error(errFailedToDerivePublicKey)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"public_key": result})
