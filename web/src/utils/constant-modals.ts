@@ -1,7 +1,5 @@
 import keyMirror from "keymirror";
 
-const modals = keyMirror({
+export default keyMirror({
   PASSWORD: true,
 });
-
-export { modals };

@@ -1,0 +1,22 @@
+.splash-screen {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  justify-content: center;
+
+  .logo {
+    height: 200px;
+    margin: 0 auto;
+  }
+
+  .heading {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin: 1rem 0 2rem;
+  }
+
+  .text {
+    font-size: 1.25rem;
+  }
+}
