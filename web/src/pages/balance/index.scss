@@ -123,6 +123,7 @@
     }
 
     .arrow {
+      align-items: center;
       display: none;
 
       svg {
@@ -177,7 +178,7 @@
       }
 
       .arrow {
-        display: block;
+        display: flex;
       }
     }
   }

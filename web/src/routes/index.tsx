@@ -5,11 +5,13 @@ import {
   createBrowserRouter,
 } from "react-router-dom";
 import React from "react";
-import paths from "routes/constant-paths";
+
+import { useVaultContext } from "context";
+import constantPaths from "routes/constant-paths";
 
 import DefaultLayout from "layouts/default";
 
-import AssetPage from "pages/asset";
+//import AssetPage from "pages/asset";
 import BalancePage from "pages/balance";
 import LandingPage from "pages/landing";
 
@@ -21,6 +23,8 @@ interface RouteConfig {
 }
 
 const Component = () => {
+  const { vaults } = useVaultContext();
+
   const processRoutes = (routes: RouteConfig[]): RouteObject[] => {
     return routes.reduce<RouteObject[]>(
       (acc, { children, element, path, redirect }) => {
@@ -47,39 +51,43 @@ const Component = () => {
 
   const routes: RouteConfig[] = [
     {
-      path: paths.root,
-      redirect: paths.landing,
-      //should remove when redux added to project
+      path: constantPaths.root,
+      redirect: vaults.length ? constantPaths.balance : constantPaths.landing,
     },
     {
-      path: paths.landing,
+      path: constantPaths.landing,
       element: <LandingPage />,
     },
-    {
-      path: paths.root,
-      element: <DefaultLayout />,
-      children: [
-        {
-          path: paths.root,
-          redirect: paths.balance,
-        },
-        {
-          path: paths.balance,
-          element: <BalancePage />,
-        },
-        {
-          path: paths.asset,
-          element: <AssetPage />,
-        },
-        {
-          path: "*",
-          redirect: paths.root,
-        },
-      ],
-    },
+    ...(vaults.length
+      ? [
+          {
+            path: constantPaths.root,
+            element: <DefaultLayout />,
+            children: [
+              {
+                path: constantPaths.root,
+                redirect: constantPaths.balance,
+              },
+              {
+                path: constantPaths.balance,
+                element: <BalancePage />,
+              },
+              // {
+              //   path: constantPaths.asset,
+              //   element: <AssetPage />,
+              // },
+              {
+                path: "*",
+                redirect: constantPaths.root,
+              },
+            ],
+          },
+        ]
+      : []),
+
     {
       path: "*",
-      redirect: paths.root,
+      redirect: constantPaths.root,
     },
   ];
 

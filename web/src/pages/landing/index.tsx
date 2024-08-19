@@ -1,28 +1,40 @@
 import { FC, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Upload } from "antd";
-import type { UploadProps } from "antd";
+import { Button, Upload, UploadProps } from "antd";
 
-import QRReader from "utils/qr-reader";
-import VaultManager from "utils/vault-manager";
-import paths from "routes/constant-paths";
+import { useVaultContext } from "context";
+import { ErrorKey } from "context/constants";
+import { FileProps, Vault } from "context/interfaces";
 import { CloseOutlined } from "utils/icons";
+import constantPaths from "routes/constant-paths";
 
 type Status = "default" | "error" | "success";
 
 interface InitialState {
-  file?: QRReader.FileProps;
+  file?: FileProps;
   status: Status;
+  vault?: Vault.Params;
 }
 
 const Component: FC = () => {
   const initialState: InitialState = { status: "default" };
   const [state, setState] = useState(initialState);
-  const { file, status } = state;
+  const { file, status, vault } = state;
+  const { addVault, qrReader } = useVaultContext();
   const navigate = useNavigate();
 
   const handleStart = (): void => {
-    if (status === "success") navigate(paths.balance);
+    if (vault && status === "success") {
+      addVault(vault)
+        .then(() => {
+          navigate(constantPaths.balance);
+        })
+        .catch(() => {
+          setState((prevState) => ({ ...prevState, status: "error" }));
+
+          console.error("Vault already registered");
+        });
+    }
   };
 
   const handleRemove = (): void => {
@@ -32,28 +44,29 @@ const Component: FC = () => {
   const handleUpload = (file: File): false => {
     setState(initialState);
 
-    QRReader.read(file)
+    qrReader(file)
       .then(({ file, vault }) => {
-        setState((prevState) => ({ ...prevState, file, status: "success" }));
-
-        VaultManager.register(vault)
-          .then(() => {})
-          .catch(() => {});
+        setState((prevState) => ({
+          ...prevState,
+          file,
+          vault,
+          status: "success",
+        }));
       })
       .catch(({ error, file }) => {
         setState((prevState) => ({ ...prevState, file, status: "error" }));
 
         switch (error) {
-          case QRReader.Error.INVALID_EXTENSION:
+          case ErrorKey.INVALID_EXTENSION:
             console.error("Invalid file extension");
             break;
-          case QRReader.Error.INVALID_FILE:
+          case ErrorKey.INVALID_FILE:
             console.error("Invalid file");
             break;
-          case QRReader.Error.INVALID_QRCODE:
+          case ErrorKey.INVALID_QRCODE:
             console.error("Invalid qr code");
             break;
-          case QRReader.Error.INVALID_VAULT:
+          case ErrorKey.INVALID_VAULT:
             console.error("Invalid vault data");
             break;
           default:

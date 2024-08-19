@@ -1,7 +1,7 @@
 import axios from "axios";
 
-import CaseConverter from "utils/case-converter";
-import VaultManager from "utils/vault-manager";
+import { Balance, Derivation, Vault } from "context/interfaces";
+import { toCamelCase, toSnakeCase } from "utils/case-converter";
 
 //import paths from "routes/constant-paths";
 
@@ -12,7 +12,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    config.data = CaseConverter.toSnake(config.data);
+    config.data = toSnakeCase(config.data);
 
     return config;
   },
@@ -23,7 +23,7 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
-    response.data = CaseConverter.toCamel(response.data);
+    response.data = toCamelCase(response.data);
 
     return response;
   },
@@ -44,10 +44,34 @@ api.interceptors.response.use(
 );
 
 export default {
-  register: async (params: VaultManager.Vault) => {
-    return await api.post("vault", params);
+  balance: {
+    cosmos: async (path: string) => {
+      return await api.get<Balance.Cosmos.Props>(path);
+    },
+    evm: async (path: string, params: Balance.EVM.Params) => {
+      return await api.post<Balance.EVM.Props>(path, params);
+    },
+    polkadot: async (path: string, params: Balance.Polkadot.Params) => {
+      return await api.post<Balance.Polkadot.Props>(path, params);
+    },
+    solana: async (path: string, params: Balance.Solana.Params) => {
+      return await api.post<Balance.Solana.Props>(path, params);
+    },
+    utxo: async (path: string) => {
+      return await api.get<Balance.UTXO.Props>(path);
+    },
   },
-  derivePublicKey: async (params: VaultManager.Derivation) => {
-    return await api.post<{ publicKey: string }>("derive-public-key", params);
+  vault: {
+    add: async (params: Vault.Params) => {
+      return await api.post("vault", params);
+    },
+    get: async ({ publicKeyEcdsa, publicKeyEddsa }: Vault.Params) => {
+      return await api.get<Vault.Props>(
+        `vault/${publicKeyEcdsa}/${publicKeyEddsa}`
+      );
+    },
+  },
+  derivePublicKey: async (params: Derivation.Params) => {
+    return await api.post<Derivation.Props>("derive-public-key", params);
   },
 };

@@ -1,57 +1,55 @@
-namespace CaseConverter {
-  const isArray = (arr: any): arr is any[] => {
-    return Array.isArray(arr);
-  };
+const isArray = (arr: any): arr is any[] => {
+  return Array.isArray(arr);
+};
 
-  const isObject = (obj: any): obj is Record<string, any> => {
-    return obj === Object(obj) && !isArray(obj) && typeof obj !== "function";
-  };
+const isObject = (obj: any): obj is Record<string, any> => {
+  return obj === Object(obj) && !isArray(obj) && typeof obj !== "function";
+};
 
-  const _toCamel = (value: string): string => {
-    return value.replace(/([-_][a-z])/gi, ($1) => {
-      return $1.toUpperCase().replace("-", "").replace("_", "");
+const toCamel = (value: string): string => {
+  return value.replace(/([-_][a-z])/gi, ($1) => {
+    return $1.toUpperCase().replace("-", "").replace("_", "");
+  });
+};
+
+const toSnake = (value: string): string => {
+  return value.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+};
+
+const toCamelCase = (obj: any): any => {
+  if (isObject(obj)) {
+    const n: Record<string, any> = {};
+
+    Object.keys(obj).forEach((k) => {
+      n[toCamel(k)] = toCamelCase(obj[k]);
     });
-  };
 
-  const _toSnake = (value: string): string => {
-    return value.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
-  };
+    return n;
+  } else if (isArray(obj)) {
+    return obj.map((i) => {
+      return toCamelCase(i);
+    });
+  }
 
-  export const toCamel = (obj: any): any => {
-    if (isObject(obj)) {
-      const n: Record<string, any> = {};
+  return obj;
+};
 
-      Object.keys(obj).forEach((k) => {
-        n[_toCamel(k)] = toCamel(obj[k]);
-      });
+const toSnakeCase = (obj: any): any => {
+  if (isObject(obj)) {
+    const n: Record<string, any> = {};
 
-      return n;
-    } else if (isArray(obj)) {
-      return obj.map((i) => {
-        return toCamel(i);
-      });
-    }
+    Object.keys(obj).forEach((k) => {
+      n[toSnake(k)] = toSnakeCase(obj[k]);
+    });
 
-    return obj;
-  };
+    return n;
+  } else if (isArray(obj)) {
+    return obj.map((i) => {
+      return toSnakeCase(i);
+    });
+  }
 
-  export const toSnake = (obj: any): any => {
-    if (isObject(obj)) {
-      const n: Record<string, any> = {};
+  return obj;
+};
 
-      Object.keys(obj).forEach((k) => {
-        n[_toSnake(k)] = toSnake(obj[k]);
-      });
-
-      return n;
-    } else if (isArray(obj)) {
-      return obj.map((i) => {
-        return toSnake(i);
-      });
-    }
-
-    return obj;
-  };
-}
-
-export default CaseConverter;
+export { toCamelCase, toSnakeCase };

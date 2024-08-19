@@ -1,115 +1,67 @@
 import { FC, useEffect, useState } from "react";
-import { Button, Select, Spin } from "antd";
-import { Truncate } from "@re-dev/react-truncate";
+import { useNavigate } from "react-router-dom";
+import { Button, Select } from "antd";
 
-import {
-  CaretRightOutlined,
-  CopyOutlined,
-  CubeOutlined,
-  PlusFilled,
-  QRCodeOutlined,
-  RefreshOutlined,
-} from "utils/icons";
-import VaultManager from "utils/vault-manager";
+import { useVaultContext } from "context";
+import { ChainProps } from "context/interfaces";
+import { PlusFilled, RefreshOutlined } from "utils/icons";
+import constantPaths from "routes/constant-paths";
+
+import ChainItem from "components/chain-item";
 
 interface InitialState {
-  chains: VaultManager.CoinMeta[];
+  chains: ChainProps[];
 }
-
-const Chain: FC<VaultManager.CoinMeta> = ({
-  icon,
-  chainID: id,
-  name,
-  ticker,
-}) => {
-  const initialState = { address: "" };
-  const [state, setState] = useState(initialState);
-  const { address } = state;
-
-  const componentDidMount = () => {
-    VaultManager.getAddress(id)
-      .then((address) => {
-        setState((prevState) => ({ ...prevState, address }));
-      })
-      .catch(() => {});
-  };
-
-  useEffect(componentDidMount, []);
-
-  return (
-    <div className="chain">
-      <div className="type">
-        <img src={icon} alt="bitcoin" className="logo" />
-        <span className="name">{name}</span>
-        <span className="text">{ticker}</span>
-      </div>
-      <div className="key">
-        {address ? (
-          <Truncate end={10} middle>
-            {address}
-          </Truncate>
-        ) : (
-          <Spin />
-        )}
-      </div>
-      <span className="asset">12,000.12</span>
-      <span className="amount">$65,899</span>
-      <div className="actions">
-        <Button type="link">
-          <CopyOutlined />
-        </Button>
-        <Button type="link">
-          <QRCodeOutlined />
-        </Button>
-        <Button type="link">
-          <CubeOutlined />
-        </Button>
-      </div>
-      <Button type="link" className="arrow">
-        <CaretRightOutlined />
-      </Button>
-    </div>
-  );
-};
 
 const Component: FC = () => {
   const initialState: InitialState = { chains: [] };
   const [state, setState] = useState(initialState);
   const { chains } = state;
+  const { changeVault, vault, vaults } = useVaultContext();
+  const navigate = useNavigate();
 
-  const componentDidMount = () => {
-    VaultManager.init()
-      .then(() => {
-        const _chains = [
-          VaultManager.Chain.BITCOIN,
-          VaultManager.Chain.THORCHAIN,
-          VaultManager.Chain.BSCCHAIN,
-          VaultManager.Chain.ETHEREUM,
-          VaultManager.Chain.SOLANA,
-        ];
-
-        VaultManager.getChains(_chains)
-          .then((chains) => {
-            setState((prevState) => ({ ...prevState, chains }));
-          })
-          .catch(() => {});
-      })
-      .catch(() => {});
+  const handleSelect = (uid: string) => {
+    uid === "vault" ? navigate(constantPaths.landing) : changeVault(uid);
   };
 
+  const componentDidUpdate = () => {
+    if (vault) {
+      if (Array.isArray(vault.coins) && vault.coins.length) {
+        const chains: ChainProps[] = vault.coins
+          ?.filter((coin) => coin.isNativeToken)
+          .map(({ address, decimals, chain, ticker }) => ({
+            address,
+            assets:
+              vault.coins?.filter((coin) => coin.chain === chain).length || 0,
+            decimals,
+            name: chain,
+            ticker,
+          }));
+
+        setState((prevState) => ({ ...prevState, chains }));
+      } else {
+        setState((prevState) => ({ ...prevState, chains: [] }));
+      }
+    }
+  };
+
+  const componentDidMount = () => {};
+
   useEffect(componentDidMount, []);
+  useEffect(componentDidUpdate, [vault?.uid]);
 
   return (
     <div className="balance-page">
       <div className="breadcrumb">
         <Select
-          rootClassName="vault-select"
-          popupClassName="vault-select-popup"
-          defaultValue={0}
+          onChange={handleSelect}
           options={[
-            { label: "Main Vault", value: 0 },
-            { label: "Test Vault", value: 1 },
+            ...vaults.map(({ name, uid }) => ({ label: name, value: uid })),
+            { label: "Add new vault", value: "vault" },
           ]}
+          popupClassName="vault-select-popup"
+          rootClassName="vault-select"
+          value={vault?.uid}
         />
         <Button type="link">
           <RefreshOutlined />
@@ -119,8 +71,8 @@ const Component: FC = () => {
         <span className="title">Total Balance</span>
         <span className="value">$365,899.00</span>
       </div>
-      {chains.map(({ chainID: id, ...res }) => (
-        <Chain key={id} {...{ ...res, chainID: id }} />
+      {chains.map(({ name, ...res }) => (
+        <ChainItem key={name} {...{ ...res, name }} />
       ))}
       <Button type="link" className="add">
         <PlusFilled /> Choose Chains
