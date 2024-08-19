@@ -43,8 +43,8 @@ func NewApi(cfg *config.Config, s *services.Storage) (*Api, error) {
 func (a *Api) setupRouting() {
 	a.router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"}, // Replace with your allowed origins
-		AllowMethods:     []string{"GET", "POST"},
-		AllowHeaders:     []string{"Origin", "Content-Type"},
+		AllowMethods:     []string{"GET", "POST", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "x-hex-chain-code"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
