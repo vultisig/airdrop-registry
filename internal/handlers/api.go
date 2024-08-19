@@ -55,7 +55,7 @@ func (a *Api) setupRouting() {
 	a.router.Static("/assets", "web/dist/assets")
 	a.router.Static("/fonts", "web/dist/fonts")
 	a.router.Static("/images", "web/dist/images")
-	a.router.Static("/chains", "web/dist/chains")
+	a.router.Static("/coins", "web/dist/coins")
 	a.router.StaticFile("/wallet-core.wasm", "web/dist/wallet-core.wasm")
 	a.router.StaticFile("/favicon.ico", "web/dist/favicon.ico")
 	// register api group
