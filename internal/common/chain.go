@@ -9,7 +9,8 @@ import (
 type Chain int
 
 const (
-	THORChain Chain = iota
+	Undefined Chain = iota
+	THORChain
 	Solana
 	Ethereum
 	Avalanche
@@ -59,6 +60,7 @@ var chainToString = map[Chain]string{
 	Zksync:      "Zksync",
 	Dydx:        "Dydx",
 }
+
 var chainDerivePath = map[Chain]string{
 	Bitcoin:     "m/84'/0'/0'/0/0",
 	Ethereum:    "m/44'/60'/0'/0/0",
@@ -136,4 +138,11 @@ func (c *Chain) GetDerivePath() string {
 		return str
 	}
 	return ""
+}
+
+func (c *Chain) IsEdDSA() bool {
+	if *c == Solana || *c == Sui || *c == Polkadot {
+		return true
+	}
+	return false
 }
