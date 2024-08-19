@@ -29,7 +29,11 @@ func (*Vault) TableName() string {
 }
 func (v *Vault) GetAddress(chain common.Chain) (string, error) {
 	derivePath := chain.GetDerivePath()
-	childPublicKey, err := tss.GetDerivedPubKey(v.ECDSA, v.HexChainCode, derivePath, false)
+	var childPublicKey string
+	var err error
+	if !chain.IsEdDSA() {
+		childPublicKey, err = tss.GetDerivedPubKey(v.ECDSA, v.HexChainCode, derivePath, chain.IsEdDSA())
+	}
 	if err != nil {
 		return "", fmt.Errorf("fail to get child public key")
 	}
