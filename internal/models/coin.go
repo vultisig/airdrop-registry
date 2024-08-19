@@ -7,6 +7,7 @@ import (
 )
 
 type CoinBase struct {
+	ID              uint
 	Chain           common.Chain `json:"chain" binding:"required" gorm:"type:varchar(50);uniqueIndex:chain_ticker_address_idx;not null"`
 	Ticker          string       `json:"ticker" binding:"required" gorm:"type:varchar(255);uniqueIndex:chain_ticker_address_idx;not null"`
 	Address         string       `json:"address" binding:"required" gorm:"type:varchar(255);uniqueIndex:chain_ticker_address_idx;not null"`

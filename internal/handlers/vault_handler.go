@@ -68,6 +68,7 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 	}
 	for _, coin := range coins {
 		vaultResp.Coins = append(vaultResp.Coins, coin.CoinBase)
+		vaultResp.Coins[len(vaultResp.Coins)-1].ID = coin.Model.ID
 	}
 	c.JSON(http.StatusOK, vaultResp)
 }
