@@ -12,35 +12,35 @@ func (a *Api) addCoin(c *gin.Context) {
 	var coin models.CoinBase
 	if err := c.ShouldBindJSON(&coin); err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errInvalidRequest)
 		return
 	}
 	ecdsaPublicKey := c.Param("ecdsaPublicKey")
 	eddsaPublicKey := c.Param("eddsaPublicKey")
 	hexChainCode := c.GetHeader("x-hex-chain-code")
 	if hexChainCode == "" {
-		c.Status(http.StatusForbidden)
+		c.Error(errForbiddenAccess)
 		return
 	}
 	// Ensure the relevant vault exist
 	vault, err := a.s.GetVault(ecdsaPublicKey, eddsaPublicKey)
 	if err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusNotFound, gin.H{"error": "vault not found"})
+		c.Error(errVaultNotFound)
 		return
 	}
 	if vault.HexChainCode != hexChainCode {
-		c.Status(http.StatusForbidden)
+		c.Error(errForbiddenAccess)
 		return
 	}
 	addr, err := vault.GetAddress(coin.Chain)
 	if err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "fail to get address"})
+		c.Error(errFailedToGetAddress)
 		return
 	}
 	if coin.Address != addr {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "address is not match"})
+		c.Error(errAddressNotMatch)
 		return
 	}
 	coinDB := models.CoinDBModel{
@@ -49,7 +49,7 @@ func (a *Api) addCoin(c *gin.Context) {
 	}
 	if err := a.s.AddCoin(&coinDB); err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "fail to add coin"})
+		c.Error(errFailedToAddCoin)
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"coin_id": coinDB.ID})
@@ -61,7 +61,7 @@ func (a *Api) deleteCoin(c *gin.Context) {
 	strCoinID := c.Param("coinID")
 	hexChainCode := c.GetHeader("x-hex-chain-code")
 	if hexChainCode == "" {
-		c.Status(http.StatusForbidden)
+		c.Error(errForbiddenAccess)
 		return
 	}
 
@@ -69,18 +69,18 @@ func (a *Api) deleteCoin(c *gin.Context) {
 	vault, err := a.s.GetVault(ecdsaPublicKey, eddsaPublicKey)
 	if err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusNotFound, gin.H{"error": "vault not found"})
+		c.Error(errVaultNotFound)
 		return
 	}
 
 	if vault.HexChainCode != hexChainCode {
-		c.Status(http.StatusForbidden)
+		c.Error(errForbiddenAccess)
 		return
 	}
 
 	if err := a.s.DeleteCoin(strCoinID, vault.ID); err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "fail to delete coin"})
+		c.Error(errFailedToDeleteCoin)
 		return
 	}
 	c.Status(http.StatusNoContent)
@@ -91,7 +91,7 @@ func (a *Api) getCoin(c *gin.Context) {
 	coin, err := a.s.GetCoin(strCoinID)
 	if err != nil {
 		a.logger.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "fail to delete coin"})
+		c.Error(errFailedToGetCoin)
 		return
 	}
 	c.JSON(http.StatusOK, coin.CoinBase)
