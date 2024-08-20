@@ -4,7 +4,7 @@ import { Button, Spin } from "antd";
 import { Truncate } from "@re-dev/react-truncate";
 
 import { useVaultContext } from "context";
-import { ChainProps } from "context/interfaces";
+import { Coin } from "context/interfaces";
 import {
   CaretRightOutlined,
   CopyOutlined,
@@ -18,21 +18,19 @@ interface InitialState {
   value: string;
 }
 
-const Component: FC<ChainProps> = ({
-  address,
-  assets,
-  decimals,
-  name,
-  ticker,
-}) => {
+const assets = 1;
+
+const Component: FC<Coin.Params> = ({ address, chain, decimals, ticker }) => {
   const initialState: InitialState = { balance: "", value: "" };
   const [state, setState] = useState(initialState);
   const { balance, value } = state;
   const { getBalance } = useVaultContext();
 
-  const componentDidMount = () => {
+  const componentDidUpdate = (): void => {
+    setState(initialState);
+
     if (assets === 1) {
-      getBalance(address, name)
+      getBalance(chain, address)
         .then((balance) => {
           setState((prevState) => ({
             ...prevState,
@@ -43,17 +41,20 @@ const Component: FC<ChainProps> = ({
     }
   };
 
+  const componentDidMount = (): void => {};
+
   useEffect(componentDidMount, []);
+  useEffect(componentDidUpdate, [address]);
 
   return (
-    <div className="chain">
+    <div className="chain-item">
       <div className="type">
         <img
-          src={`/coins/${ticker.toLocaleLowerCase()}.svg`}
+          src={`/coins/${chain.toLocaleLowerCase()}-${ticker.toLocaleLowerCase()}.svg`}
           alt="bitcoin"
           className="logo"
         />
-        <span className="name">{name}</span>
+        <span className="name">{chain}</span>
         <span className="text">{ticker}</span>
       </div>
       <div className="key">
@@ -81,7 +82,7 @@ const Component: FC<ChainProps> = ({
         </Button>
       </div>
       <Link
-        to={`${constantPaths.balance}/${name.toLocaleLowerCase()}`}
+        to={`${constantPaths.balance}/${chain.toLocaleLowerCase()}`}
         className="arrow"
       >
         <CaretRightOutlined />

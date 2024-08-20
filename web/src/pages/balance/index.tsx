@@ -1,83 +1,79 @@
-import { FC, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button, Select } from "antd";
+import { FC, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Button, Card, Dropdown, Empty, Input, MenuProps, Spin } from "antd";
 
 import { useVaultContext } from "context";
-import { ChainProps } from "context/interfaces";
 import { PlusFilled, RefreshOutlined } from "utils/icons";
+import constantModals from "modals/constant-modals";
 import constantPaths from "routes/constant-paths";
 
 import ChainItem from "components/chain-item";
-
-interface InitialState {
-  chains: ChainProps[];
-}
+import ChooseChain from "modals/choose-coin";
 
 const Component: FC = () => {
-  const initialState: InitialState = { chains: [] };
-  const [state, setState] = useState(initialState);
-  const { chains } = state;
   const { changeVault, vault, vaults } = useVaultContext();
-  const navigate = useNavigate();
 
-  const handleSelect = (uid: string) => {
-    uid === "vault" ? navigate(constantPaths.landing) : changeVault(uid);
-  };
-
-  const componentDidUpdate = () => {
-    if (vault) {
-      if (Array.isArray(vault.coins) && vault.coins.length) {
-        const chains: ChainProps[] = vault.coins
-          ?.filter((coin) => coin.isNativeToken)
-          .map(({ address, decimals, chain, ticker }) => ({
-            address,
-            assets:
-              vault.coins?.filter((coin) => coin.chain === chain).length || 0,
-            decimals,
-            name: chain,
-            ticker,
-          }));
-
-        setState((prevState) => ({ ...prevState, chains }));
-      } else {
-        setState((prevState) => ({ ...prevState, chains: [] }));
-      }
-    }
-  };
+  const componentDidUpdate = () => {};
 
   const componentDidMount = () => {};
 
   useEffect(componentDidMount, []);
   useEffect(componentDidUpdate, [vault?.uid]);
 
+  const items: MenuProps["items"] = [
+    ...vaults.map(({ name, uid }) => ({
+      label: name,
+      key: uid,
+      onClick: () => changeVault(uid),
+    })),
+    {
+      type: "divider",
+    },
+    {
+      key: "1",
+      label: <Link to={constantPaths.landing}>Add new vault</Link>,
+    },
+    {
+      key: "2",
+      label: "Join Airdrop",
+    },
+  ];
+
   return (
-    <div className="balance-page">
-      <div className="breadcrumb">
-        <Select
-          onChange={handleSelect}
-          options={[
-            ...vaults.map(({ name, uid }) => ({ label: name, value: uid })),
-            { label: "Add new vault", value: "vault" },
-          ]}
-          popupClassName="vault-select-popup"
-          rootClassName="vault-select"
-          value={vault?.uid}
-        />
-        <Button type="link">
-          <RefreshOutlined />
-        </Button>
+    <>
+      <div className="balance-page">
+        <div className="breadcrumb">
+          <Dropdown menu={{ items }} className="menu">
+            <Input value={vault?.name || ""} readOnly />
+          </Dropdown>
+          <Button type="link">
+            <RefreshOutlined />
+          </Button>
+        </div>
+        <div className="balance">
+          <span className="title">Total Balance</span>
+          <span className="value">$0</span>
+        </div>
+        {vault ? (
+          vault.coins.length ? (
+            vault.coins.map(({ chain, ...res }) => (
+              <ChainItem key={chain} {...{ ...res, chain }} />
+            ))
+          ) : (
+            <Card className="empty">
+              <Empty description="Choose a chain..." />
+            </Card>
+          )
+        ) : (
+          <Spin />
+        )}
+        <Link to={`#${constantModals.CHOOSE_CHAIN}`} className="add">
+          <PlusFilled /> Choose Chains
+        </Link>
       </div>
-      <div className="balance">
-        <span className="title">Total Balance</span>
-        <span className="value">$365,899.00</span>
-      </div>
-      {chains.map(({ name, ...res }) => (
-        <ChainItem key={name} {...{ ...res, name }} />
-      ))}
-      <Button type="link" className="add">
-        <PlusFilled /> Choose Chains
-      </Button>
-    </div>
+
+      <ChooseChain />
+    </>
   );
 };
 

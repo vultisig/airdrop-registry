@@ -1,5 +1,6 @@
 import keyMirror from "keymirror";
 
 export default keyMirror({
-  PASSWORD: true,
+  CHOOSE_CHAIN: true,
+  CHOOSE_COIN: true,
 });

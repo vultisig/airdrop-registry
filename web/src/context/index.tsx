@@ -9,7 +9,7 @@ import {
 import { initWasm, WalletCore } from "@trustwallet/wallet-core";
 import jsQR from "jsqr";
 
-import { Chain, ErrorKey, balanceAPIs } from "context/constants";
+import { Chain, balanceAPIs, coins, errorKey } from "context/constants";
 import { Coin, FileProps, QRCodeProps, Vault } from "context/interfaces";
 import { toCamelCase } from "utils/case-converter";
 import api from "utils/api";
@@ -19,9 +19,9 @@ import SplashScreen from "components/splash-screen";
 interface VaultContext {
   addVault: (vault: Vault.Params) => Promise<void>;
   changeVault: (uid: string) => void;
-  getAddress: (value: Chain) => Promise<string>;
-  getBalance: (address: string, chain: Chain) => Promise<number>;
+  getBalance: (chain: Chain, address: string) => Promise<number>;
   qrReader: (file: File) => Promise<QRCodeProps>;
+  toggleCoin: (coin: Coin.Meta) => Promise<void>;
   vault?: Vault.Props;
   vaults: Vault.Props[];
 }
@@ -41,11 +41,15 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState(initialState);
   const { coinRef, core, vault, vaults, loaded } = state;
 
-  const getECDSAAddress = (chain: Chain, prefix?: string): Promise<string> => {
+  const getECDSAAddress = (
+    chain: Chain,
+    vault: Vault.Params,
+    prefix?: string
+  ): Promise<string> => {
     return new Promise((resolve, reject) => {
       const coin = coinRef[chain];
 
-      if (coin && core && vault) {
+      if (coin && core) {
         api
           .derivePublicKey({
             publicKeyEcdsa: vault.publicKeyEcdsa,
@@ -85,11 +89,14 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const getEDDSAAdress = (chain: Chain): Promise<string> => {
+  const getEDDSAAdress = (
+    chain: Chain,
+    vault: Vault.Params
+  ): Promise<string> => {
     return new Promise((resolve, reject) => {
       const coin = coinRef[chain];
 
-      if (coin && core && vault) {
+      if (coin && core) {
         const bytes = core.HexCoding.decode(vault.publicKeyEddsa);
 
         const eddsaKey = core.PublicKey.createWithData(
@@ -109,14 +116,14 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const getAddress = (chain: Chain): Promise<string> => {
+  const getAddress = (chain: Chain, vault: Vault.Params): Promise<string> => {
     return new Promise((resolve, reject) => {
       switch (chain) {
         // EDDSA
         case Chain.POLKADOT:
         case Chain.SOLANA:
         case Chain.SUI: {
-          getEDDSAAdress(chain)
+          getEDDSAAdress(chain, vault)
             .then((address) => {
               resolve(address);
             })
@@ -128,7 +135,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
         }
         // ECDSA
         case Chain.MAYACHAIN: {
-          getECDSAAddress(chain, "maya")
+          getECDSAAddress(chain, vault, "maya")
             .then((address) => {
               resolve(address);
             })
@@ -139,7 +146,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
           break;
         }
         default: {
-          getECDSAAddress(chain)
+          getECDSAAddress(chain, vault)
             .then((address) => {
               resolve(address);
             })
@@ -153,7 +160,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const getBalance = (address: string, chain: Chain): Promise<number> => {
+  const getBalance = (chain: Chain, address: string): Promise<number> => {
     return new Promise((resolve, reject) => {
       const path = balanceAPIs[chain];
 
@@ -275,6 +282,97 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
+  const addCoin = (
+    coin: Coin.Meta,
+    vault: Vault.Params
+  ): Promise<Coin.Params> => {
+    return new Promise((resolve, reject) => {
+      const _coin: Coin.Params = {
+        address: "",
+        chain: coin.chain,
+        contractAddress: coin.contractAddress,
+        decimals: coin.decimals,
+        hexPublicKey:
+          coin.hexPublicKey === "ECDSA"
+            ? vault.publicKeyEcdsa
+            : vault.publicKeyEddsa,
+        isNativeToken: coin.isNative,
+        priceProviderId: coin.providerId,
+        ticker: coin.ticker,
+      };
+
+      getAddress(coin.chain, vault)
+        .then((address) => {
+          _coin.address = address;
+
+          api.coin
+            .add(vault, _coin)
+            .then(({ data: { coinId } }) => {
+              resolve({ ..._coin, ID: coinId });
+            })
+            .catch(() => {
+              reject();
+            });
+        })
+        .catch(() => {
+          reject();
+        });
+    });
+  };
+
+  const delCoin = (coin: Coin.Params, vault: Vault.Params): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      api.coin
+        .del(vault, coin)
+        .then(() => {
+          resolve();
+        })
+        .catch(() => {
+          reject();
+        });
+    });
+  };
+
+  const toggleCoin = (coin: Coin.Meta): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (vault) {
+        const _coin = vault.coins.find(
+          ({ chain, ticker }) => coin.chain === chain && coin.ticker === ticker
+        );
+
+        if (_coin) {
+          delCoin(_coin, vault)
+            .then(() => {
+              setVault({
+                ...vault,
+                coins: vault.coins.filter(
+                  ({ chain, ticker }) =>
+                    coin.chain !== chain || coin.ticker !== ticker
+                ),
+              });
+
+              resolve();
+            })
+            .catch(() => {
+              reject();
+            });
+        } else {
+          addCoin(coin, vault)
+            .then((coin) => {
+              setVault({ ...vault, coins: [...vault.coins, coin] });
+
+              resolve();
+            })
+            .catch(() => {
+              reject();
+            });
+        }
+      } else {
+        reject();
+      }
+    });
+  };
+
   const addVault = (vault: Vault.Params): Promise<void> => {
     return new Promise((resolve, reject) => {
       api.vault
@@ -284,12 +382,29 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
             .then(() => {
               resolve();
             })
-            .catch(() => {
-              reject();
+            .catch((error) => {
+              reject(error);
             });
         })
-        .catch(() => {
-          reject(ErrorKey.ALREADY_REGISTERED);
+        .catch((error) => {
+          switch (error) {
+            case errorKey.VAULT_ALREADY_REGISTERED: {
+              getVault(vault)
+                .then(() => {
+                  resolve();
+                })
+                .catch((error) => {
+                  reject(error);
+                });
+
+              break;
+            }
+            default: {
+              reject(error);
+
+              break;
+            }
+          }
         });
     });
   };
@@ -305,9 +420,23 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
       api.vault
         .get(vault)
         .then(({ data }) => {
-          setVault({ ...vault, ...data });
+          if (data.coins.length) {
+            setVault({ ...vault, ...data });
 
-          resolve();
+            resolve();
+          } else {
+            const promises = coins
+              .filter((coin) => coin.isDefault)
+              .map((coin) => addCoin(coin, vault));
+
+            Promise.all(promises)
+              .then((coins) => {
+                setVault({ ...vault, ...data, coins });
+
+                resolve();
+              })
+              .catch(() => {});
+          }
         })
         .catch(() => {
           reject();
@@ -371,12 +500,12 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
             reject();
           }
         } else {
-          reject(ErrorKey.INVALID_QRCODE);
+          reject(errorKey.INVALID_QRCODE);
         }
       };
 
       image.onerror = () => {
-        reject(ErrorKey.INVALID_FILE);
+        reject(errorKey.INVALID_FILE);
       };
     });
   };
@@ -399,13 +528,13 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
       };
 
       reader.onerror = () => {
-        reject(ErrorKey.INVALID_FILE);
+        reject(errorKey.INVALID_FILE);
       };
 
       if (imageFormats.indexOf(file.type) >= 0) {
         reader.readAsDataURL(file);
       } else {
-        reject(ErrorKey.INVALID_EXTENSION);
+        reject(errorKey.INVALID_EXTENSION);
       }
     });
   };
@@ -428,12 +557,33 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
+  const componentDidUpdate = () => {
+    if (core) {
+      const storage = localStorage.getItem("vaults");
+      const vaults: Vault.Props[] = storage ? JSON.parse(storage) : [];
+
+      if (Array.isArray(vaults) && vaults.length) {
+        const promises = vaults.map((vault) => getVault(vault));
+
+        Promise.all(promises)
+          .then(() => {})
+          .catch(() => {})
+          .finally(() => {
+            setState((prevState) => ({
+              ...prevState,
+              vault: prevState.vaults[0],
+              loaded: true,
+            }));
+          });
+      } else {
+        setState((prevState) => ({ ...prevState, loaded: true }));
+      }
+    }
+  };
+
   const componentDidMount = () => {
     initWasm()
       .then((core) => {
-        const storage = localStorage.getItem("vaults");
-        const vaults: Vault.Props[] = storage ? JSON.parse(storage) : [];
-
         setState((prevState) => ({
           ...prevState,
           coinRef: {
@@ -443,7 +593,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
             [Chain.BITCOIN]: core.CoinType.bitcoin,
             [Chain.BITCOINCASH]: core.CoinType.bitcoinCash,
             [Chain.BLAST]: core.CoinType.blast,
-            [Chain.BSCCHAIN]: core.CoinType.binance,
+            [Chain.BSCCHAIN]: core.CoinType.smartChain,
             [Chain.CRONOSCHAIN]: core.CoinType.cronosChain,
             [Chain.DASH]: core.CoinType.dash,
             [Chain.DOGECOIN]: core.CoinType.dogecoin,
@@ -463,33 +613,21 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
           },
           core,
         }));
-
-        if (Array.isArray(vaults) && vaults.length) {
-          const promises = vaults.map((vault) => getVault(vault));
-
-          Promise.all(promises)
-            .then(() => {})
-            .catch(() => {})
-            .finally(() => {
-              setState((prevState) => ({ ...prevState, loaded: true }));
-            });
-        } else {
-          setState((prevState) => ({ ...prevState, loaded: true }));
-        }
       })
       .catch(() => {});
   };
 
   useEffect(componentDidMount, []);
+  useEffect(componentDidUpdate, [core]);
 
   return (
     <VaultContext.Provider
       value={{
         addVault,
         changeVault,
-        getAddress,
         getBalance,
         qrReader,
+        toggleCoin,
         vault,
         vaults,
       }}

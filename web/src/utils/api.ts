@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { Balance, Derivation, Vault } from "context/interfaces";
+import { Balance, Coin, Derivation, Vault } from "context/interfaces";
 import { toCamelCase, toSnakeCase } from "utils/case-converter";
 
 //import paths from "routes/constant-paths";
@@ -28,18 +28,7 @@ api.interceptors.response.use(
     return response;
   },
   ({ response }) => {
-    //if (data?.message) message.error(data?.message);
-
-    switch (response.status) {
-      case 401:
-        break;
-      case 403:
-        break;
-      default:
-        break;
-    }
-
-    return Promise.reject(response.status);
+    return Promise.reject(response.data.error);
   }
 );
 
@@ -59,6 +48,21 @@ export default {
     },
     utxo: async (path: string) => {
       return await api.get<Balance.UTXO.Props>(path);
+    },
+  },
+  coin: {
+    add: async (vault: Vault.Params, params: Coin.Params) => {
+      return await api.post<Coin.Props>(
+        `coin/${vault.publicKeyEcdsa}/${vault.publicKeyEddsa}`,
+        params,
+        { headers: { "x-hex-chain-code": vault.hexChainCode } }
+      );
+    },
+    del: async (vault: Vault.Params, coin: Coin.Params) => {
+      return await api.delete(
+        `coin/${vault.publicKeyEcdsa}/${vault.publicKeyEddsa}/${coin.ID}`, //${coin.chain}-${coin.ticker}-${coin.address}
+        { headers: { "x-hex-chain-code": vault.hexChainCode } }
+      );
     },
   },
   vault: {
