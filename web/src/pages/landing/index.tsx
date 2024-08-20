@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button, Upload, UploadProps } from "antd";
 
 import { useVaultContext } from "context";
-import { ErrorKey } from "context/constants";
+import { errorKey } from "context/constants";
 import { FileProps, Vault } from "context/interfaces";
 import { CloseOutlined } from "utils/icons";
 import constantPaths from "routes/constant-paths";
@@ -31,8 +31,6 @@ const Component: FC = () => {
         })
         .catch(() => {
           setState((prevState) => ({ ...prevState, status: "error" }));
-
-          console.error("Vault already registered");
         });
     }
   };
@@ -57,16 +55,16 @@ const Component: FC = () => {
         setState((prevState) => ({ ...prevState, file, status: "error" }));
 
         switch (error) {
-          case ErrorKey.INVALID_EXTENSION:
+          case errorKey.INVALID_EXTENSION:
             console.error("Invalid file extension");
             break;
-          case ErrorKey.INVALID_FILE:
+          case errorKey.INVALID_FILE:
             console.error("Invalid file");
             break;
-          case ErrorKey.INVALID_QRCODE:
+          case errorKey.INVALID_QRCODE:
             console.error("Invalid qr code");
             break;
-          case ErrorKey.INVALID_VAULT:
+          case errorKey.INVALID_VAULT:
             console.error("Invalid vault data");
             break;
           default:

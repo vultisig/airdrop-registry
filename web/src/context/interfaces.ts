@@ -3,6 +3,32 @@ import type { CoinType } from "@trustwallet/wallet-core/dist/src/wallet-core";
 import { Chain } from "context/constants";
 
 export namespace Balance {
+  export interface API {
+    [Chain.ARBITRUM]: string;
+    [Chain.AVALANCHE]: string;
+    [Chain.BASE]: string;
+    [Chain.BITCOIN]: string;
+    [Chain.BITCOINCASH]: string;
+    [Chain.BLAST]: string;
+    [Chain.BSCCHAIN]: string;
+    [Chain.CRONOSCHAIN]: string;
+    [Chain.DASH]: string;
+    [Chain.DOGECOIN]: string;
+    [Chain.DYDX]: string;
+    [Chain.ETHEREUM]: string;
+    [Chain.GAIACHAIN]: string;
+    [Chain.KUJIRA]: string;
+    [Chain.LITECOIN]: string;
+    [Chain.MAYACHAIN]: string;
+    [Chain.OPTIMISM]: string;
+    [Chain.POLKADOT]: string;
+    [Chain.POLYGON]: string;
+    [Chain.SOLANA]: string;
+    [Chain.SUI]: string;
+    [Chain.THORCHAIN]: string;
+    [Chain.ZKSYNC]: string;
+  }
+
   export namespace Cosmos {
     export interface Props {
       balances: {
@@ -60,23 +86,31 @@ export namespace Balance {
 }
 
 export namespace Coin {
-  export interface MetaData {
+  export interface Meta {
     chain: Chain;
     contractAddress: string;
     decimals: number;
+    hexPublicKey: "ECDSA" | "EDDSA";
+    isDefault: boolean;
     isNative: boolean;
     providerId: string;
     ticker: string;
   }
 
-  export interface Props {
+  export interface Params {
     address: string;
     chain: Chain;
+    contractAddress: string;
     decimals: number;
     hexPublicKey: string;
+    ID?: number;
     isNativeToken: boolean;
     priceProviderId: string;
     ticker: string;
+  }
+
+  export interface Props {
+    coinId: number;
   }
 
   export interface Reference {
@@ -128,7 +162,7 @@ export namespace Vault {
   }
 
   export interface Props {
-    coins?: Coin.Props[];
+    coins: Coin.Params[];
     name: string;
     hexChainCode: string;
     joinAirdrop: boolean;
@@ -137,40 +171,6 @@ export namespace Vault {
     totalPoints: number;
     uid: string;
   }
-}
-
-export interface BalanceAPI {
-  [Chain.ARBITRUM]: string;
-  [Chain.AVALANCHE]: string;
-  [Chain.BASE]: string;
-  [Chain.BITCOIN]: string;
-  [Chain.BITCOINCASH]: string;
-  [Chain.BLAST]: string;
-  [Chain.BSCCHAIN]: string;
-  [Chain.CRONOSCHAIN]: string;
-  [Chain.DASH]: string;
-  [Chain.DOGECOIN]: string;
-  [Chain.DYDX]: string;
-  [Chain.ETHEREUM]: string;
-  [Chain.GAIACHAIN]: string;
-  [Chain.KUJIRA]: string;
-  [Chain.LITECOIN]: string;
-  [Chain.MAYACHAIN]: string;
-  [Chain.OPTIMISM]: string;
-  [Chain.POLKADOT]: string;
-  [Chain.POLYGON]: string;
-  [Chain.SOLANA]: string;
-  [Chain.SUI]: string;
-  [Chain.THORCHAIN]: string;
-  [Chain.ZKSYNC]: string;
-}
-
-export interface ChainProps {
-  address: string;
-  assets: number;
-  decimals: number;
-  name: Chain;
-  ticker: string;
 }
 
 export interface FileProps {
