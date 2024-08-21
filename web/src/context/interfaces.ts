@@ -29,6 +29,32 @@ export namespace Balance {
     [Chain.ZKSYNC]: string;
   }
 
+  export interface Token {
+    [Chain.ARBITRUM]: boolean;
+    [Chain.AVALANCHE]: boolean;
+    [Chain.BASE]: boolean;
+    [Chain.BITCOIN]: boolean;
+    [Chain.BITCOINCASH]: boolean;
+    [Chain.BLAST]: boolean;
+    [Chain.BSCCHAIN]: boolean;
+    [Chain.CRONOSCHAIN]: boolean;
+    [Chain.DASH]: boolean;
+    [Chain.DOGECOIN]: boolean;
+    [Chain.DYDX]: boolean;
+    [Chain.ETHEREUM]: boolean;
+    [Chain.GAIACHAIN]: boolean;
+    [Chain.KUJIRA]: boolean;
+    [Chain.LITECOIN]: boolean;
+    [Chain.MAYACHAIN]: boolean;
+    [Chain.OPTIMISM]: boolean;
+    [Chain.POLKADOT]: boolean;
+    [Chain.POLYGON]: boolean;
+    [Chain.SOLANA]: boolean;
+    [Chain.SUI]: boolean;
+    [Chain.THORCHAIN]: boolean;
+    [Chain.ZKSYNC]: boolean;
+  }
+
   export namespace Cosmos {
     export interface Props {
       balances: {
@@ -42,7 +68,7 @@ export namespace Balance {
     export interface Params {
       jsonrpc: string;
       method: string;
-      params: [string, string];
+      params: [string | { to: string; data: string }, string];
       id: number;
     }
 
@@ -67,7 +93,7 @@ export namespace Balance {
     export interface Params {
       jsonrpc: string;
       method: string;
-      params: [string];
+      params: [string] | [string, { mint: string }, { encoding: string }];
       id: number;
     }
 
@@ -99,6 +125,7 @@ export namespace Coin {
 
   export interface Params {
     address: string;
+    balance: string;
     chain: Chain;
     contractAddress: string;
     decimals: number;
@@ -107,6 +134,7 @@ export namespace Coin {
     isNativeToken: boolean;
     priceProviderId: string;
     ticker: string;
+    value: string;
   }
 
   export interface Props {

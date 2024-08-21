@@ -10,15 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@bufbuild/buf": "^1.36.0",
-    "@bufbuild/protobuf": "^2.0.0",
-    "@bufbuild/protoc-gen-es": "^2.0.0",
     "@re-dev/react-truncate": "^0.4.1",
     "@trustwallet/wallet-core": "^4.1.4",
     "antd": "^5.20.0",
     "axios": "^1.7.3",
-    "buffer": "^6.0.3",
-    "crypto-js": "^4.2.0",
     "i18next": "^23.12.2",
     "jsqr": "^1.4.0",
     "keymirror": "^0.1.1",
@@ -28,7 +23,6 @@
     "react-router-dom": "^6.26.0"
   },
   "devDependencies": {
-    "@types/crypto-js": "^4.2.2",
     "@types/keymirror": "^0.1.4",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
@@ -45,7 +39,6 @@
     "sass": "^1.77.8",
     "typescript": "^5.2.2",
     "vite": "^5.3.4",
-    "vite-plugin-node-polyfills": "^0.22.0",
     "vite-tsconfig-paths": "^4.3.2"
   }
 }

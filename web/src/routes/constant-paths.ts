@@ -1,7 +1,7 @@
 export default {
   root: "/",
   basePath: "/",
-  asset: "/balance/:chainId",
+  asset: "/balance/:chainKey",
   balance: "/balance",
   landing: "/landing",
 };

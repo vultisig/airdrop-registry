@@ -11,7 +11,7 @@ import constantPaths from "routes/constant-paths";
 
 import DefaultLayout from "layouts/default";
 
-//import AssetPage from "pages/asset";
+import AssetPage from "pages/asset";
 import BalancePage from "pages/balance";
 import LandingPage from "pages/landing";
 
@@ -72,10 +72,10 @@ const Component = () => {
                 path: constantPaths.balance,
                 element: <BalancePage />,
               },
-              // {
-              //   path: constantPaths.asset,
-              //   element: <AssetPage />,
-              // },
+              {
+                path: constantPaths.asset,
+                element: <AssetPage />,
+              },
               {
                 path: "*",
                 redirect: constantPaths.root,

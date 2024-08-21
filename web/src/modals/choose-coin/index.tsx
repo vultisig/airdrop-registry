@@ -1,11 +1,11 @@
 import { FC, useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Drawer, List, Spin, Switch } from "antd";
 
 import { useVaultContext } from "context";
 import { Chain, coins } from "context/constants";
-import constantModals from "modals/constant-modals";
 import { Coin } from "context/interfaces";
+import constantModals from "modals/constant-modals";
 
 interface InitialState {
   chooseChain: boolean;
@@ -23,6 +23,7 @@ const Component: FC = () => {
   const { chooseChain, loading, visible } = state;
   const { toggleCoin, vault } = useVaultContext();
   const { hash } = useLocation();
+  const { chainKey } = useParams();
   const navigate = useNavigate();
 
   const handleToggle = (coin: Coin.Meta) => {
@@ -49,11 +50,11 @@ const Component: FC = () => {
 
         break;
       }
-      case `#${constantModals.CHOOSE_COIN}`: {
+      case `#${constantModals.CHOOSE_TOKEN}`: {
         setState((prevState) => ({
           ...prevState,
           chooseChain: false,
-          visible: false,
+          visible: true,
         }));
 
         break;
@@ -79,10 +80,17 @@ const Component: FC = () => {
     >
       {visible ? (
         <List
-          dataSource={coins.filter((coin) => coin.isNative === chooseChain)}
+          dataSource={coins.filter(({ chain, isNative }) =>
+            chooseChain
+              ? isNative
+              : !isNative && chain.toLocaleLowerCase() === chainKey
+          )}
           renderItem={(item) => {
             const checked = vault
-              ? vault?.coins.findIndex((coin) => coin.chain === item.chain) >= 0
+              ? vault?.coins.findIndex(
+                  (coin) =>
+                    coin.chain === item.chain && coin.ticker === item.ticker
+                ) >= 0
               : false;
 
             return (
@@ -99,12 +107,16 @@ const Component: FC = () => {
                 <List.Item.Meta
                   avatar={
                     <img
-                      src={`/coins/${item.chain.toLocaleLowerCase()}-${item.ticker.toLocaleLowerCase()}.svg`}
+                      src={`/coins/${
+                        chooseChain
+                          ? item.chain.toLocaleLowerCase()
+                          : item.ticker.toLocaleLowerCase()
+                      }.svg`}
                       style={{ height: 48, width: 48 }}
                     />
                   }
-                  title={item.chain}
-                  description={item.ticker}
+                  title={chooseChain ? item.chain : item.ticker}
+                  description={chooseChain ? item.ticker : item.chain}
                 />
               </List.Item>
             );

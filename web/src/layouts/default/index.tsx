@@ -1,8 +1,8 @@
 import { FC } from "react";
 import { Outlet, Link } from "react-router-dom";
-import { Button, Dropdown } from "antd";
+import { Button, Dropdown, MenuProps } from "antd";
 
-import type { MenuProps } from "antd";
+import paths from "routes/constant-paths";
 
 import {
   ChainOutlined,
@@ -12,8 +12,7 @@ import {
   QuestionOutlined,
   ShareOutlined,
   UserOutlined,
-} from "utils/icons";
-import paths from "routes/constant-paths";
+} from "icons";
 
 const Component: FC = () => {
   const items: MenuProps["items"] = [
@@ -66,7 +65,7 @@ const Component: FC = () => {
         <Link to={paths.root} className="logo">
           <img src="/images/logo-type.svg" alt="logo" />
         </Link>
-        <Dropdown menu={{ items }} className="menu" >
+        <Dropdown menu={{ items }} className="menu">
           <Button type="link">
             <UserOutlined />
           </Button>

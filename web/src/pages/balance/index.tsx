@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 import { Button, Card, Dropdown, Empty, Input, MenuProps, Spin } from "antd";
 
 import { useVaultContext } from "context";
-import { PlusFilled, RefreshOutlined } from "utils/icons";
 import constantModals from "modals/constant-modals";
 import constantPaths from "routes/constant-paths";
 
-import ChainItem from "components/chain-item";
+import { PlusFilled, RefreshOutlined } from "icons";
+import BalanceItem from "components/balance-item";
 import ChooseChain from "modals/choose-coin";
+import JoinAirdrop from "modals/join-airdrop";
 
 const Component: FC = () => {
   const { changeVault, vault, vaults } = useVaultContext();
@@ -35,7 +36,7 @@ const Component: FC = () => {
     },
     {
       key: "2",
-      label: "Join Airdrop",
+      label: <Link to={`#${constantModals.JOIN_AIRDROP}`}>Join Airdrop</Link>,
     },
   ];
 
@@ -56,9 +57,11 @@ const Component: FC = () => {
         </div>
         {vault ? (
           vault.coins.length ? (
-            vault.coins.map(({ chain, ...res }) => (
-              <ChainItem key={chain} {...{ ...res, chain }} />
-            ))
+            vault.coins
+              .filter((coin) => coin.isNativeToken)
+              .map(({ chain, ...res }) => (
+                <BalanceItem key={chain} {...{ ...res, chain }} />
+              ))
           ) : (
             <Card className="empty">
               <Empty description="Choose a chain..." />
@@ -73,6 +76,7 @@ const Component: FC = () => {
       </div>
 
       <ChooseChain />
+      <JoinAirdrop />
     </>
   );
 };

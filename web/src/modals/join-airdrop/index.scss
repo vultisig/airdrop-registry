@@ -1,0 +1,32 @@
+@import "../../styles/variables";
+
+.ant-modal-title {
+  text-align: center;
+  font-weight: normal !important;
+}
+.airdrop-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  .value {
+    margin-block: 2rem;
+  }
+}
+.list-item {
+  background-color: $blue-base !important;
+  border-radius: 0.5rem;
+  padding-inline: 1rem !important;
+  margin-block: 1rem;
+  .ant-list-item-meta-title {
+    margin: 0 !important;
+  }
+}
+.airdop-body {
+  text-align: start;
+}
+.link-color {
+  color: #15d7ac !important;
+}
+.submit-btn {
+  width: 100%;
+  color: black;
+}
