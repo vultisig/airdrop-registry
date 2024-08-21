@@ -4,12 +4,13 @@
 @import "_montserrat";
 @import "_variables";
 
-@import "../components/chain-item";
+@import "../components/asset-item";
+@import "../components/balance-item";
 @import "../components/splash-screen";
 
 @import "../layouts/default";
 
-//@import "../pages/asset";
+@import "../pages/asset";
 @import "../pages/balance";
 @import "../pages/landing";
 

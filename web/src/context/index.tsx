@@ -19,7 +19,7 @@ import SplashScreen from "components/splash-screen";
 interface VaultContext {
   addVault: (vault: Vault.Params) => Promise<void>;
   changeVault: (uid: string) => void;
-  getBalance: (chain: Chain, address: string) => Promise<number>;
+  getBalance: (chain: Chain, ticker: string) => Promise<void>;
   qrReader: (file: File) => Promise<QRCodeProps>;
   toggleCoin: (coin: Coin.Meta) => Promise<void>;
   vault?: Vault.Props;
@@ -160,124 +160,177 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const getBalance = (chain: Chain, address: string): Promise<number> => {
+  const getBalance = (chain: Chain, ticker: string): Promise<void> => {
     return new Promise((resolve, reject) => {
+      const uid = Math.floor(Math.random() * 10000);
       const path = balanceAPIs[chain];
+      const coin = vault?.coins.find(
+        (coin) => coin.chain === chain && coin.ticker === ticker
+      );
 
-      switch (chain) {
-        // Cosmos
-        case Chain.DYDX:
-        case Chain.GAIACHAIN:
-        case Chain.KUJIRA:
-        case Chain.MAYACHAIN:
-        case Chain.THORCHAIN: {
-          api.balance
-            .cosmos(`${path}/${address}`)
-            .then(({ data: { balances } }) => {
-              const [balance] = balances;
+      if (coin) {
+        switch (chain) {
+          // Cosmos
+          case Chain.DYDX:
+          case Chain.GAIACHAIN:
+          case Chain.KUJIRA:
+          case Chain.MAYACHAIN:
+          case Chain.THORCHAIN: {
+            api.balance
+              .cosmos(`${path}/${coin.address}`)
+              .then(({ data: { balances } }) => {
+                if (balances.length && balances[0].amount) {
+                  setBalance(coin, parseInt(balances[0].amount));
+                } else {
+                  setBalance(coin, 0);
+                }
 
-              if (balance && balance.amount) {
-                resolve(parseInt(balance.amount));
-              } else {
-                resolve(0);
-              }
-            })
-            .catch(() => {
-              resolve(0);
-            });
+                resolve();
+              })
+              .catch(() => {
+                resolve();
+              });
 
-          break;
+            break;
+          }
+          // EVM
+          case Chain.ARBITRUM:
+          case Chain.AVALANCHE:
+          case Chain.BASE:
+          case Chain.BLAST:
+          case Chain.BSCCHAIN:
+          case Chain.CRONOSCHAIN:
+          case Chain.ETHEREUM:
+          case Chain.OPTIMISM:
+          case Chain.POLYGON: {
+            api.balance
+              .evm(path, {
+                jsonrpc: "2.0",
+                method: coin.isNativeToken ? "eth_getBalance" : "eth_call",
+                params: [
+                  coin.isNativeToken
+                    ? coin.address
+                    : {
+                        data: `0x70a08231000000000000000000000000${coin.address.replace(
+                          "0x",
+                          ""
+                        )}`,
+                        to: coin.contractAddress,
+                      },
+                  "latest",
+                ],
+                id: uid,
+              })
+              .then(({ data: { result } }) => {
+                setBalance(coin, parseInt(result, 16));
+
+                resolve();
+              })
+              .catch(() => {
+                resolve();
+              });
+
+            break;
+          }
+          case Chain.POLKADOT: {
+            api.balance
+              .polkadot(path, { key: coin.address })
+              .then(({ data: { data } }) => {
+                if (data && data.account && data.account.balance) {
+                  const balance = data.account.balance.replace(".", "");
+
+                  setBalance(coin, parseInt(balance));
+                } else {
+                  setBalance(coin, 0);
+                }
+
+                resolve();
+              })
+              .catch(() => {
+                resolve();
+              });
+
+            break;
+          }
+          case Chain.SOLANA: {
+            api.balance
+              .solana(path, {
+                jsonrpc: "2.0",
+                method: coin.isNativeToken
+                  ? "getBalance"
+                  : "getTokenAccountsByOwner",
+                params: coin.isNativeToken
+                  ? [coin.address]
+                  : [
+                      "address",
+                      { mint: coin.contractAddress },
+                      { encoding: "jsonParsed" },
+                    ],
+                id: 1,
+              })
+              .then(({ data: { result } }) => {
+                setBalance(coin, parseInt(result, 16));
+
+                resolve();
+              })
+              .catch(() => {
+                resolve();
+              });
+
+            break;
+          }
+          // UTXO
+          case Chain.BITCOIN:
+          case Chain.BITCOINCASH:
+          case Chain.DASH:
+          case Chain.DOGECOIN:
+          case Chain.LITECOIN: {
+            api.balance
+              .utxo(`${path}/${coin.address}?state=latest`)
+              .then(({ data: { data } }) => {
+                if (
+                  data &&
+                  data[coin.address] &&
+                  data[coin.address].address &&
+                  typeof data[coin.address].address.balance === "number"
+                ) {
+                  setBalance(coin, data[coin.address].address.balance);
+                } else {
+                  setBalance(coin, 0);
+                }
+
+                resolve();
+              })
+              .catch(() => {
+                resolve();
+              });
+
+            break;
+          }
+          default:
+            reject();
+            break;
         }
-        // EVM
-        case Chain.ARBITRUM:
-        case Chain.AVALANCHE:
-        case Chain.BASE:
-        case Chain.BLAST:
-        case Chain.BSCCHAIN:
-        case Chain.CRONOSCHAIN:
-        case Chain.ETHEREUM:
-        case Chain.OPTIMISM:
-        case Chain.POLYGON: {
-          api.balance
-            .evm(path, {
-              jsonrpc: "2.0",
-              method: "eth_getBalance",
-              params: [address, "latest"],
-              id: 1,
-            })
-            .then(({ data: { result } }) => {
-              resolve(parseInt(result, 16));
-            })
-            .catch(() => {
-              resolve(0);
-            });
+      } else {
+        reject();
+      }
+    });
+  };
 
-          break;
-        }
-        case Chain.POLKADOT: {
-          api.balance
-            .polkadot(path, { key: address })
-            .then(({ data: { data } }) => {
-              if (data && data.account && data.account.balance) {
-                const balance = data.account.balance.replace(".", "");
+  const setBalance = (coin: Coin.Params, value: number): void => {
+    setState((prevState) => {
+      if (prevState.vault) {
+        const coins = prevState.vault.coins.map((item) => ({
+          ...item,
+          balance:
+            item.chain === coin.chain && item.ticker === coin.ticker
+              ? (value / Math.pow(10, item.decimals)).toString()
+              : item.balance,
+        }));
 
-                resolve(parseInt(balance));
-              } else {
-                resolve(0);
-              }
-            })
-            .catch(() => {
-              resolve(0);
-            });
-
-          break;
-        }
-        case Chain.SOLANA: {
-          api.balance
-            .solana(path, {
-              jsonrpc: "2.0",
-              method: "getBalance",
-              params: [address],
-              id: 1,
-            })
-            .then(({ data: { result } }) => {
-              resolve(parseInt(result, 16));
-            })
-            .catch(() => {
-              resolve(0);
-            });
-
-          break;
-        }
-        // UTXO
-        case Chain.BITCOIN:
-        case Chain.BITCOINCASH:
-        case Chain.DASH:
-        case Chain.DOGECOIN:
-        case Chain.LITECOIN: {
-          api.balance
-            .utxo(`${path}/${address}?state=latest`)
-            .then(({ data: { data } }) => {
-              if (
-                data &&
-                data[address] &&
-                data[address].address &&
-                typeof data[address].address.balance === "number"
-              ) {
-                resolve(data[address].address.balance);
-              } else {
-                resolve(0);
-              }
-            })
-            .catch(() => {
-              resolve(0);
-            });
-
-          break;
-        }
-        default:
-          reject();
-          break;
+        return { ...prevState, vault: { ...prevState.vault, coins } };
+      } else {
+        return prevState;
       }
     });
   };
@@ -289,6 +342,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     return new Promise((resolve, reject) => {
       const _coin: Coin.Params = {
         address: "",
+        balance: "",
         chain: coin.chain,
         contractAddress: coin.contractAddress,
         decimals: coin.decimals,
@@ -299,6 +353,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
         isNativeToken: coin.isNative,
         priceProviderId: coin.providerId,
         ticker: coin.ticker,
+        value: "",
       };
 
       getAddress(coin.chain, vault)

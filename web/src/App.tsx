@@ -13,6 +13,10 @@ const App = () => {
             colorBgElevated: "#02122b",
             paddingLG: 8,
           },
+          Modal: {
+            colorBgElevated: "#02122b",
+            paddingLG: 8,
+          },
           Dropdown: {
             paddingBlock: 8,
           },
@@ -22,6 +26,7 @@ const App = () => {
         },
         token: {
           colorPrimary: "#33e6bf",
+          colorPrimaryText: "#000000",
           fontFamily: "Montserrat",
         },
       }}

@@ -75,6 +75,14 @@ export default {
       );
     },
   },
+  airdrop: {
+    join: async (params: Vault.Params) => {
+      return await api.post("vault/join-airdrop", params);
+    },
+    exit: async (params: Vault.Params) => {
+      return await api.post("vault/exit-airdrop", params);
+    },
+  },
   derivePublicKey: async (params: Derivation.Params) => {
     return await api.post<Derivation.Props>("derive-public-key", params);
   },

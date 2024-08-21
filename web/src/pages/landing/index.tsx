@@ -5,8 +5,9 @@ import { Button, Upload, UploadProps } from "antd";
 import { useVaultContext } from "context";
 import { errorKey } from "context/constants";
 import { FileProps, Vault } from "context/interfaces";
-import { CloseOutlined } from "utils/icons";
 import constantPaths from "routes/constant-paths";
+
+import { CloseOutlined } from "icons";
 
 type Status = "default" | "error" | "success";
 

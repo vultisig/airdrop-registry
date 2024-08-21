@@ -1,0 +1,40 @@
+.asset-item {
+  border-top: solid 1px $blue-light;
+  display: flex;
+  justify-content: space-between;
+
+  .token {
+    padding-left: 3rem;
+    position: relative;
+    width: 30%;
+
+    .logo {
+      height: 1.5rem;
+      left: 0.25rem;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1.5rem;
+    }
+
+    .name {
+      display: block;
+      font-size: 1.25rem;
+      line-height: 4.25rem;
+    }
+  }
+
+  .balance {
+    font-weight: 700;
+    line-height: 4.25rem;
+    text-align: center;
+    width: 30%;
+  }
+
+  .value {
+    font-weight: 700;
+    line-height: 4.25rem;
+    text-align: right;
+    width: 30%;
+  }
+}
