@@ -1,27 +1,28 @@
 import { FC, useEffect, useState } from "react";
-import { Button, Card, Empty, Spin } from "antd";
+import { Button, Card, Empty, message, Spin, Tooltip } from "antd";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Truncate } from "@re-dev/react-truncate";
 
 import { useVaultContext } from "context";
-import { chooseToken } from "context/constants";
-import { Coin } from "context/interfaces";
+import { chooseToken, exploreToken } from "utils/constants";
+import { Coin } from "utils/interfaces";
+import constantModals from "modals/constant-modals";
 import constantPaths from "routes/constant-paths";
 
 import AssetItem from "components/asset-item";
-import ChooseCoin from "modals/choose-coin";
+import ChooseToken from "modals/choose-token";
+import QRCode from "modals/qr-code";
 
 import {
   CaretRightOutlined,
   CopyOutlined,
   CubeOutlined,
-  PlusFilled,
+  PlusCircleFilled,
   QRCodeOutlined,
 } from "icons";
-import constantModals from "modals/constant-modals";
 
 interface InitialState {
-  coin?: Coin.Params;
+  coin?: Coin.Props;
 }
 
 const Component: FC = () => {
@@ -30,7 +31,25 @@ const Component: FC = () => {
   const { coin } = state;
   const { chainKey } = useParams();
   const { vault } = useVaultContext();
+  const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
+
+  const handleCopy = () => {
+    navigator.clipboard
+      .writeText(coin?.address || "")
+      .then(() => {
+        messageApi.open({
+          type: "success",
+          content: "Address copied to clipboard",
+        });
+      })
+      .catch(() => {
+        messageApi.open({
+          type: "error",
+          content: "Failed to copy address",
+        });
+      });
+  };
 
   const componentDidUpdate = () => {
     if (chainKey && vault) {
@@ -80,17 +99,39 @@ const Component: FC = () => {
                     <Spin />
                   )}
                 </div>
-                <span className="amount">$0</span>
+                <span className="amount">
+                  {vault
+                    ? `$${vault.coins
+                        .filter(
+                          ({ chain }) => chain.toLocaleLowerCase() === chainKey
+                        )
+                        .reduce(
+                          (acc, coin) => acc + coin.balance * coin.value,
+                          0
+                        )
+                        .toFixed(2)}`
+                    : "$0.00"}
+                </span>
                 <div className="actions">
-                  <Button type="link">
-                    <CopyOutlined />
-                  </Button>
-                  <Button type="link">
-                    <QRCodeOutlined />
-                  </Button>
-                  <Button type="link">
-                    <CubeOutlined />
-                  </Button>
+                  <Tooltip title="Copy Address">
+                    <Button type="link" onClick={handleCopy}>
+                      <CopyOutlined />
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="View QRCode">
+                    <Link to={`#${constantModals.QR_CODE}`}>
+                      <QRCodeOutlined />
+                    </Link>
+                  </Tooltip>
+                  <Tooltip title="Link to Address">
+                    <a
+                      href={`${exploreToken[coin.chain]}${coin.address}`}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      <CubeOutlined />
+                    </a>
+                  </Tooltip>
                 </div>
               </div>
               {vault ? (
@@ -113,7 +154,7 @@ const Component: FC = () => {
             </div>
             {chooseToken[coin.chain] && (
               <Link to={`#${constantModals.CHOOSE_TOKEN}`} className="add">
-                <PlusFilled /> Choose Tokens
+                <PlusCircleFilled /> Choose Tokens
               </Link>
             )}
           </>
@@ -122,7 +163,10 @@ const Component: FC = () => {
         )}
       </div>
 
-      <ChooseCoin />
+      <ChooseToken />
+      {coin && <QRCode address={coin.address} />}
+
+      {contextHolder}
     </>
   );
 };

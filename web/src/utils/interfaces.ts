@@ -1,6 +1,6 @@
 import type { CoinType } from "@trustwallet/wallet-core/dist/src/wallet-core";
 
-import { Chain } from "context/constants";
+import { Chain } from "utils/constants";
 
 export namespace Balance {
   export interface API {
@@ -100,7 +100,7 @@ export namespace Balance {
     export interface Props {
       id: number;
       jsonrpc: string;
-      result: string;
+      result: { value: number };
     }
   }
 
@@ -112,33 +112,41 @@ export namespace Balance {
 }
 
 export namespace Coin {
-  export interface Meta {
+  export interface Metadata {
     chain: Chain;
+    cmcId: number;
     contractAddress: string;
     decimals: number;
     hexPublicKey: "ECDSA" | "EDDSA";
     isDefault: boolean;
     isNative: boolean;
-    providerId: string;
+    slug: string;
     ticker: string;
   }
 
   export interface Params {
     address: string;
-    balance: string;
     chain: Chain;
+    cmcId: number;
     contractAddress: string;
     decimals: number;
     hexPublicKey: string;
-    ID?: number;
     isNativeToken: boolean;
-    priceProviderId: string;
     ticker: string;
-    value: string;
   }
 
   export interface Props {
-    coinId: number;
+    address: string;
+    balance: number;
+    chain: Chain;
+    cmcId: number;
+    contractAddress: string;
+    decimals: number;
+    hexPublicKey: string;
+    ID: number;
+    isNativeToken: boolean;
+    ticker: string;
+    value: number;
   }
 
   export interface Reference {
@@ -180,27 +188,6 @@ export namespace Derivation {
   }
 }
 
-export namespace Vault {
-  export interface Params {
-    uid: string;
-    name: string;
-    publicKeyEcdsa: string;
-    publicKeyEddsa: string;
-    hexChainCode: string;
-  }
-
-  export interface Props {
-    coins: Coin.Params[];
-    name: string;
-    hexChainCode: string;
-    joinAirdrop: boolean;
-    publicKeyEcdsa: string;
-    publicKeyEddsa: string;
-    totalPoints: number;
-    uid: string;
-  }
-}
-
 export interface FileProps {
   data: string;
   name: string;
@@ -208,5 +195,16 @@ export interface FileProps {
 
 export interface QRCodeProps {
   file: FileProps;
-  vault: Vault.Params;
+  vault: VaultProps;
+}
+
+export interface VaultProps {
+  coins: Coin.Props[];
+  name: string;
+  hexChainCode: string;
+  joinAirdrop: boolean;
+  publicKeyEcdsa: string;
+  publicKeyEddsa: string;
+  totalPoints: number;
+  uid: string;
 }

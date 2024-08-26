@@ -23,10 +23,14 @@ const App = () => {
           List: {
             itemPadding: "12px 0",
           },
+          Tooltip: {
+            colorBgSpotlight: "#33e6bf",
+            colorTextLightSolid: "#000",
+          },
         },
         token: {
           colorPrimary: "#33e6bf",
-          colorPrimaryText: "#000000",
+          colorPrimaryText: "#000",
           fontFamily: "Montserrat",
         },
       }}

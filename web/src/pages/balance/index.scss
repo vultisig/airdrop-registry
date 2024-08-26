@@ -1,6 +1,7 @@
 .balance-page {
   margin: 0 auto;
   max-width: 72.5rem;
+  overflow: hidden;
   padding: 0 1rem;
 
   .breadcrumb {
@@ -55,6 +56,7 @@
     align-items: center;
     color: $gray-1;
     display: flex;
+    float: left;
     gap: 1rem;
     margin-top: 1.5rem;
 

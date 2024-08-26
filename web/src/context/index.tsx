@@ -7,47 +7,54 @@ import {
   useContext,
 } from "react";
 import { initWasm, WalletCore } from "@trustwallet/wallet-core";
-import jsQR from "jsqr";
 
-import { Chain, balanceAPIs, coins, errorKey } from "context/constants";
-import { Coin, FileProps, QRCodeProps, Vault } from "context/interfaces";
-import { toCamelCase } from "utils/case-converter";
+import { Chain, Currency, balanceAPI, coins, errorKey } from "utils/constants";
+import { Coin, VaultProps } from "utils/interfaces";
 import api from "utils/api";
 
 import SplashScreen from "components/splash-screen";
+import { Modal, Spin } from "antd";
 
 interface VaultContext {
-  addVault: (vault: Vault.Params) => Promise<void>;
-  changeVault: (uid: string) => void;
-  getBalance: (chain: Chain, ticker: string) => Promise<void>;
-  qrReader: (file: File) => Promise<QRCodeProps>;
-  toggleCoin: (coin: Coin.Meta) => Promise<void>;
-  vault?: Vault.Props;
-  vaults: Vault.Props[];
+  addVault: (vault: VaultProps) => Promise<void>;
+  setVault: (vault: VaultProps) => void;
+  useVault: (uid: string) => void;
+  toggleCoin: (coin: Coin.Metadata, vault: VaultProps) => Promise<void>;
+  currency: Currency;
+  vault?: VaultProps;
+  vaults: VaultProps[];
 }
 
 interface InitialState {
-  coinRef: Coin.Reference;
   core?: WalletCore;
+  currency: Currency;
   loaded: boolean;
-  vaults: Vault.Props[];
-  vault?: Vault.Props;
+  loading: boolean;
+  vaults: VaultProps[];
+  vault?: VaultProps;
+  wcRefrence: Coin.Reference;
 }
 
 const VaultContext = createContext<VaultContext | undefined>(undefined);
 
 const Component: FC<{ children: ReactNode }> = ({ children }) => {
-  const initialState: InitialState = { coinRef: {}, loaded: false, vaults: [] };
+  const initialState: InitialState = {
+    currency: Currency.USD,
+    loaded: false,
+    loading: false,
+    vaults: [],
+    wcRefrence: {},
+  };
   const [state, setState] = useState(initialState);
-  const { coinRef, core, vault, vaults, loaded } = state;
+  const { core, currency, loaded, loading, vault, vaults, wcRefrence } = state;
 
   const getECDSAAddress = (
     chain: Chain,
-    vault: Vault.Params,
+    vault: VaultProps,
     prefix?: string
   ): Promise<string> => {
     return new Promise((resolve, reject) => {
-      const coin = coinRef[chain];
+      const coin = wcRefrence[chain];
 
       if (coin && core) {
         api
@@ -89,12 +96,9 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const getEDDSAAdress = (
-    chain: Chain,
-    vault: Vault.Params
-  ): Promise<string> => {
+  const getEDDSAAdress = (chain: Chain, vault: VaultProps): Promise<string> => {
     return new Promise((resolve, reject) => {
-      const coin = coinRef[chain];
+      const coin = wcRefrence[chain];
 
       if (coin && core) {
         const bytes = core.HexCoding.decode(vault.publicKeyEddsa);
@@ -116,234 +120,81 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const getAddress = (chain: Chain, vault: Vault.Params): Promise<string> => {
+  const getAddress = (
+    coin: Coin.Metadata,
+    vault: VaultProps
+  ): Promise<string> => {
     return new Promise((resolve, reject) => {
-      switch (chain) {
-        // EDDSA
-        case Chain.POLKADOT:
-        case Chain.SOLANA:
-        case Chain.SUI: {
-          getEDDSAAdress(chain, vault)
-            .then((address) => {
-              resolve(address);
-            })
-            .catch(() => {
-              reject();
-            });
-
-          break;
-        }
-        // ECDSA
-        case Chain.MAYACHAIN: {
-          getECDSAAddress(chain, vault, "maya")
-            .then((address) => {
-              resolve(address);
-            })
-            .catch(() => {
-              reject();
-            });
-
-          break;
-        }
-        default: {
-          getECDSAAddress(chain, vault)
-            .then((address) => {
-              resolve(address);
-            })
-            .catch(() => {
-              reject();
-            });
-
-          break;
-        }
-      }
-    });
-  };
-
-  const getBalance = (chain: Chain, ticker: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      const uid = Math.floor(Math.random() * 10000);
-      const path = balanceAPIs[chain];
-      const coin = vault?.coins.find(
-        (coin) => coin.chain === chain && coin.ticker === ticker
-      );
-
-      if (coin) {
-        switch (chain) {
-          // Cosmos
-          case Chain.DYDX:
-          case Chain.GAIACHAIN:
-          case Chain.KUJIRA:
-          case Chain.MAYACHAIN:
-          case Chain.THORCHAIN: {
-            api.balance
-              .cosmos(`${path}/${coin.address}`)
-              .then(({ data: { balances } }) => {
-                if (balances.length && balances[0].amount) {
-                  setBalance(coin, parseInt(balances[0].amount));
-                } else {
-                  setBalance(coin, 0);
-                }
-
-                resolve();
+      if (coin.isNative) {
+        switch (coin.chain) {
+          // EDDSA
+          case Chain.POLKADOT:
+          case Chain.SOLANA:
+          case Chain.SUI: {
+            getEDDSAAdress(coin.chain, vault)
+              .then((address) => {
+                resolve(address);
               })
               .catch(() => {
-                resolve();
+                reject();
               });
 
             break;
           }
-          // EVM
-          case Chain.ARBITRUM:
-          case Chain.AVALANCHE:
-          case Chain.BASE:
-          case Chain.BLAST:
-          case Chain.BSCCHAIN:
-          case Chain.CRONOSCHAIN:
-          case Chain.ETHEREUM:
-          case Chain.OPTIMISM:
-          case Chain.POLYGON: {
-            api.balance
-              .evm(path, {
-                jsonrpc: "2.0",
-                method: coin.isNativeToken ? "eth_getBalance" : "eth_call",
-                params: [
-                  coin.isNativeToken
-                    ? coin.address
-                    : {
-                        data: `0x70a08231000000000000000000000000${coin.address.replace(
-                          "0x",
-                          ""
-                        )}`,
-                        to: coin.contractAddress,
-                      },
-                  "latest",
-                ],
-                id: uid,
-              })
-              .then(({ data: { result } }) => {
-                setBalance(coin, parseInt(result, 16));
-
-                resolve();
+          // ECDSA
+          case Chain.MAYACHAIN: {
+            getECDSAAddress(coin.chain, vault, "maya")
+              .then((address) => {
+                resolve(address);
               })
               .catch(() => {
-                resolve();
+                reject();
               });
 
             break;
           }
-          case Chain.POLKADOT: {
-            api.balance
-              .polkadot(path, { key: coin.address })
-              .then(({ data: { data } }) => {
-                if (data && data.account && data.account.balance) {
-                  const balance = data.account.balance.replace(".", "");
-
-                  setBalance(coin, parseInt(balance));
-                } else {
-                  setBalance(coin, 0);
-                }
-
-                resolve();
+          case Chain.BITCOINCASH: {
+            getECDSAAddress(coin.chain, vault)
+              .then((address) => {
+                resolve(address.replace("bitcoincash:", ""));
               })
               .catch(() => {
-                resolve();
+                reject();
               });
 
             break;
           }
-          case Chain.SOLANA: {
-            api.balance
-              .solana(path, {
-                jsonrpc: "2.0",
-                method: coin.isNativeToken
-                  ? "getBalance"
-                  : "getTokenAccountsByOwner",
-                params: coin.isNativeToken
-                  ? [coin.address]
-                  : [
-                      "address",
-                      { mint: coin.contractAddress },
-                      { encoding: "jsonParsed" },
-                    ],
-                id: 1,
-              })
-              .then(({ data: { result } }) => {
-                setBalance(coin, parseInt(result, 16));
-
-                resolve();
+          default: {
+            getECDSAAddress(coin.chain, vault)
+              .then((address) => {
+                resolve(address);
               })
               .catch(() => {
-                resolve();
+                reject();
               });
 
             break;
           }
-          // UTXO
-          case Chain.BITCOIN:
-          case Chain.BITCOINCASH:
-          case Chain.DASH:
-          case Chain.DOGECOIN:
-          case Chain.LITECOIN: {
-            api.balance
-              .utxo(`${path}/${coin.address}?state=latest`)
-              .then(({ data: { data } }) => {
-                if (
-                  data &&
-                  data[coin.address] &&
-                  data[coin.address].address &&
-                  typeof data[coin.address].address.balance === "number"
-                ) {
-                  setBalance(coin, data[coin.address].address.balance);
-                } else {
-                  setBalance(coin, 0);
-                }
-
-                resolve();
-              })
-              .catch(() => {
-                resolve();
-              });
-
-            break;
-          }
-          default:
-            reject();
-            break;
         }
       } else {
-        reject();
-      }
-    });
-  };
+        const address = vault.coins.find(
+          ({ chain, isNativeToken }) => isNativeToken && chain === coin.chain
+        )?.address;
 
-  const setBalance = (coin: Coin.Params, value: number): void => {
-    setState((prevState) => {
-      if (prevState.vault) {
-        const coins = prevState.vault.coins.map((item) => ({
-          ...item,
-          balance:
-            item.chain === coin.chain && item.ticker === coin.ticker
-              ? (value / Math.pow(10, item.decimals)).toString()
-              : item.balance,
-        }));
-
-        return { ...prevState, vault: { ...prevState.vault, coins } };
-      } else {
-        return prevState;
+        address ? resolve(address) : reject();
       }
     });
   };
 
   const addCoin = (
-    coin: Coin.Meta,
-    vault: Vault.Params
-  ): Promise<Coin.Params> => {
+    coin: Coin.Metadata,
+    vault: VaultProps
+  ): Promise<Coin.Props> => {
     return new Promise((resolve, reject) => {
-      const _coin: Coin.Params = {
+      const newCoin: Coin.Params = {
         address: "",
-        balance: "",
         chain: coin.chain,
+        cmcId: coin.cmcId,
         contractAddress: coin.contractAddress,
         decimals: coin.decimals,
         hexPublicKey:
@@ -351,19 +202,36 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
             ? vault.publicKeyEcdsa
             : vault.publicKeyEddsa,
         isNativeToken: coin.isNative,
-        priceProviderId: coin.providerId,
         ticker: coin.ticker,
-        value: "",
       };
 
-      getAddress(coin.chain, vault)
+      getAddress(coin, vault)
         .then((address) => {
-          _coin.address = address;
+          newCoin.address = address;
 
           api.coin
-            .add(vault, _coin)
+            .add(vault, newCoin)
             .then(({ data: { coinId } }) => {
-              resolve({ ..._coin, ID: coinId });
+              const coin: Coin.Props = {
+                ...newCoin,
+                balance: 0,
+                ID: coinId,
+                value: 0,
+              };
+
+              getBalance(coin)
+                .then((coin) => {
+                  getValue([coin])
+                    .then(([coin]) => {
+                      resolve(coin);
+                    })
+                    .catch(() => {
+                      reject();
+                    });
+                })
+                .catch(() => {
+                  reject();
+                });
             })
             .catch(() => {
               reject();
@@ -375,7 +243,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const delCoin = (coin: Coin.Params, vault: Vault.Params): Promise<void> => {
+  const delCoin = (coin: Coin.Props, vault: VaultProps): Promise<void> => {
     return new Promise((resolve, reject) => {
       api.coin
         .del(vault, coin)
@@ -388,53 +256,265 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const toggleCoin = (coin: Coin.Meta): Promise<void> => {
+  const toggleCoin = (
+    coin: Coin.Metadata,
+    vault: VaultProps
+  ): Promise<void> => {
     return new Promise((resolve, reject) => {
-      if (vault) {
-        const _coin = vault.coins.find(
-          ({ chain, ticker }) => coin.chain === chain && coin.ticker === ticker
-        );
+      const selectedCoin = vault.coins.find(
+        ({ chain, ticker }) => coin.chain === chain && coin.ticker === ticker
+      );
 
-        if (_coin) {
-          delCoin(_coin, vault)
-            .then(() => {
-              setVault({
-                ...vault,
-                coins: vault.coins.filter(
-                  ({ chain, ticker }) =>
-                    coin.chain !== chain || coin.ticker !== ticker
-                ),
-              });
+      if (selectedCoin) {
+        delCoin(selectedCoin, vault)
+          .then(() => {
+            setState((prevState) => {
+              if (prevState.vault?.uid === vault.uid) {
+                return {
+                  ...prevState,
+                  vault: {
+                    ...prevState.vault,
+                    coins: prevState.vault.coins.filter(
+                      ({ chain, ticker }) =>
+                        coin.chain !== chain || coin.ticker !== ticker
+                    ),
+                  },
+                };
+              }
 
-              resolve();
-            })
-            .catch(() => {
-              reject();
+              return prevState;
             });
-        } else {
-          addCoin(coin, vault)
-            .then((coin) => {
-              setVault({ ...vault, coins: [...vault.coins, coin] });
 
-              resolve();
-            })
-            .catch(() => {
-              reject();
-            });
-        }
+            resolve();
+          })
+          .catch(() => {
+            reject();
+          });
       } else {
-        reject();
+        addCoin(coin, vault)
+          .then((coin) => {
+            setState((prevState) => {
+              if (prevState.vault?.uid === vault.uid) {
+                return {
+                  ...prevState,
+                  vault: {
+                    ...prevState.vault,
+                    coins: [...prevState.vault.coins, coin],
+                  },
+                };
+              }
+
+              return prevState;
+            });
+
+            resolve();
+          })
+          .catch(() => {
+            reject();
+          });
       }
     });
   };
 
-  const addVault = (vault: Vault.Params): Promise<void> => {
+  const getBalance = (coin: Coin.Props): Promise<Coin.Props> => {
+    return new Promise((resolve) => {
+      const uid = Math.floor(Math.random() * 10000);
+      const path = balanceAPI[coin.chain];
+
+      switch (coin.chain) {
+        // Cosmos
+        case Chain.DYDX:
+        case Chain.GAIACHAIN:
+        case Chain.KUJIRA:
+        case Chain.MAYACHAIN:
+        case Chain.THORCHAIN: {
+          api.balance
+            .cosmos(`${path}/${coin.address}`)
+            .then(({ data: { balances } }) => {
+              if (balances.length && balances[0].amount) {
+                resolve({
+                  ...coin,
+                  balance:
+                    parseInt(balances[0].amount) / Math.pow(10, coin.decimals),
+                });
+              } else {
+                resolve({ ...coin, balance: 0 });
+              }
+            })
+            .catch(() => {
+              resolve({ ...coin, balance: 0 });
+            });
+
+          break;
+        }
+        // EVM
+        case Chain.ARBITRUM:
+        case Chain.AVALANCHE:
+        case Chain.BASE:
+        case Chain.BLAST:
+        case Chain.BSCCHAIN:
+        case Chain.CRONOSCHAIN:
+        case Chain.ETHEREUM:
+        case Chain.OPTIMISM:
+        case Chain.POLYGON: {
+          api.balance
+            .evm(path, {
+              jsonrpc: "2.0",
+              method: coin.isNativeToken ? "eth_getBalance" : "eth_call",
+              params: [
+                coin.isNativeToken
+                  ? coin.address
+                  : {
+                      data: `0x70a08231000000000000000000000000${coin.address.replace(
+                        "0x",
+                        ""
+                      )}`,
+                      to: coin.contractAddress,
+                    },
+                "latest",
+              ],
+              id: uid,
+            })
+            .then(({ data: { result } }) => {
+              resolve({
+                ...coin,
+                balance: parseInt(result, 16) / Math.pow(10, coin.decimals),
+              });
+            })
+            .catch(() => {
+              resolve({ ...coin, balance: 0 });
+            });
+
+          break;
+        }
+        case Chain.POLKADOT: {
+          api.balance
+            .polkadot(path, { key: coin.address })
+            .then(({ data: { data } }) => {
+              if (data && data.account && data.account.balance) {
+                const balance = data.account.balance.replace(".", "");
+
+                resolve({
+                  ...coin,
+                  balance: parseInt(balance) / Math.pow(10, coin.decimals),
+                });
+              } else {
+                resolve({ ...coin, balance: 0 });
+              }
+            })
+            .catch(() => {
+              resolve({ ...coin, balance: 0 });
+            });
+
+          break;
+        }
+        case Chain.SOLANA: {
+          api.balance
+            .solana(path, {
+              jsonrpc: "2.0",
+              method: coin.isNativeToken
+                ? "getBalance"
+                : "getTokenAccountsByOwner",
+              params: coin.isNativeToken
+                ? [coin.address]
+                : [
+                    "address",
+                    { mint: coin.contractAddress },
+                    { encoding: "jsonParsed" },
+                  ],
+              id: 1,
+            })
+            .then(({ data }) => {
+              resolve({
+                ...coin,
+                balance: data.result.value / Math.pow(10, coin.decimals),
+              });
+            })
+            .catch(() => {
+              resolve({ ...coin, balance: 0 });
+            });
+
+          break;
+        }
+        // UTXO
+        case Chain.BITCOIN:
+        case Chain.BITCOINCASH:
+        case Chain.DASH:
+        case Chain.DOGECOIN:
+        case Chain.LITECOIN: {
+          api.balance
+            .utxo(`${path}/${coin.address}?state=latest`)
+            .then(({ data: { data } }) => {
+              if (
+                data &&
+                data[coin.address] &&
+                data[coin.address].address &&
+                typeof data[coin.address].address.balance === "number"
+              ) {
+                resolve({
+                  ...coin,
+                  balance:
+                    data[coin.address].address.balance /
+                    Math.pow(10, coin.decimals),
+                });
+              } else {
+                resolve({ ...coin, balance: 0 });
+              }
+            })
+            .catch(() => {
+              resolve({ ...coin, balance: 0 });
+            });
+
+          break;
+        }
+        default:
+          resolve({ ...coin, balance: 0 });
+          break;
+      }
+    });
+  };
+
+  const getValue = (coins: Coin.Props[]): Promise<Coin.Props[]> => {
+    return new Promise((resolve, reject) => {
+      const ids = coins.map(({ cmcId }) => cmcId);
+
+      api.coin
+        .values(ids, Currency.USD)
+        .then(({ data }) => {
+          coins.forEach((coin) => {
+            if (data?.data && data?.data[coin.cmcId]?.quote) {
+              coin.value = data.data[coin.cmcId].quote[currency]?.price || 0;
+            } else {
+              coin.value = 0;
+            }
+          });
+
+          resolve(coins);
+        })
+        .catch(() => {
+          reject();
+        });
+    });
+  };
+
+  const addVault = (vault: VaultProps): Promise<void> => {
     return new Promise((resolve, reject) => {
       api.vault
         .add(vault)
         .then(() => {
           getVault(vault)
-            .then(() => {
+            .then((vault) => {
+              setState((prevState) => {
+                const vaults = [
+                  vault,
+                  ...prevState.vaults.filter(({ uid }) => uid !== vault.uid),
+                ];
+
+                setVaults(vaults);
+
+                return { ...prevState, vault, vaults };
+              });
+
               resolve();
             })
             .catch((error) => {
@@ -445,7 +525,20 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
           switch (error) {
             case errorKey.VAULT_ALREADY_REGISTERED: {
               getVault(vault)
-                .then(() => {
+                .then((vault) => {
+                  setState((prevState) => {
+                    const vaults = [
+                      vault,
+                      ...prevState.vaults.filter(
+                        ({ uid }) => uid !== vault.uid
+                      ),
+                    ];
+
+                    setVaults(vaults);
+
+                    return { ...prevState, vault, vaults };
+                  });
+
                   resolve();
                 })
                 .catch((error) => {
@@ -464,31 +557,49 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const changeVault = (value: string) => {
-    const vault = vaults.find((item) => item.uid === value);
-
-    if (vault) setState((prevState) => ({ ...prevState, vault }));
-  };
-
-  const getVault = (vault: Vault.Params): Promise<void> => {
+  const getVault = (vault: VaultProps): Promise<VaultProps> => {
     return new Promise((resolve, reject) => {
       api.vault
         .get(vault)
         .then(({ data }) => {
           if (data.coins.length) {
-            setVault({ ...vault, ...data });
+            getValue(data.coins)
+              .then((coins) => {
+                const promises = coins.map((coin) => getBalance(coin));
 
-            resolve();
+                Promise.all(promises)
+                  .then((coins) => {
+                    resolve({ ...vault, ...data, coins });
+                  })
+                  .catch(() => {
+                    reject();
+                  });
+              })
+              .catch(() => {
+                reject();
+              });
           } else {
             const promises = coins
               .filter((coin) => coin.isDefault)
-              .map((coin) => addCoin(coin, vault));
+              .map((coin) => addCoin(coin, { ...vault, ...data }));
 
             Promise.all(promises)
               .then((coins) => {
-                setVault({ ...vault, ...data, coins });
+                getValue(coins)
+                  .then((coins) => {
+                    const promises = coins.map((coin) => getBalance(coin));
 
-                resolve();
+                    Promise.all(promises)
+                      .then((coins) => {
+                        resolve({ ...vault, ...data, coins });
+                      })
+                      .catch(() => {
+                        reject();
+                      });
+                  })
+                  .catch(() => {
+                    reject();
+                  });
               })
               .catch(() => {});
           }
@@ -499,139 +610,87 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const setVault = (vault: Vault.Props): void => {
-    const storage = localStorage.getItem("vaults");
-    const vaults: Vault.Props[] = storage ? JSON.parse(storage) : [];
-
-    if (Array.isArray(vaults) && vaults.length) {
-      setState((prevState) => {
-        const vaults = [
-          ...prevState.vaults.filter((item) => item.uid !== vault.uid),
-          vault,
-        ];
-
-        localStorage.setItem("vaults", JSON.stringify(vaults));
-
-        return { ...prevState, vault, vaults };
-      });
-    } else {
-      localStorage.setItem("vaults", JSON.stringify([vault]));
-
-      setState((prevState) => ({ ...prevState, vault, vaults: [vault] }));
-    }
-  };
-
-  const readQRCode = (data: string): Promise<Vault.Params> => {
+  const getVaults = (vaults: VaultProps[]): Promise<VaultProps[]> => {
     return new Promise((resolve, reject) => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const image = new Image();
+      const [vault, ...remainingVaults] = vaults;
 
-      image.src = data;
-
-      image.onload = () => {
-        canvas.width = image.width;
-        canvas.height = image.height;
-
-        ctx?.drawImage(image, 0, 0, image.width, image.height);
-
-        const imageData = ctx?.getImageData(
-          0,
-          0,
-          image.width,
-          image.height
-        )?.data;
-
-        if (imageData) {
-          const qrData = jsQR(imageData, image.width, image.height);
-
-          if (qrData) {
-            const vaultData: Vault.Params = toCamelCase(
-              JSON.parse(qrData.data)
-            );
-
-            resolve(vaultData);
-          } else {
-            reject();
-          }
-        } else {
-          reject(errorKey.INVALID_QRCODE);
-        }
-      };
-
-      image.onerror = () => {
-        reject(errorKey.INVALID_FILE);
-      };
-    });
-  };
-
-  const readImage = (file: File): Promise<FileProps> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      const imageFormats: string[] = [
-        "image/jpg",
-        "image/jpeg",
-        "image/png",
-        "image/bmp",
-      ];
-
-      reader.onload = () => {
-        resolve({
-          data: (reader.result || "").toString(),
-          name: file.name,
-        });
-      };
-
-      reader.onerror = () => {
-        reject(errorKey.INVALID_FILE);
-      };
-
-      if (imageFormats.indexOf(file.type) >= 0) {
-        reader.readAsDataURL(file);
+      if (vault) {
+        getVault(vault)
+          .then((vault) => {
+            resolve([vault, ...remainingVaults]);
+          })
+          .catch(() => {
+            getVaults(remainingVaults).then(resolve).catch(reject);
+          });
       } else {
-        reject(errorKey.INVALID_EXTENSION);
+        reject();
       }
     });
   };
 
-  const qrReader = (file: File): Promise<QRCodeProps> => {
-    return new Promise((resolve, reject) => {
-      readImage(file)
-        .then((file) => {
-          readQRCode(file.data)
-            .then((vault) => {
-              resolve({ file, vault });
-            })
-            .catch((error) => {
-              reject({ file, error });
-            });
+  const setVault = (vault: VaultProps): void => {
+    setState((prevState) => ({
+      ...prevState,
+      vaults: prevState.vaults.map((item) => ({
+        ...item,
+        joinAirdrop:
+          item.uid === vault.uid ? vault.joinAirdrop : item.joinAirdrop,
+      })),
+    }));
+  };
+
+  const setVaults = (vaults: VaultProps[]): void => {
+    localStorage.setItem("vaults", JSON.stringify(vaults));
+  };
+
+  const useVault = (value: string): void => {
+    const vault = vaults.find((item) => item.uid === value);
+
+    if (vault) {
+      setState((prevState) => ({ ...prevState, loading: true }));
+
+      getVault(vault)
+        .then((vault) => {
+          setState((prevState) => ({ ...prevState, loading: false, vault }));
         })
-        .catch((error) => {
-          reject(error);
+        .catch(() => {
+          setState((prevState) => ({ ...prevState, loading: false }));
         });
-    });
+    }
   };
 
   const componentDidUpdate = () => {
     if (core) {
-      const storage = localStorage.getItem("vaults");
-      const vaults: Vault.Props[] = storage ? JSON.parse(storage) : [];
+      const handleError = () => {
+        setVaults([]);
 
-      if (Array.isArray(vaults) && vaults.length) {
-        const promises = vaults.map((vault) => getVault(vault));
-
-        Promise.all(promises)
-          .then(() => {})
-          .catch(() => {})
-          .finally(() => {
-            setState((prevState) => ({
-              ...prevState,
-              vault: prevState.vaults[0],
-              loaded: true,
-            }));
-          });
-      } else {
         setState((prevState) => ({ ...prevState, loaded: true }));
+      };
+
+      try {
+        const storage = localStorage.getItem("vaults");
+        const vaults: VaultProps[] = storage ? JSON.parse(storage) : [];
+
+        if (Array.isArray(vaults) && vaults.length) {
+          getVaults(vaults)
+            .then((vaults) => {
+              setState((prevState) => ({
+                ...prevState,
+                vault: vaults[0],
+                vaults,
+                loaded: true,
+              }));
+
+              setVaults(vaults);
+            })
+            .catch(() => {
+              handleError();
+            });
+        } else {
+          handleError();
+        }
+      } catch {
+        handleError();
       }
     }
   };
@@ -641,7 +700,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
       .then((core) => {
         setState((prevState) => ({
           ...prevState,
-          coinRef: {
+          wcRefrence: {
             [Chain.ARBITRUM]: core.CoinType.arbitrum,
             [Chain.AVALANCHE]: core.CoinType.avalancheCChain,
             [Chain.BASE]: core.CoinType.base,
@@ -679,15 +738,26 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     <VaultContext.Provider
       value={{
         addVault,
-        changeVault,
-        getBalance,
-        qrReader,
+        setVault,
+        useVault,
         toggleCoin,
+        currency,
         vault,
         vaults,
       }}
     >
       {loaded ? children : <SplashScreen />}
+      <Modal
+        className="modal-preloader"
+        closeIcon={false}
+        footer={false}
+        maskClosable={false}
+        open={loading}
+        title="Loading..."
+        centered
+      >
+        <Spin size="large" />
+      </Modal>
     </VaultContext.Provider>
   );
 };

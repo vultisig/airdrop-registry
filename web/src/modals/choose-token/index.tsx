@@ -3,8 +3,8 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Drawer, List, Spin, Switch } from "antd";
 
 import { useVaultContext } from "context";
-import { Chain, coins } from "context/constants";
-import { Coin } from "context/interfaces";
+import { Chain, coins } from "utils/constants";
+import { Coin } from "utils/interfaces";
 import constantModals from "modals/constant-modals";
 
 interface InitialState {
@@ -26,11 +26,11 @@ const Component: FC = () => {
   const { chainKey } = useParams();
   const navigate = useNavigate();
 
-  const handleToggle = (coin: Coin.Meta) => {
-    if (loading === null) {
+  const handleToggle = (coin: Coin.Metadata) => {
+    if (vault && loading === null) {
       setState((prevState) => ({ ...prevState, loading: coin.chain }));
 
-      toggleCoin(coin)
+      toggleCoin(coin, vault)
         .then(() => {})
         .catch(() => {})
         .finally(() => {

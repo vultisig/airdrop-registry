@@ -2,6 +2,7 @@
   background-color: $blue-base;
   border-radius: 0.5rem;
   margin-top: 1rem;
+  overflow: hidden;
   padding: 1rem 1.25rem;
   position: relative;
 
@@ -77,13 +78,32 @@
       height: 1.25rem;
       width: 1.25rem;
     }
+
+    a {
+      align-items: center;
+      display: flex;
+      position: relative;
+      z-index: 1;
+    }
+
+    button {
+      z-index: 1;
+    }
   }
 
   .arrow {
     align-items: center;
-    display: none;
+    bottom: 0;
+    display: flex;
+    justify-content: end;
+    left: 0;
+    padding-right: 1.25rem;
+    position: absolute;
+    right: 0;
+    top: 0;
 
     svg {
+      display: none;
       fill: $gray-1;
       height: 1.25rem;
       height: 1.25rem;
@@ -99,6 +119,7 @@
   .chain-item {
     display: flex;
     gap: 1.5rem;
+    padding-right: 4rem;
 
     .type {
       min-width: 10rem;
@@ -119,7 +140,9 @@
     }
 
     .arrow {
-      display: flex;
+      svg {
+        display: block;
+      }
     }
   }
 }

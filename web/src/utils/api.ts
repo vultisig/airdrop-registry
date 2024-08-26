@@ -1,7 +1,8 @@
 import axios from "axios";
 
-import { Balance, Coin, Derivation, Vault } from "context/interfaces";
+import { Balance, Coin, Derivation, VaultProps } from "utils/interfaces";
 import { toCamelCase, toSnakeCase } from "utils/case-converter";
+import { Currency } from "./constants";
 
 //import paths from "routes/constant-paths";
 
@@ -33,6 +34,14 @@ api.interceptors.response.use(
 );
 
 export default {
+  airdrop: {
+    join: async (params: VaultProps) => {
+      return await api.post("vault/join-airdrop", params);
+    },
+    exit: async (params: VaultProps) => {
+      return await api.post("vault/exit-airdrop", params);
+    },
+  },
   balance: {
     cosmos: async (path: string) => {
       return await api.get<Balance.Cosmos.Props>(path);
@@ -51,36 +60,35 @@ export default {
     },
   },
   coin: {
-    add: async (vault: Vault.Params, params: Coin.Params) => {
-      return await api.post<Coin.Props>(
+    add: async (vault: VaultProps, params: Coin.Params) => {
+      return await api.post<{ coinId: number }>(
         `coin/${vault.publicKeyEcdsa}/${vault.publicKeyEddsa}`,
         params,
         { headers: { "x-hex-chain-code": vault.hexChainCode } }
       );
     },
-    del: async (vault: Vault.Params, coin: Coin.Params) => {
+    del: async (vault: VaultProps, coin: Coin.Props) => {
       return await api.delete(
         `coin/${vault.publicKeyEcdsa}/${vault.publicKeyEddsa}/${coin.ID}`, //${coin.chain}-${coin.ticker}-${coin.address}
         { headers: { "x-hex-chain-code": vault.hexChainCode } }
       );
     },
-  },
-  vault: {
-    add: async (params: Vault.Params) => {
-      return await api.post("vault", params);
-    },
-    get: async ({ publicKeyEcdsa, publicKeyEddsa }: Vault.Params) => {
-      return await api.get<Vault.Props>(
-        `vault/${publicKeyEcdsa}/${publicKeyEddsa}`
+    values: async (ids: number[], currency: Currency) => {
+      return await api.get<{ data: any }>(
+        `https://api.vultisig.com/cmc/v2/cryptocurrency/quotes/latest?id=${ids.join(
+          ","
+        )}&skip_invalid=true&aux=is_active&convert=${currency}`
       );
     },
   },
-  airdrop: {
-    join: async (params: Vault.Params) => {
-      return await api.post("vault/join-airdrop", params);
+  vault: {
+    add: async (params: VaultProps) => {
+      return await api.post<VaultProps>("vault", params);
     },
-    exit: async (params: Vault.Params) => {
-      return await api.post("vault/exit-airdrop", params);
+    get: async ({ publicKeyEcdsa, publicKeyEddsa }: VaultProps) => {
+      return await api.get<VaultProps>(
+        `vault/${publicKeyEcdsa}/${publicKeyEddsa}`
+      );
     },
   },
   derivePublicKey: async (params: Derivation.Params) => {

@@ -8,6 +8,9 @@
 @import "../components/balance-item";
 @import "../components/splash-screen";
 
+@import "../modals/join-airdrop";
+@import "../modals/qr-code";
+
 @import "../layouts/default";
 
 @import "../pages/asset";
@@ -36,6 +39,12 @@ body {
     height: 1.25rem;
   }
 
+  .ant-dropdown-menu-title-content {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+  }
+
   .ant-dropdown-menu-item-group-title {
     color: $gray-6 !important;
     font-weight: 500;
@@ -49,6 +58,20 @@ body {
 
   .ant-dropdown-menu {
     background-color: $blue-base !important;
+  }
+
+  .primary {
+    .ant-dropdown-menu-title-content {
+      a {
+        color: $cyan-base !important;
+      }
+
+      svg {
+        fill: $gray-1;
+        height: 1.25rem;
+        width: 1.25rem;
+      }
+    }
   }
 }
 
@@ -91,5 +114,22 @@ body {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+  }
+}
+
+.modal-preloader {
+  text-align: center;
+  width: auto !important;
+
+  .ant-spin {
+    display: block;
+  }
+
+  .ant-modal-title {
+    font-weight: 400;
+  }
+
+  .ant-modal-footer {
+    display: none;
   }
 }

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#linear-gradient-2);
+      }
+
+      .cls-2 {
+        fill: url(#linear-gradient-4);
+      }
+
+      .cls-3 {
+        fill: url(#linear-gradient-3);
+      }
+
+      .cls-4 {
+        fill: url(#linear-gradient-5);
+      }
+
+      .cls-5 {
+        fill: url(#linear-gradient-6);
+      }
+
+      .cls-6 {
+        fill: url(#linear-gradient);
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="18.1" y1="23.5" x2="18.1" y2="2.6" gradientTransform="translate(0 25) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#33e6bf"/>
+      <stop offset="1" stop-color="#0439c7"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="5.9" y1="23.5" x2="5.9" y2="2.6" gradientTransform="translate(0 25) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#33e6bf"/>
+      <stop offset="1" stop-color="#0439c7"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-3" x1="6.8" y1="23.7" x2="6.8" y2="2.7" gradientTransform="translate(0 25) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#33e6bf"/>
+      <stop offset="1" stop-color="#0439c7"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-4" x1="17.2" y1="23.7" x2="17.2" y2="2.7" gradientTransform="translate(0 25) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#33e6bf"/>
+      <stop offset="1" stop-color="#0439c7"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-5" x1="13.5" y1="23.3" x2="13.5" y2="2.5" gradientTransform="translate(0 25) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#33e6bf"/>
+      <stop offset="1" stop-color="#0439c7"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-6" x1="10.4" y1="23.3" x2="10.4" y2="2.5" gradientTransform="translate(0 25) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#33e6bf"/>
+      <stop offset="1" stop-color="#0439c7"/>
+    </linearGradient>
+  </defs>
+
+  <path class="cls-1" d="M1.6,20.1L0,18.4l8.9-6,2.9,1.7L1.6,20.1Z"/>
+  <path class="cls-3" d="M2.3,22.4l-.6-2.2,10.2-5.9v3.4s-9.6,4.7-9.6,4.7Z"/>
+  <path class="cls-2" d="M21.7,22.4l-9.6-4.7v-3.4s10.2,5.9,10.2,5.9l-.6,2.2Z"/>
+  <path class="cls-4" d="M12.1,13.9V2.2s2.2-.6,2.2-.6l.7,10.7-2.9,1.7Z"/>
+  <path class="cls-5" d="M11.9,13.9l-2.9-1.7.7-10.7,2.2.6v11.8Z"/>
+  <path class="cls-6" d="M22.4,20.1l-10.2-5.9,2.9-1.7,8.9,6-1.6,1.6Z"/>
+</svg>
