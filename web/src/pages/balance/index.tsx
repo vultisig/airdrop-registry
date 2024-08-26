@@ -6,13 +6,13 @@ import { useVaultContext } from "context";
 import constantModals from "modals/constant-modals";
 import constantPaths from "routes/constant-paths";
 
-import { PlusFilled, RefreshOutlined } from "icons";
+import { CaretRightOutlined, PlusCircleFilled, RefreshOutlined } from "icons";
 import BalanceItem from "components/balance-item";
-import ChooseChain from "modals/choose-coin";
+import ChooseToken from "modals/choose-token";
 import JoinAirdrop from "modals/join-airdrop";
 
 const Component: FC = () => {
-  const { changeVault, vault, vaults } = useVaultContext();
+  const { useVault, vault, vaults } = useVaultContext();
 
   const componentDidUpdate = () => {};
 
@@ -25,18 +25,30 @@ const Component: FC = () => {
     ...vaults.map(({ name, uid }) => ({
       label: name,
       key: uid,
-      onClick: () => changeVault(uid),
+      onClick: () => useVault(uid),
     })),
     {
       type: "divider",
     },
     {
       key: "1",
-      label: <Link to={constantPaths.landing}>Add new vault</Link>,
+      label: (
+        <>
+          <Link to={constantPaths.landing}>+ Add new vault</Link>
+          <CaretRightOutlined />
+        </>
+      ),
+      className: "primary",
     },
     {
       key: "2",
-      label: <Link to={`#${constantModals.JOIN_AIRDROP}`}>Join Airdrop</Link>,
+      label: (
+        <>
+          <Link to={`#${constantModals.JOIN_AIRDROP}`}>Join Airdrop</Link>
+          <CaretRightOutlined />
+        </>
+      ),
+      className: "primary",
     },
   ];
 
@@ -47,13 +59,21 @@ const Component: FC = () => {
           <Dropdown menu={{ items }} className="menu">
             <Input value={vault?.name || ""} readOnly />
           </Dropdown>
-          <Button type="link">
-            <RefreshOutlined />
-          </Button>
+          {vault && (
+            <Button type="link" onClick={() => useVault(vault.uid)}>
+              <RefreshOutlined />
+            </Button>
+          )}
         </div>
         <div className="balance">
           <span className="title">Total Balance</span>
-          <span className="value">$0</span>
+          <span className="value">
+            {vault
+              ? `$${vault.coins
+                  .reduce((acc, coin) => acc + coin.balance * coin.value, 0)
+                  .toFixed(2)}`
+              : "$0.00"}
+          </span>
         </div>
         {vault ? (
           vault.coins.length ? (
@@ -71,11 +91,11 @@ const Component: FC = () => {
           <Spin />
         )}
         <Link to={`#${constantModals.CHOOSE_CHAIN}`} className="add">
-          <PlusFilled /> Choose Chains
+          <PlusCircleFilled /> Choose Chains
         </Link>
       </div>
 
-      <ChooseChain />
+      <ChooseToken />
       <JoinAirdrop />
     </>
   );

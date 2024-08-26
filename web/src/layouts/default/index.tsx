@@ -2,6 +2,7 @@ import { FC } from "react";
 import { Outlet, Link } from "react-router-dom";
 import { Button, Dropdown, MenuProps } from "antd";
 
+import { useVaultContext } from "context";
 import paths from "routes/constant-paths";
 
 import {
@@ -15,6 +16,8 @@ import {
 } from "icons";
 
 const Component: FC = () => {
+  const { currency } = useVaultContext();
+
   const items: MenuProps["items"] = [
     {
       key: "1",
@@ -23,12 +26,22 @@ const Component: FC = () => {
     },
     {
       key: "2",
-      label: "Language",
+      label: (
+        <>
+          <span>Language</span>
+          <span>English</span>
+        </>
+      ),
       icon: <GlobeOutlined />,
     },
     {
       key: "3",
-      label: "Currency",
+      label: (
+        <>
+          <span>Currency</span>
+          <span>{currency}</span>
+        </>
+      ),
       icon: <CurrencyOutlined />,
     },
     {
@@ -49,6 +62,7 @@ const Component: FC = () => {
         {
           key: "6-1",
           label: "The $VULT Token",
+          icon: <img src="/images/logo.svg" alt="logo" />,
         },
         {
           key: "6-2",

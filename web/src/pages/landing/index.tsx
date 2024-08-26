@@ -3,35 +3,43 @@ import { useNavigate } from "react-router-dom";
 import { Button, Upload, UploadProps } from "antd";
 
 import { useVaultContext } from "context";
-import { errorKey } from "context/constants";
-import { FileProps, Vault } from "context/interfaces";
+import { errorKey } from "utils/constants";
+import { FileProps, VaultProps } from "utils/interfaces";
 import constantPaths from "routes/constant-paths";
+import qrReader from "utils/qr-reader";
 
 import { CloseOutlined } from "icons";
 
-type Status = "default" | "error" | "success";
-
 interface InitialState {
   file?: FileProps;
-  status: Status;
-  vault?: Vault.Params;
+  loading: boolean;
+  status: "default" | "error" | "success";
+  vault?: VaultProps;
 }
 
 const Component: FC = () => {
-  const initialState: InitialState = { status: "default" };
+  const initialState: InitialState = { loading: false, status: "default" };
   const [state, setState] = useState(initialState);
-  const { file, status, vault } = state;
-  const { addVault, qrReader } = useVaultContext();
+  const { file, loading, status, vault } = state;
+  const { addVault } = useVaultContext();
   const navigate = useNavigate();
 
   const handleStart = (): void => {
-    if (vault && status === "success") {
+    if (!loading && vault && status === "success") {
+      setState((prevState) => ({ ...prevState, loading: true }));
+
       addVault(vault)
         .then(() => {
+          setState((prevState) => ({ ...prevState, loading: false }));
+
           navigate(constantPaths.balance);
         })
         .catch(() => {
-          setState((prevState) => ({ ...prevState, status: "error" }));
+          setState((prevState) => ({
+            ...prevState,
+            loading: false,
+            status: "error",
+          }));
         });
     }
   };
@@ -116,12 +124,15 @@ const Component: FC = () => {
           If you didn’t save the QR code yet, you can find it in the app in the
           top right on the main screen
         </p>
-        <span
-          className={`btn${status !== "success" ? " disabled" : ""}`}
+        <Button
+          disabled={status !== "success"}
+          loading={loading}
           onClick={handleStart}
+          type={status === "success" ? "primary" : "default"}
+          block
         >
           Start
-        </span>
+        </Button>
       </div>
       <p className="hint">Don’t have a vault yet? Download Vault now</p>
       <ul className="download">

@@ -1,0 +1,25 @@
+.modal-qr-code {
+  .ant-typography {
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .ant-qrcode {
+    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%2333E6BFFF' stroke-width='4' stroke-dasharray='40%2c 60' stroke-dashoffset='20' stroke-linecap='square'/%3e%3c/svg%3e");
+    border: none;
+    border-radius: 1rem;
+    padding: 1rem;
+  }
+
+  .ant-modal-title {
+    text-align: center;
+  }
+
+  .ant-modal-header {
+    margin-bottom: 1rem;
+  }
+
+  .ant-modal-footer {
+    display: none;
+  }
+}

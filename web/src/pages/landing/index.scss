@@ -132,26 +132,12 @@
     }
   }
 
-  .btn {
-    background-color: $cyan-base;
+  .ant-btn {
+    border: none;
     border-radius: 2rem;
-    color: $blue-dark;
-    cursor: pointer;
-    display: block;
+    color: $blue-dark !important;
     font-weight: 700;
     height: 2.5rem;
-    line-height: 2.5rem;
-    transition: background-color 0.3s;
-
-    &:hover {
-      background-color: rgba($color: $cyan-base, $alpha: 0.8);
-    }
-
-    &.disabled {
-      background-color: rgba($color: $gray-1, $alpha: 0.1);
-      color: $gray-6;
-      cursor: default;
-    }
   }
 
   .wrapper {

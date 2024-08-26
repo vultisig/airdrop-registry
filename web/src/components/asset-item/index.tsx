@@ -1,17 +1,9 @@
 import { FC, useEffect } from "react";
-import { Spin } from "antd";
 
-import { useVaultContext } from "context";
-import { Coin } from "context/interfaces";
+import { Coin } from "utils/interfaces";
 
-const Component: FC<Coin.Params> = ({ balance, chain, ticker, value }) => {
-  const { getBalance } = useVaultContext();
-
-  const componentDidUpdate = (): void => {
-    getBalance(chain, ticker)
-      .then(() => {})
-      .catch(() => {});
-  };
+const Component: FC<Coin.Props> = ({ balance, ticker, value }) => {
+  const componentDidUpdate = (): void => {};
 
   useEffect(componentDidUpdate, [ticker]);
 
@@ -25,8 +17,14 @@ const Component: FC<Coin.Params> = ({ balance, chain, ticker, value }) => {
         />
         <span className="name">{ticker}</span>
       </div>
-      <span className="balance">{balance || <Spin />}</span>
-      <span className="value">{value ? `$${value}` : <Spin />}</span>
+      <span className="balance">
+        {balance.toString().split(".")[1]?.length > 8
+          ? balance.toFixed(8)
+          : balance}
+      </span>
+      <span className="value">
+        {balance ? `$${(balance * value).toFixed(2)}` : `$0.00`}
+      </span>
     </div>
   );
 };
