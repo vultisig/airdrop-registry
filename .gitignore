@@ -40,3 +40,4 @@ Thumbs.db
 cmd/server/server
 cmd/worker/worker
 node_modules/
+web/dist/
