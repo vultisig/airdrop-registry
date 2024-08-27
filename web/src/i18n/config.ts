@@ -2,21 +2,48 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 //import LanguageDetector from "i18next-browser-languagedetector";
 
-import enTranslation from "./locales/en_US";
-import frTranslation from "./locales/fr-FR";
+import { Language } from "utils/constants";
 
+import enTranslation from "i18n/locales/en_UK";
+import esTranslation from "i18n/locales/es_ES";
+import nlTranslation from "i18n/locales/nl_NL";
+import hrTranslation from "i18n/locales/hr_HR";
+import deTranslation from "i18n/locales/de_DE";
+import itTranslation from "i18n/locales/it_IT";
+import ruTranslation from "i18n/locales/ru_RU";
+import ptTranslation from "i18n/locales/pt_PT";
 // Initialization
 i18n
   //.use(LanguageDetector) // Detects the user's language
   .use(initReactI18next) // Passes i18n instance to react-i18next
   .init({
     resources: {
-      en: {
+      [Language.CROATIA]: {
+        translation: hrTranslation,
+      },
+      [Language.DUTCH]: {
+        translation: nlTranslation,
+      },
+      [Language.ENGLISH]: {
         translation: enTranslation,
       },
-      es: {
-        translation: frTranslation,
+      [Language.GERMAN]:{
+        translation: deTranslation,
       },
+      [Language.ITALIAN]: {
+        translation: itTranslation,
+      },
+      [Language.RUSSIAN]: {
+        translation: ruTranslation,
+      },
+      [Language.PORTUGUESE]:{
+        translation: ptTranslation,
+      },
+      [Language.SPANISH]: {
+        translation: esTranslation,
+      },
+      
+     
     },
     fallbackLng: "en",
     debug: false,

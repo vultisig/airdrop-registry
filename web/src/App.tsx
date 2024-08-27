@@ -23,6 +23,9 @@ const App = () => {
           List: {
             itemPadding: "12px 0",
           },
+          Message: {
+            contentBg: "#11284a",
+          },
           Tooltip: {
             colorBgSpotlight: "#33e6bf",
             colorTextLightSolid: "#000",

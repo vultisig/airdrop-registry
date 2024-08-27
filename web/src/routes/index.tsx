@@ -9,7 +9,7 @@ import React from "react";
 import { useVaultContext } from "context";
 import constantPaths from "routes/constant-paths";
 
-import DefaultLayout from "layouts/default";
+import Layout from "layout";
 
 import AssetPage from "pages/asset";
 import BalancePage from "pages/balance";
@@ -62,7 +62,7 @@ const Component = () => {
       ? [
           {
             path: constantPaths.root,
-            element: <DefaultLayout />,
+            element: <Layout />,
             children: [
               {
                 path: constantPaths.root,

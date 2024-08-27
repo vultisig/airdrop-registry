@@ -1,12 +1,15 @@
 import { FC, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Upload, UploadProps } from "antd";
+import { useTranslation } from "react-i18next";
+import { ReaderOptions, readBarcodesFromImageFile } from "zxing-wasm/reader";
 
 import { useVaultContext } from "context";
+import { toCamelCase } from "utils/case-converter";
 import { errorKey } from "utils/constants";
 import { FileProps, VaultProps } from "utils/interfaces";
+import translation from "i18n/constant-keys";
 import constantPaths from "routes/constant-paths";
-import qrReader from "utils/qr-reader";
 
 import { CloseOutlined } from "icons";
 
@@ -18,6 +21,7 @@ interface InitialState {
 }
 
 const Component: FC = () => {
+  const { t } = useTranslation();
   const initialState: InitialState = { loading: false, status: "default" };
   const [state, setState] = useState(initialState);
   const { file, loading, status, vault } = state;
@@ -48,39 +52,85 @@ const Component: FC = () => {
     setState(initialState);
   };
 
+  const handleError = (error: string) => {
+    setState((prevState) => ({ ...prevState, status: "error" }));
+
+    switch (error) {
+      case errorKey.INVALID_EXTENSION:
+        console.error("Invalid file extension");
+        break;
+      case errorKey.INVALID_FILE:
+        console.error("Invalid file");
+        break;
+      case errorKey.INVALID_QRCODE:
+        console.error("Invalid qr code");
+        break;
+      case errorKey.INVALID_VAULT:
+        console.error("Invalid vault data");
+        break;
+      default:
+        console.error("Someting is wrong");
+        break;
+    }
+  };
+
   const handleUpload = (file: File): false => {
     setState(initialState);
 
-    qrReader(file)
-      .then(({ file, vault }) => {
-        setState((prevState) => ({
-          ...prevState,
-          file,
-          vault,
-          status: "success",
-        }));
-      })
-      .catch(({ error, file }) => {
-        setState((prevState) => ({ ...prevState, file, status: "error" }));
+    const reader = new FileReader();
 
-        switch (error) {
-          case errorKey.INVALID_EXTENSION:
-            console.error("Invalid file extension");
-            break;
-          case errorKey.INVALID_FILE:
-            console.error("Invalid file");
-            break;
-          case errorKey.INVALID_QRCODE:
-            console.error("Invalid qr code");
-            break;
-          case errorKey.INVALID_VAULT:
-            console.error("Invalid vault data");
-            break;
-          default:
-            console.error("Someting is wrong");
-            break;
-        }
-      });
+    const imageFormats: string[] = [
+      "image/jpg",
+      "image/jpeg",
+      "image/png",
+      "image/bmp",
+    ];
+
+    reader.onload = () => {
+      const readerOptions: ReaderOptions = {
+        tryHarder: true,
+        formats: ["QRCode"],
+        maxNumberOfSymbols: 1,
+      };
+
+      setState((prevState) => ({
+        ...prevState,
+        file: {
+          data: reader.result?.toString() || "",
+          name: file.name,
+        },
+      }));
+
+      readBarcodesFromImageFile(file, readerOptions)
+        .then(([result]) => {
+          if (result) {
+            try {
+              const vault: VaultProps = JSON.parse(result.text);
+
+              setState((prevState) => ({
+                ...prevState,
+                vault: toCamelCase(vault),
+                status: "success",
+              }));
+            } catch {
+              handleError(errorKey.INVALID_VAULT);
+            }
+          }
+        })
+        .catch(() => {
+          handleError(errorKey.INVALID_QRCODE);
+        });
+    };
+
+    reader.onerror = () => {
+      handleError(errorKey.INVALID_FILE);
+    };
+
+    if (imageFormats.indexOf(file.type) >= 0) {
+      reader.readAsDataURL(file);
+    } else {
+      handleError(errorKey.INVALID_EXTENSION);
+    }
 
     return false;
   };
@@ -100,7 +150,7 @@ const Component: FC = () => {
     <div className="landing-page">
       <img src="/images/logo-type.svg" alt="logo" className="logo" />
       <div className="wrapper">
-        <h2 className="heading">Upload your vault share to start</h2>
+        <h2 className="heading">{t(translation.UPLOAD_VAULT_SHARE)}</h2>
         <Upload.Dragger {...props} className={status}>
           {file ? (
             <>
@@ -113,16 +163,16 @@ const Component: FC = () => {
           ) : (
             <>
               <img src="/images/qr-code.svg" className="icon" alt="qr" />
-              <h3 className="title">Upload your QR code here</h3>
+              <h3 className="title">{t(translation.UPLOAD_QR_CODE)}</h3>
               <span className="text">
-                Drop your file here or <u>upload it</u>
+                {t(translation.DROP_FILE_HERE)}
+                <u>{t(translation.UPLOAD_IT)}</u>
               </span>
             </>
           )}
         </Upload.Dragger>
         <p className="hint">
-          If you didn’t save the QR code yet, you can find it in the app in the
-          top right on the main screen
+        {t(translation.HINT)}
         </p>
         <Button
           disabled={status !== "success"}
@@ -131,10 +181,10 @@ const Component: FC = () => {
           type={status === "success" ? "primary" : "default"}
           block
         >
-          Start
+          {t(translation.START)}
         </Button>
       </div>
-      <p className="hint">Don’t have a vault yet? Download Vault now</p>
+      <p className="hint">{t(translation.DOWNLOAD_APP)}</p>
       <ul className="download">
         <li>
           <a

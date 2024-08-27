@@ -8,17 +8,27 @@ import {
 } from "react";
 import { initWasm, WalletCore } from "@trustwallet/wallet-core";
 
-import { Chain, Currency, balanceAPI, coins, errorKey } from "utils/constants";
+import {
+  Chain,
+  Currency,
+  Language,
+  balanceAPI,
+  coins,
+  errorKey,
+  storage,
+} from "utils/constants";
 import { Coin, VaultProps } from "utils/interfaces";
 import api from "utils/api";
 
 import SplashScreen from "components/splash-screen";
 import { Modal, Spin } from "antd";
+import i18n from "i18n/config";
 
 interface VaultContext {
   addVault: (vault: VaultProps) => Promise<void>;
+  changeCurrency: (currency: Currency) => void;
   setVault: (vault: VaultProps) => void;
-  useVault: (uid: string) => void;
+  useVault: (vault: VaultProps, currency: Currency) => void;
   toggleCoin: (coin: Coin.Metadata, vault: VaultProps) => Promise<void>;
   currency: Currency;
   vault?: VaultProps;
@@ -47,6 +57,16 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
   };
   const [state, setState] = useState(initialState);
   const { core, currency, loaded, loading, vault, vaults, wcRefrence } = state;
+
+  const changeCurrency = (currency: Currency): void => {
+    if (vault) {
+      setState((prevState) => ({ ...prevState, currency }));
+
+      useVault(vault, currency);
+
+      localStorage.setItem(storage.CURRENCY, currency);
+    }
+  };
 
   const getECDSAAddress = (
     chain: Chain,
@@ -221,7 +241,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
 
               getBalance(coin)
                 .then((coin) => {
-                  getValue([coin])
+                  getValue([coin], currency)
                     .then(([coin]) => {
                       resolve(coin);
                     })
@@ -474,12 +494,15 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const getValue = (coins: Coin.Props[]): Promise<Coin.Props[]> => {
+  const getValue = (
+    coins: Coin.Props[],
+    currency: Currency
+  ): Promise<Coin.Props[]> => {
     return new Promise((resolve, reject) => {
       const ids = coins.map(({ cmcId }) => cmcId);
 
       api.coin
-        .values(ids, Currency.USD)
+        .values(ids, currency)
         .then(({ data }) => {
           coins.forEach((coin) => {
             if (data?.data && data?.data[coin.cmcId]?.quote) {
@@ -502,7 +525,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
       api.vault
         .add(vault)
         .then(() => {
-          getVault(vault)
+          getVault(vault, currency)
             .then((vault) => {
               setState((prevState) => {
                 const vaults = [
@@ -524,7 +547,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
         .catch((error) => {
           switch (error) {
             case errorKey.VAULT_ALREADY_REGISTERED: {
-              getVault(vault)
+              getVault(vault, currency)
                 .then((vault) => {
                   setState((prevState) => {
                     const vaults = [
@@ -557,13 +580,16 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const getVault = (vault: VaultProps): Promise<VaultProps> => {
+  const getVault = (
+    vault: VaultProps,
+    currency: Currency
+  ): Promise<VaultProps> => {
     return new Promise((resolve, reject) => {
       api.vault
         .get(vault)
         .then(({ data }) => {
           if (data.coins.length) {
-            getValue(data.coins)
+            getValue(data.coins, currency)
               .then((coins) => {
                 const promises = coins.map((coin) => getBalance(coin));
 
@@ -585,7 +611,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
 
             Promise.all(promises)
               .then((coins) => {
-                getValue(coins)
+                getValue(coins, currency)
                   .then((coins) => {
                     const promises = coins.map((coin) => getBalance(coin));
 
@@ -615,7 +641,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
       const [vault, ...remainingVaults] = vaults;
 
       if (vault) {
-        getVault(vault)
+        getVault(vault, currency)
           .then((vault) => {
             resolve([vault, ...remainingVaults]);
           })
@@ -640,23 +666,19 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   const setVaults = (vaults: VaultProps[]): void => {
-    localStorage.setItem("vaults", JSON.stringify(vaults));
+    localStorage.setItem(storage.VAULTS, JSON.stringify(vaults));
   };
 
-  const useVault = (value: string): void => {
-    const vault = vaults.find((item) => item.uid === value);
+  const useVault = (vault: VaultProps, currency: Currency): void => {
+    setState((prevState) => ({ ...prevState, loading: true }));
 
-    if (vault) {
-      setState((prevState) => ({ ...prevState, loading: true }));
-
-      getVault(vault)
-        .then((vault) => {
-          setState((prevState) => ({ ...prevState, loading: false, vault }));
-        })
-        .catch(() => {
-          setState((prevState) => ({ ...prevState, loading: false }));
-        });
-    }
+    getVault(vault, currency)
+      .then((vault) => {
+        setState((prevState) => ({ ...prevState, loading: false, vault }));
+      })
+      .catch(() => {
+        setState((prevState) => ({ ...prevState, loading: false }));
+      });
   };
 
   const componentDidUpdate = () => {
@@ -668,8 +690,8 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
       };
 
       try {
-        const storage = localStorage.getItem("vaults");
-        const vaults: VaultProps[] = storage ? JSON.parse(storage) : [];
+        const data = localStorage.getItem(storage.VAULTS);
+        const vaults: VaultProps[] = data ? JSON.parse(data) : [];
 
         if (Array.isArray(vaults) && vaults.length) {
           getVaults(vaults)
@@ -698,6 +720,71 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
   const componentDidMount = () => {
     initWasm()
       .then((core) => {
+        let currency: Currency;
+        let language: Language;
+
+        switch (localStorage.getItem(storage.CURRENCY)) {
+          case Currency.AUD:
+            currency = Currency.AUD;
+            break;
+          case Currency.CNY:
+            currency = Currency.CNY;
+            break;
+          case Currency.CAD:
+            currency = Currency.CAD;
+            break;
+          case Currency.EUR:
+            currency = Currency.EUR;
+            break;
+          case Currency.GPB:
+            currency = Currency.GPB;
+            break;
+          case Currency.JPY:
+            currency = Currency.JPY;
+            break;
+          case Currency.RUB:
+            currency = Currency.RUB;
+            break;
+          case Currency.SEK:
+            currency = Currency.SEK;
+            break;
+          case Currency.SGD:
+            currency = Currency.SGD;
+            break;
+          default:
+            currency = Currency.USD;
+            break;
+        }
+
+        switch (localStorage.getItem(storage.LANGUAGE)) {
+          case Language.CROATIA:
+            language = Language.CROATIA;
+            break;
+          case Language.DUTCH:
+            language = Language.DUTCH;
+            break;
+          case Language.GERMAN:
+            language = Language.GERMAN;
+            break;
+          case Language.ITALIAN:
+            language = Language.ITALIAN;
+            break;
+          case Language.PORTUGUESE:
+            language = Language.PORTUGUESE;
+            break;
+          case Language.RUSSIAN:
+            language = Language.RUSSIAN;
+            break;
+          case Language.SPANISH:
+            language = Language.SPANISH;
+            break;
+          default:
+            language = Language.ENGLISH;
+            break;
+        }
+
+        i18n.changeLanguage(language);
+
         setState((prevState) => ({
           ...prevState,
           wcRefrence: {
@@ -726,6 +813,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
             [Chain.ZKSYNC]: core.CoinType.zksync,
           },
           core,
+          currency,
         }));
       })
       .catch(() => {});
@@ -738,6 +826,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     <VaultContext.Provider
       value={{
         addVault,
+        changeCurrency,
         setVault,
         useVault,
         toggleCoin,

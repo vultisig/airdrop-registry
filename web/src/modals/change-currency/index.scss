@@ -1,0 +1,48 @@
+.modal-currency {
+  .ant-modal-close {
+    right: 1.875rem;
+    top: 1.125rem;
+  }
+
+  .ant-modal-title {
+    font-weight: normal;
+    line-height: 2rem;
+    text-align: center;
+  }
+
+  .ant-modal-header {
+    margin: 0;
+    padding: 1.125rem 0;
+  }
+
+  .ant-list-item {
+    background-color: $blue-base;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    padding: 0.875rem;
+    transition: all 0.3s;
+
+    &.active {
+      background-color: $cyan-base;
+      color: $gray-13;
+    }
+
+    &:hover {
+      background-color: $cyan-base;
+      color: $gray-13;
+    }
+
+    + .ant-list-item {
+      margin-top: 1rem;
+    }
+  }
+
+  .ant-modal-footer {
+    display: none;
+  }
+
+  .ant-modal-content {
+    padding: 0 1.875rem 1.875rem;
+  }
+}

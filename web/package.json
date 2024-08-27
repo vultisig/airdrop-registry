@@ -14,13 +14,15 @@
     "@trustwallet/wallet-core": "^4.1.4",
     "antd": "^5.20.0",
     "axios": "^1.7.3",
+    "core-js": "^3.38.1",
     "i18next": "^23.12.2",
     "jsqr": "^1.4.0",
     "keymirror": "^0.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-i18next": "^15.0.0",
-    "react-router-dom": "^6.26.0"
+    "react-router-dom": "^6.26.0",
+    "zxing-wasm": "^1.2.12"
   },
   "devDependencies": {
     "@types/keymirror": "^0.1.4",
