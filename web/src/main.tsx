@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
+import "core-js";
 
 import App from "App.tsx";
 

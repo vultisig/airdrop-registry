@@ -8,10 +8,12 @@
 @import "../components/balance-item";
 @import "../components/splash-screen";
 
+@import "../modals/change-currency";
+@import "../modals/change-language";
 @import "../modals/join-airdrop";
 @import "../modals/qr-code";
 
-@import "../layouts/default";
+@import "../layout";
 
 @import "../pages/asset";
 @import "../pages/balance";

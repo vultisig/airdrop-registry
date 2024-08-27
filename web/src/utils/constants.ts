@@ -1,6 +1,6 @@
 import keyMirror from "keymirror";
 
-import { Balance, Coin } from "utils/interfaces";
+import { Balance, Coin, CurrencyName, LanguageName } from "utils/interfaces";
 
 export enum Chain {
   ARBITRUM = "Arbitrum",
@@ -40,6 +40,23 @@ export enum Currency {
   SGD = "SGD",
   USD = "USD",
 }
+
+export enum Language {
+  CROATIA = "hr",
+  DUTCH = "nl",
+  ENGLISH = "en",
+  GERMAN = "de",
+  ITALIAN = "it",
+  RUSSIAN = "ru",
+  PORTUGUESE = "pt",
+  SPANISH = "es",
+}
+
+export const storage = keyMirror({
+  CURRENCY: true,
+  LANGUAGE: true,
+  VAULTS: true,
+});
 
 export const errorKey = keyMirror({
   ADDRESS_NOT_MATCH: true,
@@ -148,6 +165,30 @@ export const exploreToken: Balance.API = {
   [Chain.SUI]: "https://suiscan.xyz/mainnet/address/",
   [Chain.THORCHAIN]: "https://runescan.io/address/",
   [Chain.ZKSYNC]: "https://explorer.zksync.io/address/",
+};
+
+export const currencyName: CurrencyName = {
+  [Currency.AUD]: "Australian Dollar",
+  [Currency.CAD]: "Canadian Dollar",
+  [Currency.CNY]: "Chinese Yuan",
+  [Currency.EUR]: "European Euro",
+  [Currency.GPB]: "British Pound",
+  [Currency.JPY]: "Japanese Yen",
+  [Currency.RUB]: "Russian Ruble",
+  [Currency.SEK]: "Swedish Krona",
+  [Currency.SGD]: "Singapore Dollar",
+  [Currency.USD]: "United States Dollar",
+};
+
+export const languageName: LanguageName = {
+  [Language.CROATIA]: "Hrvatski",
+  [Language.DUTCH]: "Dutch",
+  [Language.ENGLISH]: "English",
+  [Language.GERMAN]: "Deutsch",
+  [Language.ITALIAN]: "Italiano",
+  [Language.PORTUGUESE]: "Português",
+  [Language.RUSSIAN]: "Русский",
+  [Language.SPANISH]: "Espanol",
 };
 
 export const coins: Coin.Metadata[] = [

@@ -12,6 +12,8 @@ import constantPaths from "routes/constant-paths";
 import AssetItem from "components/asset-item";
 import ChooseToken from "modals/choose-token";
 import QRCode from "modals/qr-code";
+import { useTranslation } from "react-i18next";
+import translation from "i18n/constant-keys";
 
 import {
   CaretRightOutlined,
@@ -26,6 +28,7 @@ interface InitialState {
 }
 
 const Component: FC = () => {
+  const { t } = useTranslation();
   const initialState: InitialState = {};
   const [state, setState] = useState(initialState);
   const { coin } = state;
@@ -154,7 +157,7 @@ const Component: FC = () => {
             </div>
             {chooseToken[coin.chain] && (
               <Link to={`#${constantModals.CHOOSE_TOKEN}`} className="add">
-                <PlusCircleFilled /> Choose Tokens
+                <PlusCircleFilled /> {t(translation.CHOOSE_TOKEN)}
               </Link>
             )}
           </>

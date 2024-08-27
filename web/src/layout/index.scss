@@ -3,6 +3,7 @@
   padding: 8.25rem 0 2rem;
 
   .header {
+    background-color: $blue-dark;
     align-items: center;
     border-bottom: solid 1px $blue-light;
     display: flex;
@@ -11,9 +12,10 @@
     left: 0;
     min-width: 22.5rem;
     padding: 1.875rem 1rem;
-    position: absolute;
+    position: fixed;
     right: 0;
     top: 0;
+    z-index: 2;
 
     .logo {
       img {
