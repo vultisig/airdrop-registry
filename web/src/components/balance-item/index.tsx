@@ -15,7 +15,7 @@ import {
   QRCodeOutlined,
 } from "icons";
 import QRCode from "modals/qr-code";
-import { exploreToken } from "utils/constants";
+import { currencySymbol, exploreToken } from "utils/constants";
 
 interface InitialState {
   assets: Coin.Props[];
@@ -25,7 +25,7 @@ const Component: FC<Coin.Props> = ({ address, balance, chain, ticker }) => {
   const initialState: InitialState = { assets: [] };
   const [state, setState] = useState(initialState);
   const { assets } = state;
-  const { vault } = useVaultContext();
+  const { currency, vault } = useVaultContext();
   const [messageApi, contextHolder] = message.useMessage();
 
   const handleCopy = () => {
@@ -88,11 +88,11 @@ const Component: FC<Coin.Props> = ({ address, balance, chain, ticker }) => {
         </span>
         <span className="amount">
           {vault
-            ? `$${vault.coins
+            ? `${currencySymbol[currency]}${vault.coins
                 .filter((coin) => coin.chain === chain)
                 .reduce((acc, coin) => acc + coin.balance * coin.value, 0)
                 .toFixed(2)}`
-            : "$0.00"}
+            : `${currencySymbol[currency]}0.00`}
         </span>
         <div className="actions">
           <Tooltip title="Copy Address">

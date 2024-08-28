@@ -1,6 +1,11 @@
 import keyMirror from "keymirror";
 
-import { Balance, Coin, CurrencyName, LanguageName } from "utils/interfaces";
+import {
+  Balance,
+  Coin,
+  CurrencyName as CurrencyReference,
+  LanguageName as LanguageReference,
+} from "utils/interfaces";
 
 export enum Chain {
   ARBITRUM = "Arbitrum",
@@ -167,7 +172,7 @@ export const exploreToken: Balance.API = {
   [Chain.ZKSYNC]: "https://explorer.zksync.io/address/",
 };
 
-export const currencyName: CurrencyName = {
+export const currencyName: CurrencyReference = {
   [Currency.AUD]: "Australian Dollar",
   [Currency.CAD]: "Canadian Dollar",
   [Currency.CNY]: "Chinese Yuan",
@@ -180,7 +185,20 @@ export const currencyName: CurrencyName = {
   [Currency.USD]: "United States Dollar",
 };
 
-export const languageName: LanguageName = {
+export const currencySymbol: CurrencyReference = {
+  [Currency.AUD]: "A$",
+  [Currency.CAD]: "C$",
+  [Currency.CNY]: "¥",
+  [Currency.EUR]: "€",
+  [Currency.GPB]: "£",
+  [Currency.JPY]: "¥",
+  [Currency.RUB]: "₽",
+  [Currency.SEK]: "kr",
+  [Currency.SGD]: "S$",
+  [Currency.USD]: "$",
+};
+
+export const languageName: LanguageReference = {
   [Language.CROATIA]: "Hrvatski",
   [Language.DUTCH]: "Dutch",
   [Language.ENGLISH]: "English",

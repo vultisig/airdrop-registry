@@ -1,11 +1,11 @@
-import { FC, useEffect } from "react";
+import { FC } from "react";
 
+import { useVaultContext } from "context";
+import { currencySymbol } from "utils/constants";
 import { Coin } from "utils/interfaces";
 
 const Component: FC<Coin.Props> = ({ balance, ticker, value }) => {
-  const componentDidUpdate = (): void => {};
-
-  useEffect(componentDidUpdate, [ticker]);
+  const { currency } = useVaultContext();
 
   return (
     <div className="asset-item">
@@ -23,7 +23,9 @@ const Component: FC<Coin.Props> = ({ balance, ticker, value }) => {
           : balance}
       </span>
       <span className="value">
-        {balance ? `$${(balance * value).toFixed(2)}` : `$0.00`}
+        {balance
+          ? `${currencySymbol[currency]}${(balance * value).toFixed(2)}`
+          : `${currencySymbol[currency]}0.00`}
       </span>
     </div>
   );

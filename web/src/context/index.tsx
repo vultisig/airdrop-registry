@@ -6,6 +6,7 @@ import {
   useEffect,
   useContext,
 } from "react";
+import { Modal, Spin } from "antd";
 import { initWasm, WalletCore } from "@trustwallet/wallet-core";
 
 import {
@@ -18,17 +19,16 @@ import {
   storage,
 } from "utils/constants";
 import { Coin, VaultProps } from "utils/interfaces";
+import i18n from "i18n/config";
 import api from "utils/api";
 
 import SplashScreen from "components/splash-screen";
-import { Modal, Spin } from "antd";
-import i18n from "i18n/config";
 
 interface VaultContext {
   addVault: (vault: VaultProps) => Promise<void>;
-  changeCurrency: (currency: Currency) => void;
+  changeCurrency: (vault: VaultProps, currency: Currency) => void;
   setVault: (vault: VaultProps) => void;
-  useVault: (vault: VaultProps, currency: Currency) => void;
+  useVault: (vault: VaultProps) => void;
   toggleCoin: (coin: Coin.Metadata, vault: VaultProps) => Promise<void>;
   currency: Currency;
   vault?: VaultProps;
@@ -58,13 +58,24 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState(initialState);
   const { core, currency, loaded, loading, vault, vaults, wcRefrence } = state;
 
-  const changeCurrency = (currency: Currency): void => {
-    if (vault) {
-      setState((prevState) => ({ ...prevState, currency }));
+  const changeCurrency = (vault: VaultProps, currency: Currency): void => {
+    if (!loading) {
+      setState((prevState) => ({ ...prevState, loading: true }));
 
-      useVault(vault, currency);
+      getValue(vault.coins, currency)
+        .then((coins) => {
+          setState((prevState) => ({
+            ...prevState,
+            currency,
+            loading: false,
+            vault: { ...vault, coins },
+          }));
 
-      localStorage.setItem(storage.CURRENCY, currency);
+          localStorage.setItem(storage.CURRENCY, currency);
+        })
+        .catch(() => {
+          setState((prevState) => ({ ...prevState, loading: false }));
+        });
     }
   };
 
@@ -525,7 +536,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
       api.vault
         .add(vault)
         .then(() => {
-          getVault(vault, currency)
+          getVault(vault)
             .then((vault) => {
               setState((prevState) => {
                 const vaults = [
@@ -547,7 +558,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
         .catch((error) => {
           switch (error) {
             case errorKey.VAULT_ALREADY_REGISTERED: {
-              getVault(vault, currency)
+              getVault(vault)
                 .then((vault) => {
                   setState((prevState) => {
                     const vaults = [
@@ -580,10 +591,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const getVault = (
-    vault: VaultProps,
-    currency: Currency
-  ): Promise<VaultProps> => {
+  const getVault = (vault: VaultProps): Promise<VaultProps> => {
     return new Promise((resolve, reject) => {
       api.vault
         .get(vault)
@@ -641,7 +649,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
       const [vault, ...remainingVaults] = vaults;
 
       if (vault) {
-        getVault(vault, currency)
+        getVault(vault)
           .then((vault) => {
             resolve([vault, ...remainingVaults]);
           })
@@ -669,16 +677,18 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     localStorage.setItem(storage.VAULTS, JSON.stringify(vaults));
   };
 
-  const useVault = (vault: VaultProps, currency: Currency): void => {
-    setState((prevState) => ({ ...prevState, loading: true }));
+  const useVault = (vault: VaultProps): void => {
+    if (!loading) {
+      setState((prevState) => ({ ...prevState, loading: true }));
 
-    getVault(vault, currency)
-      .then((vault) => {
-        setState((prevState) => ({ ...prevState, loading: false, vault }));
-      })
-      .catch(() => {
-        setState((prevState) => ({ ...prevState, loading: false }));
-      });
+      getVault(vault)
+        .then((vault) => {
+          setState((prevState) => ({ ...prevState, loading: false, vault }));
+        })
+        .catch(() => {
+          setState((prevState) => ({ ...prevState, loading: false }));
+        });
+    }
   };
 
   const componentDidUpdate = () => {
