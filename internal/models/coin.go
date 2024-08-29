@@ -16,6 +16,7 @@ type CoinBase struct {
 	IsNativeToken   bool         `json:"is_native_token"`
 	HexPublicKey    string       `json:"hex_public_key" binding:"required" gorm:"type:varchar(255);not null"`
 	CMCId           int          `json:"cmc_id" gorm:"type:Integer"`
+	Logo            string       `json:"logo" gorm:"type:varchar(255)"`
 	Balance         string       `json:"balance" gorm:"type:varchar(50)"`
 	PriceUSD        string       `json:"price" gorm:"type:varchar(50)"`
 	USDValue        string       `json:"usd_value" gorm:"type:varchar(50)"`

@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/gin-contrib/gzip"
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/models"
 	"github.com/vultisig/airdrop-registry/internal/services"
@@ -50,10 +52,19 @@ func (a *Api) setupRouting() {
 		MaxAge:           12 * time.Hour,
 	}))
 	a.router.Use(ErrorHandler())
+	a.router.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	a.router.GET("/webapp", func(c *gin.Context) {
 		c.File("web/dist/index.html")
 	})
+	a.router.GET("/webapp/*path", func(c *gin.Context) {
+		if strings.Contains(c.Request.URL.Path, "wallet-core.wasm") {
+			c.File("web/dist/wallet-core.wasm")
+			return
+		}
+		c.File("web/dist/index.html")
+	})
+
 	a.router.Static("/assets", "web/dist/assets")
 	a.router.Static("/fonts", "web/dist/fonts")
 	a.router.Static("/images", "web/dist/images")
