@@ -4,7 +4,7 @@ import { Button, Spin, Tooltip, message } from "antd";
 import { Truncate } from "@re-dev/react-truncate";
 
 import { useVaultContext } from "context";
-import { Coin } from "utils/interfaces";
+import { CoinProps } from "utils/interfaces";
 import constantModals from "modals/constant-modals";
 import constantPaths from "routes/constant-paths";
 
@@ -18,10 +18,10 @@ import QRCode from "modals/qr-code";
 import { currencySymbol, exploreToken } from "utils/constants";
 
 interface InitialState {
-  assets: Coin.Props[];
+  assets: CoinProps[];
 }
 
-const Component: FC<Coin.Props> = ({ address, balance, chain, ticker }) => {
+const Component: FC<CoinProps> = ({ address, balance, chain, ticker }) => {
   const initialState: InitialState = { assets: [] };
   const [state, setState] = useState(initialState);
   const { assets } = state;

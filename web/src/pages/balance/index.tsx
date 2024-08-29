@@ -20,7 +20,7 @@ import constantPaths from "routes/constant-paths";
 
 import { CaretRightOutlined, PlusCircleFilled, RefreshOutlined } from "icons";
 import BalanceItem from "components/balance-item";
-import ChooseToken from "modals/choose-token";
+import ChooseChain from "modals/choose-chain";
 import JoinAirdrop from "modals/join-airdrop";
 
 const Component: FC = () => {
@@ -107,7 +107,7 @@ const Component: FC = () => {
         </Link>
       </div>
 
-      <ChooseToken />
+      <ChooseChain />
       <JoinAirdrop />
     </>
   );

@@ -1,9 +1,9 @@
 import { FC, useEffect, useState } from "react";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Drawer, Input, List, Spin, Switch } from "antd";
 
 import { useVaultContext } from "context";
-import { Chain } from "utils/constants";
+import { Chain, defTokens } from "utils/constants";
 import { TokenProps } from "utils/interfaces";
 import constantModals from "modals/constant-modals";
 
@@ -25,8 +25,6 @@ const Component: FC = () => {
   const { loading, search, tokens, visible } = state;
   const { toggleCoin, vault } = useVaultContext();
   const { hash } = useLocation();
-  const { chainKey } = useParams();
-  const { tokens: defTokens } = useVaultContext();
   const navigate = useNavigate();
 
   const handleSearch = (value: string): void => {
@@ -51,13 +49,10 @@ const Component: FC = () => {
 
   const componentDidUpdate = (): void => {
     switch (hash) {
-      case `#${constantModals.CHOOSE_TOKEN}`: {
+      case `#${constantModals.CHOOSE_CHAIN}`: {
         setState((prevState) => ({
           ...prevState,
-          tokens: defTokens.filter(
-            ({ chain, isNative }) =>
-              !isNative && chain.toLocaleLowerCase() === chainKey
-          ),
+          tokens: defTokens.filter(({ isNative }) => isNative),
           visible: true,
         }));
 
@@ -71,7 +66,7 @@ const Component: FC = () => {
     }
   };
 
-  useEffect(componentDidUpdate, [hash, defTokens]);
+  useEffect(componentDidUpdate, [hash]);
 
   return (
     <Drawer
@@ -86,14 +81,13 @@ const Component: FC = () => {
     >
       {visible ? (
         <List
-          dataSource={tokens.filter(({ isLocally, ticker }) =>
-            search.length < 3
-              ? isLocally
-              : ticker.toLocaleLowerCase().indexOf(search) >= 0
+          dataSource={tokens.filter(
+            ({ chain }) =>
+              chain.toLocaleLowerCase().indexOf(search.toLocaleLowerCase()) >= 0
           )}
           renderItem={(item) => {
             const checked = vault
-              ? vault.coins.findIndex(
+              ? vault?.coins.findIndex(
                   (coin) =>
                     coin.chain === item.chain && coin.ticker === item.ticker
                 ) >= 0
@@ -113,15 +107,12 @@ const Component: FC = () => {
                 <List.Item.Meta
                   avatar={
                     <img
-                      src={
-                        item.logo ||
-                        `/coins/${item.ticker.toLocaleLowerCase()}.svg`
-                      }
+                      src={`/coins/${item.chain.toLocaleLowerCase()}.svg`}
                       style={{ height: 48, width: 48 }}
                     />
                   }
-                  title={item.ticker}
-                  description={item.chain}
+                  title={item.chain}
+                  description={item.ticker}
                 />
               </List.Item>
             );

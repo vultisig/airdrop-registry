@@ -6,7 +6,7 @@ import { Truncate } from "@re-dev/react-truncate";
 
 import { useVaultContext } from "context";
 import { chooseToken, currencySymbol, exploreToken } from "utils/constants";
-import { Coin } from "utils/interfaces";
+import { CoinProps } from "utils/interfaces";
 import constantModals from "modals/constant-modals";
 import constantPaths from "routes/constant-paths";
 
@@ -24,7 +24,7 @@ import {
 } from "icons";
 
 interface InitialState {
-  coin?: Coin.Props;
+  coin?: CoinProps;
 }
 
 const Component: FC = () => {
@@ -33,7 +33,7 @@ const Component: FC = () => {
   const [state, setState] = useState(initialState);
   const { coin } = state;
   const { chainKey } = useParams();
-  const { currency, vault } = useVaultContext();
+  const { fetchTokens, currency, vault } = useVaultContext();
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
 
@@ -62,6 +62,10 @@ const Component: FC = () => {
       );
 
       if (coin) {
+        fetchTokens(coin)
+          .then(() => {})
+          .catch(() => {});
+
         setState((prevState) => ({ ...prevState, coin }));
       } else {
         navigate(constantPaths.balance);
