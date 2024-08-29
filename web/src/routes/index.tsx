@@ -91,7 +91,9 @@ const Component = () => {
     },
   ];
 
-  const router = createBrowserRouter(processRoutes(routes));
+  const router = createBrowserRouter(processRoutes(routes), {
+    basename: constantPaths.basePath,
+  });
 
   return <RouterProvider router={router} />;
 };

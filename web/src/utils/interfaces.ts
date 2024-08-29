@@ -3,58 +3,6 @@ import type { CoinType } from "@trustwallet/wallet-core/dist/src/wallet-core";
 import { Chain, Currency, Language } from "utils/constants";
 
 export namespace Balance {
-  export interface API {
-    [Chain.ARBITRUM]: string;
-    [Chain.AVALANCHE]: string;
-    [Chain.BASE]: string;
-    [Chain.BITCOIN]: string;
-    [Chain.BITCOINCASH]: string;
-    [Chain.BLAST]: string;
-    [Chain.BSCCHAIN]: string;
-    [Chain.CRONOSCHAIN]: string;
-    [Chain.DASH]: string;
-    [Chain.DOGECOIN]: string;
-    [Chain.DYDX]: string;
-    [Chain.ETHEREUM]: string;
-    [Chain.GAIACHAIN]: string;
-    [Chain.KUJIRA]: string;
-    [Chain.LITECOIN]: string;
-    [Chain.MAYACHAIN]: string;
-    [Chain.OPTIMISM]: string;
-    [Chain.POLKADOT]: string;
-    [Chain.POLYGON]: string;
-    [Chain.SOLANA]: string;
-    [Chain.SUI]: string;
-    [Chain.THORCHAIN]: string;
-    [Chain.ZKSYNC]: string;
-  }
-
-  export interface Token {
-    [Chain.ARBITRUM]: boolean;
-    [Chain.AVALANCHE]: boolean;
-    [Chain.BASE]: boolean;
-    [Chain.BITCOIN]: boolean;
-    [Chain.BITCOINCASH]: boolean;
-    [Chain.BLAST]: boolean;
-    [Chain.BSCCHAIN]: boolean;
-    [Chain.CRONOSCHAIN]: boolean;
-    [Chain.DASH]: boolean;
-    [Chain.DOGECOIN]: boolean;
-    [Chain.DYDX]: boolean;
-    [Chain.ETHEREUM]: boolean;
-    [Chain.GAIACHAIN]: boolean;
-    [Chain.KUJIRA]: boolean;
-    [Chain.LITECOIN]: boolean;
-    [Chain.MAYACHAIN]: boolean;
-    [Chain.OPTIMISM]: boolean;
-    [Chain.POLKADOT]: boolean;
-    [Chain.POLYGON]: boolean;
-    [Chain.SOLANA]: boolean;
-    [Chain.SUI]: boolean;
-    [Chain.THORCHAIN]: boolean;
-    [Chain.ZKSYNC]: boolean;
-  }
-
   export namespace Cosmos {
     export interface Props {
       balances: {
@@ -106,73 +54,8 @@ export namespace Balance {
 
   export namespace UTXO {
     export interface Props {
-      data: any;
+      data: { [address: string]: { address: { balance: number } } };
     }
-  }
-}
-
-export namespace Coin {
-  export interface Metadata {
-    chain: Chain;
-    cmcId: number;
-    contractAddress: string;
-    decimals: number;
-    hexPublicKey: "ECDSA" | "EDDSA";
-    isDefault: boolean;
-    isNative: boolean;
-    slug: string;
-    ticker: string;
-  }
-
-  export interface Params {
-    address: string;
-    chain: Chain;
-    cmcId: number;
-    contractAddress: string;
-    decimals: number;
-    hexPublicKey: string;
-    isNativeToken: boolean;
-    ticker: string;
-  }
-
-  export interface Props {
-    address: string;
-    balance: number;
-    chain: Chain;
-    cmcId: number;
-    contractAddress: string;
-    decimals: number;
-    hexPublicKey: string;
-    ID: number;
-    isNativeToken: boolean;
-    ticker: string;
-    value: number;
-  }
-
-  export interface Reference {
-    [Chain.ARBITRUM]?: CoinType;
-    [Chain.AVALANCHE]?: CoinType;
-    [Chain.BASE]?: CoinType;
-    [Chain.BITCOIN]?: CoinType;
-    [Chain.BITCOINCASH]?: CoinType;
-    [Chain.BLAST]?: CoinType;
-    [Chain.BSCCHAIN]?: CoinType;
-    [Chain.CRONOSCHAIN]?: CoinType;
-    [Chain.DASH]?: CoinType;
-    [Chain.DOGECOIN]?: CoinType;
-    [Chain.DYDX]?: CoinType;
-    [Chain.ETHEREUM]?: CoinType;
-    [Chain.GAIACHAIN]?: CoinType;
-    [Chain.KUJIRA]?: CoinType;
-    [Chain.LITECOIN]?: CoinType;
-    [Chain.MAYACHAIN]?: CoinType;
-    [Chain.OPTIMISM]?: CoinType;
-    [Chain.POLKADOT]?: CoinType;
-    [Chain.POLYGON]?: CoinType;
-    [Chain.SOLANA]?: CoinType;
-    [Chain.SUI]?: CoinType;
-    [Chain.THORCHAIN]?: CoinType;
-    [Chain.ZKSYNC]?: CoinType;
   }
 }
 
@@ -188,7 +71,100 @@ export namespace Derivation {
   }
 }
 
-export interface CurrencyName {
+export interface ChainBoolRef {
+  [Chain.ARBITRUM]: boolean;
+  [Chain.AVALANCHE]: boolean;
+  [Chain.BASE]: boolean;
+  [Chain.BITCOIN]: boolean;
+  [Chain.BITCOINCASH]: boolean;
+  [Chain.BLAST]: boolean;
+  [Chain.BSCCHAIN]: boolean;
+  [Chain.CRONOSCHAIN]: boolean;
+  [Chain.DASH]: boolean;
+  [Chain.DOGECOIN]: boolean;
+  [Chain.DYDX]: boolean;
+  [Chain.ETHEREUM]: boolean;
+  [Chain.GAIACHAIN]: boolean;
+  [Chain.KUJIRA]: boolean;
+  [Chain.LITECOIN]: boolean;
+  [Chain.MAYACHAIN]: boolean;
+  [Chain.OPTIMISM]: boolean;
+  [Chain.POLKADOT]: boolean;
+  [Chain.POLYGON]: boolean;
+  [Chain.SOLANA]: boolean;
+  [Chain.SUI]: boolean;
+  [Chain.THORCHAIN]: boolean;
+  [Chain.ZKSYNC]: boolean;
+}
+
+export interface ChainStrRef {
+  [Chain.ARBITRUM]: string;
+  [Chain.AVALANCHE]: string;
+  [Chain.BASE]: string;
+  [Chain.BITCOIN]: string;
+  [Chain.BITCOINCASH]: string;
+  [Chain.BLAST]: string;
+  [Chain.BSCCHAIN]: string;
+  [Chain.CRONOSCHAIN]: string;
+  [Chain.DASH]: string;
+  [Chain.DOGECOIN]: string;
+  [Chain.DYDX]: string;
+  [Chain.ETHEREUM]: string;
+  [Chain.GAIACHAIN]: string;
+  [Chain.KUJIRA]: string;
+  [Chain.LITECOIN]: string;
+  [Chain.MAYACHAIN]: string;
+  [Chain.OPTIMISM]: string;
+  [Chain.POLKADOT]: string;
+  [Chain.POLYGON]: string;
+  [Chain.SOLANA]: string;
+  [Chain.SUI]: string;
+  [Chain.THORCHAIN]: string;
+  [Chain.ZKSYNC]: string;
+}
+
+export interface CoinProps {
+  address: string;
+  balance: number;
+  chain: Chain;
+  cmcId: number;
+  contractAddress: string;
+  decimals: number;
+  hexPublicKey: string;
+  ID: number;
+  isNativeToken: boolean;
+  logo: string;
+  ticker: string;
+  value: number;
+}
+
+export interface CoinRef {
+  [Chain.ARBITRUM]?: CoinType;
+  [Chain.AVALANCHE]?: CoinType;
+  [Chain.BASE]?: CoinType;
+  [Chain.BITCOIN]?: CoinType;
+  [Chain.BITCOINCASH]?: CoinType;
+  [Chain.BLAST]?: CoinType;
+  [Chain.BSCCHAIN]?: CoinType;
+  [Chain.CRONOSCHAIN]?: CoinType;
+  [Chain.DASH]?: CoinType;
+  [Chain.DOGECOIN]?: CoinType;
+  [Chain.DYDX]?: CoinType;
+  [Chain.ETHEREUM]?: CoinType;
+  [Chain.GAIACHAIN]?: CoinType;
+  [Chain.KUJIRA]?: CoinType;
+  [Chain.LITECOIN]?: CoinType;
+  [Chain.MAYACHAIN]?: CoinType;
+  [Chain.OPTIMISM]?: CoinType;
+  [Chain.POLKADOT]?: CoinType;
+  [Chain.POLYGON]?: CoinType;
+  [Chain.SOLANA]?: CoinType;
+  [Chain.SUI]?: CoinType;
+  [Chain.THORCHAIN]?: CoinType;
+  [Chain.ZKSYNC]?: CoinType;
+}
+
+export interface CurrencyRef {
   [Currency.AUD]: string;
   [Currency.CAD]: string;
   [Currency.CNY]: string;
@@ -201,7 +177,7 @@ export interface CurrencyName {
   [Currency.USD]: string;
 }
 
-export interface LanguageName {
+export interface LanguageRef {
   [Language.CROATIA]: string;
   [Language.DUTCH]: string;
   [Language.ENGLISH]: string;
@@ -222,8 +198,21 @@ export interface QRCodeProps {
   vault: VaultProps;
 }
 
+export interface TokenProps {
+  chain: Chain;
+  cmcId: number;
+  contractAddress: string;
+  decimals: number;
+  hexPublicKey: "ECDSA" | "EDDSA";
+  isDefault: boolean;
+  isLocally: boolean;
+  isNative: boolean;
+  logo: string;
+  ticker: string;
+}
+
 export interface VaultProps {
-  coins: Coin.Props[];
+  coins: CoinProps[];
   name: string;
   hexChainCode: string;
   joinAirdrop: boolean;
