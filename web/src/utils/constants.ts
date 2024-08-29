@@ -1,6 +1,12 @@
 import keyMirror from "keymirror";
 
-import { Balance, Coin, CurrencyName, LanguageName } from "utils/interfaces";
+import {
+  ChainBoolRef,
+  ChainStrRef,
+  CurrencyRef,
+  LanguageRef,
+  TokenProps,
+} from "utils/interfaces";
 
 export enum Chain {
   ARBITRUM = "Arbitrum",
@@ -52,7 +58,19 @@ export enum Language {
   SPANISH = "es",
 }
 
-export const storage = keyMirror({
+export enum OneInch {
+  ARBITRUM = 1,
+  AVALANCHE = 43114,
+  BASE = 8453,
+  BLAST = 81457,
+  BSCCHAIN = 56,
+  CRONOSCHAIN = 25,
+  ETHEREUM = 1,
+  OPTIMISM = 10,
+  POLYGON = 137,
+}
+
+export const storageKey = keyMirror({
   CURRENCY: true,
   LANGUAGE: true,
   VAULTS: true,
@@ -81,7 +99,7 @@ export const errorKey = keyMirror({
   UNKNOWN_ERROR: true,
 });
 
-export const balanceAPI: Balance.API = {
+export const balanceAPI: ChainStrRef = {
   [Chain.ARBITRUM]: "https://arbitrum-one-rpc.publicnode.com",
   [Chain.AVALANCHE]: "https://avalanche-c-chain-rpc.publicnode.com",
   [Chain.BASE]: "https://base-rpc.publicnode.com",
@@ -115,7 +133,7 @@ export const balanceAPI: Balance.API = {
   [Chain.ZKSYNC]: "",
 };
 
-export const chooseToken: Balance.Token = {
+export const chooseToken: ChainBoolRef = {
   [Chain.ARBITRUM]: true,
   [Chain.AVALANCHE]: true,
   [Chain.BASE]: true,
@@ -141,7 +159,7 @@ export const chooseToken: Balance.Token = {
   [Chain.ZKSYNC]: false,
 };
 
-export const exploreToken: Balance.API = {
+export const exploreToken: ChainStrRef = {
   [Chain.ARBITRUM]: "https://arbiscan.io/address/",
   [Chain.AVALANCHE]: "https://snowtrace.io/address/",
   [Chain.BASE]: "https://basescan.org/address/",
@@ -167,7 +185,7 @@ export const exploreToken: Balance.API = {
   [Chain.ZKSYNC]: "https://explorer.zksync.io/address/",
 };
 
-export const currencyName: CurrencyName = {
+export const currencyName: CurrencyRef = {
   [Currency.AUD]: "Australian Dollar",
   [Currency.CAD]: "Canadian Dollar",
   [Currency.CNY]: "Chinese Yuan",
@@ -180,7 +198,20 @@ export const currencyName: CurrencyName = {
   [Currency.USD]: "United States Dollar",
 };
 
-export const languageName: LanguageName = {
+export const currencySymbol: CurrencyRef = {
+  [Currency.AUD]: "A$",
+  [Currency.CAD]: "C$",
+  [Currency.CNY]: "¥",
+  [Currency.EUR]: "€",
+  [Currency.GPB]: "£",
+  [Currency.JPY]: "¥",
+  [Currency.RUB]: "₽",
+  [Currency.SEK]: "kr",
+  [Currency.SGD]: "S$",
+  [Currency.USD]: "$",
+};
+
+export const languageName: LanguageRef = {
   [Language.CROATIA]: "Hrvatski",
   [Language.DUTCH]: "Dutch",
   [Language.ENGLISH]: "English",
@@ -191,7 +222,7 @@ export const languageName: LanguageName = {
   [Language.SPANISH]: "Espanol",
 };
 
-export const coins: Coin.Metadata[] = [
+export const defTokens: TokenProps[] = [
   {
     chain: Chain.ARBITRUM,
     cmcId: 1027,
@@ -199,8 +230,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "ethereum",
+    logo: "",
     ticker: "ETH",
   },
   {
@@ -210,8 +242,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "avalanche",
+    logo: "",
     ticker: "AVAX",
   },
   {
@@ -221,8 +254,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "ethereum",
+    logo: "",
     ticker: "ETH",
   },
   {
@@ -232,8 +266,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 8,
     hexPublicKey: "EDDSA",
     isDefault: true,
+    isLocally: true,
     isNative: true,
-    slug: "bitcoin",
+    logo: "",
     ticker: "BTC",
   },
   {
@@ -243,8 +278,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 8,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "bitcoin-cash",
+    logo: "",
     ticker: "BCH",
   },
   {
@@ -254,8 +290,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "ethereum",
+    logo: "",
     ticker: "ETH",
   },
   {
@@ -265,8 +302,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: true,
+    isLocally: true,
     isNative: true,
-    slug: "bnb",
+    logo: "",
     ticker: "BNB",
   },
   {
@@ -276,8 +314,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "cronos",
+    logo: "",
     ticker: "CRO",
   },
   {
@@ -287,8 +326,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 8,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "dogecoin",
+    logo: "",
     ticker: "DOGE",
   },
   {
@@ -298,8 +338,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "dydx-chain",
+    logo: "",
     ticker: "DYDX",
   },
   {
@@ -309,8 +350,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 8,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "dash",
+    logo: "",
     ticker: "DASH",
   },
   {
@@ -320,8 +362,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: true,
+    isLocally: true,
     isNative: true,
-    slug: "ethereum",
+    logo: "",
     ticker: "ETH",
   },
   {
@@ -331,8 +374,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "cosmos",
+    logo: "",
     ticker: "ATOM",
   },
   {
@@ -342,8 +386,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "kujira",
+    logo: "",
     ticker: "KUJI",
   },
   {
@@ -353,8 +398,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 8,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "litecoin",
+    logo: "",
     ticker: "LTC",
   },
   {
@@ -364,8 +410,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 10,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "maya",
+    logo: "",
     ticker: "CACAO",
   },
   {
@@ -375,8 +422,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "ethereum",
+    logo: "",
     ticker: "ETH",
   },
   {
@@ -386,8 +434,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 10,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "polkadot-new",
+    logo: "",
     ticker: "DOT",
   },
   {
@@ -397,8 +446,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: true,
-    slug: "polygon",
+    logo: "",
     ticker: "MATIC",
   },
   {
@@ -408,8 +458,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 9,
     hexPublicKey: "EDDSA",
     isDefault: true,
+    isLocally: true,
     isNative: true,
-    slug: "solana",
+    logo: "",
     ticker: "SOL",
   },
   {
@@ -419,8 +470,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 8,
     hexPublicKey: "EDDSA",
     isDefault: true,
+    isLocally: true,
     isNative: true,
-    slug: "thorchain",
+    logo: "",
     ticker: "RUNE",
   },
   {
@@ -430,8 +482,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "arbitrum",
+    logo: "",
     ticker: "ARB",
   },
   {
@@ -441,8 +494,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "thorwallet",
+    logo: "",
     ticker: "TGT",
   },
   {
@@ -452,8 +506,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "fox",
+    logo: "",
     ticker: "FOX",
   },
   {
@@ -463,8 +518,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "tether",
+    logo: "",
     ticker: "USDT",
   },
   {
@@ -474,8 +530,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "usd-coin-bridged-usdc-e",
+    logo: "",
     ticker: "USDC.e",
   },
   {
@@ -485,8 +542,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "usd-coin",
+    logo: "",
     ticker: "USDC",
   },
   {
@@ -496,8 +554,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 8,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "wrapped-bitcoin",
+    logo: "",
     ticker: "WBTC",
   },
   {
@@ -507,8 +566,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "chainlink",
+    logo: "",
     ticker: "LINK",
   },
   {
@@ -518,8 +578,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "multi-collateral-dai",
+    logo: "",
     ticker: "DAI",
   },
   {
@@ -529,8 +590,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "uni",
+    logo: "",
     ticker: "UNI",
   },
   {
@@ -540,8 +602,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "the-graph",
+    logo: "",
     ticker: "GRT",
   },
   {
@@ -551,8 +614,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "renzo-restaked-eth",
+    logo: "",
     ticker: "ezETH",
   },
   {
@@ -562,8 +626,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "lido-dao",
+    logo: "",
     ticker: "LDO",
   },
   {
@@ -573,8 +638,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "usd-coin",
+    logo: "",
     ticker: "USDC",
   },
   {
@@ -584,8 +650,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "tether",
+    logo: "",
     ticker: "USDT",
   },
   {
@@ -595,8 +662,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 8,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "bitcoin-avalanche-bridged",
+    logo: "",
     ticker: "BTC.b",
   },
   {
@@ -606,8 +674,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "benqi-liquid-staked-avax",
+    logo: "",
     ticker: "sAVAX",
   },
   {
@@ -617,8 +686,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "joe",
+    logo: "",
     ticker: "JOE",
   },
   {
@@ -628,8 +698,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "pangolin",
+    logo: "",
     ticker: "PNG",
   },
   {
@@ -639,8 +710,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "wavax",
+    logo: "",
     ticker: "WAVAX",
   },
   {
@@ -650,8 +722,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "bloodloop",
+    logo: "",
     ticker: "BLS",
   },
   {
@@ -661,8 +734,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "wewecoin",
+    logo: "",
     ticker: "WEWE",
   },
   {
@@ -672,8 +746,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "usd-coin",
+    logo: "",
     ticker: "USDC",
   },
   {
@@ -683,8 +758,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "multi-collateral-dai",
+    logo: "",
     ticker: "DAI",
   },
   {
@@ -694,8 +770,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "renzo-restaked-eth",
+    logo: "",
     ticker: "ezETH",
   },
   {
@@ -705,8 +782,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "wormhole",
+    logo: "",
     ticker: "W",
   },
   {
@@ -716,8 +794,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "coinbase-wrapped-staked-eth",
+    logo: "",
     ticker: "cbETH",
   },
   {
@@ -727,8 +806,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "synthetix",
+    logo: "",
     ticker: "SNX",
   },
   {
@@ -738,8 +818,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "weth",
+    logo: "",
     ticker: "WETH",
   },
   {
@@ -749,8 +830,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 8,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "wrapped-bitcoin",
+    logo: "",
     ticker: "WBTC",
   },
   {
@@ -760,8 +842,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "usdb",
+    logo: "",
     ticker: "USDB",
   },
   {
@@ -771,8 +854,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "blast",
+    logo: "",
     ticker: "BLAST",
   },
   {
@@ -782,8 +866,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "omnicat",
+    logo: "",
     ticker: "OMNI",
   },
   {
@@ -793,8 +878,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "dackieswap",
+    logo: "",
     ticker: "DACKIE",
   },
   {
@@ -804,8 +890,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "tether",
+    logo: "",
     ticker: "USDT",
   },
   {
@@ -815,8 +902,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "usd-coin",
+    logo: "",
     ticker: "USDC",
   },
   {
@@ -826,8 +914,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "multi-collateral-dai",
+    logo: "",
     ticker: "DAI",
   },
   {
@@ -837,8 +926,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "weth",
+    logo: "",
     ticker: "WETH",
   },
   {
@@ -848,8 +938,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "aave",
+    logo: "",
     ticker: "AAVE",
   },
   {
@@ -859,8 +950,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "compound",
+    logo: "",
     ticker: "COMP",
   },
   {
@@ -870,8 +962,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "sushi",
+    logo: "",
     ticker: "SUSHI",
   },
   {
@@ -881,8 +974,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "kyber-network-crystal-v2",
+    logo: "",
     ticker: "KNC",
   },
   {
@@ -892,8 +986,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "pepe",
+    logo: "",
     ticker: "PEPE",
   },
   {
@@ -903,8 +998,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "usd-coin",
+    logo: "",
     ticker: "USDC",
   },
   {
@@ -914,8 +1010,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "tether",
+    logo: "",
     ticker: "USDT",
   },
   {
@@ -925,8 +1022,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "unicorn-token",
+    logo: "",
     ticker: "UNI",
   },
   {
@@ -936,8 +1034,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "polygon",
+    logo: "",
     ticker: "MATIC",
   },
   {
@@ -947,8 +1046,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "wrapped-bitcoin",
+    logo: "",
     ticker: "WBTC",
   },
   {
@@ -958,8 +1058,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "chainlink",
+    logo: "",
     ticker: "LINK",
   },
   {
@@ -969,8 +1070,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "chainflip",
+    logo: "",
     ticker: "FLIP",
   },
   {
@@ -980,8 +1082,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "thorwallet",
+    logo: "",
     ticker: "TGT",
   },
   {
@@ -991,8 +1094,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "fox",
+    logo: "",
     ticker: "FOX",
   },
   {
@@ -1002,8 +1106,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "multi-collateral-dai",
+    logo: "",
     ticker: "DAI",
   },
   {
@@ -1013,8 +1118,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "weth",
+    logo: "",
     ticker: "WETH",
   },
   {
@@ -1024,8 +1130,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "yearn-finance",
+    logo: "",
     ticker: "YFI",
   },
   {
@@ -1035,8 +1142,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "aave",
+    logo: "",
     ticker: "AAVE",
   },
   {
@@ -1046,8 +1154,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "compound",
+    logo: "",
     ticker: "COMP",
   },
   {
@@ -1057,8 +1166,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "basic-attention-token",
+    logo: "",
     ticker: "BAT",
   },
   {
@@ -1068,8 +1178,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "synthetix",
+    logo: "",
     ticker: "SNX",
   },
   {
@@ -1079,8 +1190,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "balancer",
+    logo: "",
     ticker: "BAL",
   },
   {
@@ -1090,8 +1202,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "sushi",
+    logo: "",
     ticker: "SUSHI",
   },
   {
@@ -1101,8 +1214,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "maker",
+    logo: "",
     ticker: "MKR",
   },
   {
@@ -1112,8 +1226,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "kyber-network-crystal-v2",
+    logo: "",
     ticker: "KNC",
   },
   {
@@ -1123,8 +1238,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "the-graph",
+    logo: "",
     ticker: "GRT",
   },
   {
@@ -1134,8 +1250,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "pepe",
+    logo: "",
     ticker: "PEPE",
   },
   {
@@ -1145,8 +1262,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 4,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "",
+    logo: "",
     ticker: "MAYA",
   },
   {
@@ -1156,8 +1274,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "optimism-ethereum",
+    logo: "",
     ticker: "OP",
   },
   {
@@ -1167,8 +1286,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "fox",
+    logo: "",
     ticker: "FOX",
   },
   {
@@ -1178,8 +1298,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "tether",
+    logo: "",
     ticker: "USDT",
   },
   {
@@ -1189,8 +1310,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "usd-coin",
+    logo: "",
     ticker: "USDC",
   },
   {
@@ -1200,8 +1322,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "usd-coin-bridged-usdc-e",
+    logo: "",
     ticker: "USDC.e",
   },
   {
@@ -1211,8 +1334,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 8,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "wrapped-bitcoin",
+    logo: "",
     ticker: "WBTC",
   },
   {
@@ -1222,8 +1346,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "chainlink",
+    logo: "",
     ticker: "LINK",
   },
   {
@@ -1233,8 +1358,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "multi-collateral-dai",
+    logo: "",
     ticker: "DAI",
   },
   {
@@ -1244,8 +1370,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "renzo-restaked-eth",
+    logo: "",
     ticker: "ezETH",
   },
   {
@@ -1255,8 +1382,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "lido-dao",
+    logo: "",
     ticker: "LDO",
   },
   {
@@ -1266,8 +1394,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "weth",
+    logo: "",
     ticker: "WETH",
   },
   {
@@ -1277,8 +1406,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "fox",
+    logo: "",
     ticker: "FOX",
   },
   {
@@ -1288,8 +1418,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "tether",
+    logo: "",
     ticker: "USDT",
   },
   {
@@ -1299,8 +1430,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "bnb",
+    logo: "",
     ticker: "BNB",
   },
   {
@@ -1310,8 +1442,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 9,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "solana",
+    logo: "",
     ticker: "SOL",
   },
   {
@@ -1321,8 +1454,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "usd-coin",
+    logo: "",
     ticker: "USDC",
   },
   {
@@ -1332,8 +1466,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 6,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "usd-coin-bridged-usdc-e",
+    logo: "",
     ticker: "USDC.e",
   },
   {
@@ -1343,8 +1478,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 8,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "wrapped-bitcoin",
+    logo: "",
     ticker: "WBTC",
   },
   {
@@ -1354,8 +1490,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "avalanche",
+    logo: "",
     ticker: "AVAX",
   },
   {
@@ -1365,8 +1502,9 @@ export const coins: Coin.Metadata[] = [
     decimals: 18,
     hexPublicKey: "EDDSA",
     isDefault: false,
+    isLocally: true,
     isNative: false,
-    slug: "chainlink",
+    logo: "",
     ticker: "LINK",
   },
 ];

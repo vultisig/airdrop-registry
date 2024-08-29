@@ -14,14 +14,16 @@ const Component: FC = () => {
   const initialState: InitialState = { visible: false };
   const [state, setState] = useState(initialState);
   const { visible } = state;
-  const { changeCurrency, currency } = useVaultContext();
+  const { changeCurrency, currency, vault } = useVaultContext();
   const { hash } = useLocation();
   const navigate = useNavigate();
 
   const handleSelect = (key: Currency): void => {
-    changeCurrency(key);
+    if (vault) {
+      changeCurrency(vault, key);
 
-    navigate(-1);
+      navigate(-1);
+    }
   };
 
   const componentDidUpdate = (): void => {

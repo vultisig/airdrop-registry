@@ -1,18 +1,18 @@
 import { FC, useEffect, useState } from "react";
-import { Button, Card, Empty, message, Spin, Tooltip } from "antd";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { Button, Card, Empty, message, Spin, Tooltip } from "antd";
 import { Truncate } from "@re-dev/react-truncate";
 
 import { useVaultContext } from "context";
-import { chooseToken, exploreToken } from "utils/constants";
-import { Coin } from "utils/interfaces";
+import { chooseToken, currencySymbol, exploreToken } from "utils/constants";
+import { CoinProps } from "utils/interfaces";
 import constantModals from "modals/constant-modals";
 import constantPaths from "routes/constant-paths";
 
 import AssetItem from "components/asset-item";
 import ChooseToken from "modals/choose-token";
 import QRCode from "modals/qr-code";
-import { useTranslation } from "react-i18next";
 import translation from "i18n/constant-keys";
 
 import {
@@ -24,7 +24,7 @@ import {
 } from "icons";
 
 interface InitialState {
-  coin?: Coin.Props;
+  coin?: CoinProps;
 }
 
 const Component: FC = () => {
@@ -33,7 +33,7 @@ const Component: FC = () => {
   const [state, setState] = useState(initialState);
   const { coin } = state;
   const { chainKey } = useParams();
-  const { vault } = useVaultContext();
+  const { fetchTokens, currency, vault } = useVaultContext();
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
 
@@ -62,6 +62,10 @@ const Component: FC = () => {
       );
 
       if (coin) {
+        fetchTokens(coin)
+          .then(() => {})
+          .catch(() => {});
+
         setState((prevState) => ({ ...prevState, coin }));
       } else {
         navigate(constantPaths.balance);
@@ -104,7 +108,7 @@ const Component: FC = () => {
                 </div>
                 <span className="amount">
                   {vault
-                    ? `$${vault.coins
+                    ? `${currencySymbol[currency]}${vault.coins
                         .filter(
                           ({ chain }) => chain.toLocaleLowerCase() === chainKey
                         )
@@ -113,7 +117,7 @@ const Component: FC = () => {
                           0
                         )
                         .toFixed(2)}`
-                    : "$0.00"}
+                    : `${currencySymbol[currency]}0.00`}
                 </span>
                 <div className="actions">
                   <Tooltip title="Copy Address">

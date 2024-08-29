@@ -1,17 +1,17 @@
-import { FC, useEffect } from "react";
+import { FC } from "react";
 
-import { Coin } from "utils/interfaces";
+import { useVaultContext } from "context";
+import { currencySymbol } from "utils/constants";
+import { CoinProps } from "utils/interfaces";
 
-const Component: FC<Coin.Props> = ({ balance, ticker, value }) => {
-  const componentDidUpdate = (): void => {};
-
-  useEffect(componentDidUpdate, [ticker]);
+const Component: FC<CoinProps> = ({ balance, logo, ticker, value }) => {
+  const { currency } = useVaultContext();
 
   return (
     <div className="asset-item">
       <div className="token">
         <img
-          src={`/coins/${ticker.toLocaleLowerCase()}.svg`}
+          src={logo || `/coins/${ticker.toLocaleLowerCase()}.svg`}
           alt="bitcoin"
           className="logo"
         />
@@ -23,7 +23,9 @@ const Component: FC<Coin.Props> = ({ balance, ticker, value }) => {
           : balance}
       </span>
       <span className="value">
-        {balance ? `$${(balance * value).toFixed(2)}` : `$0.00`}
+        {balance
+          ? `${currencySymbol[currency]}${(balance * value).toFixed(2)}`
+          : `${currencySymbol[currency]}0.00`}
       </span>
     </div>
   );

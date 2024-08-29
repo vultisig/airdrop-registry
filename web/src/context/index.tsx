@@ -6,49 +6,54 @@ import {
   useEffect,
   useContext,
 } from "react";
+import { Modal, Spin } from "antd";
 import { initWasm, WalletCore } from "@trustwallet/wallet-core";
 
 import {
   Chain,
   Currency,
   Language,
+  OneInch,
   balanceAPI,
-  coins,
+  defTokens,
   errorKey,
-  storage,
+  storageKey,
 } from "utils/constants";
-import { Coin, VaultProps } from "utils/interfaces";
+import { CoinProps, CoinRef, TokenProps, VaultProps } from "utils/interfaces";
+import i18n from "i18n/config";
 import api from "utils/api";
 
 import SplashScreen from "components/splash-screen";
-import { Modal, Spin } from "antd";
-import i18n from "i18n/config";
 
 interface VaultContext {
   addVault: (vault: VaultProps) => Promise<void>;
-  changeCurrency: (currency: Currency) => void;
+  changeCurrency: (vault: VaultProps, currency: Currency) => void;
+  fetchTokens: (coin: CoinProps) => Promise<void>;
   setVault: (vault: VaultProps) => void;
-  useVault: (vault: VaultProps, currency: Currency) => void;
-  toggleCoin: (coin: Coin.Metadata, vault: VaultProps) => Promise<void>;
+  useVault: (vault: VaultProps) => void;
+  toggleCoin: (coin: TokenProps, vault: VaultProps) => Promise<void>;
+  tokens: TokenProps[];
   currency: Currency;
   vault?: VaultProps;
   vaults: VaultProps[];
 }
 
 interface InitialState {
+  tokens: TokenProps[];
   core?: WalletCore;
   currency: Currency;
   loaded: boolean;
   loading: boolean;
   vaults: VaultProps[];
   vault?: VaultProps;
-  wcRefrence: Coin.Reference;
+  wcRefrence: CoinRef;
 }
 
 const VaultContext = createContext<VaultContext | undefined>(undefined);
 
 const Component: FC<{ children: ReactNode }> = ({ children }) => {
   const initialState: InitialState = {
+    tokens: defTokens,
     currency: Currency.USD,
     loaded: false,
     loading: false,
@@ -56,16 +61,109 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     wcRefrence: {},
   };
   const [state, setState] = useState(initialState);
-  const { core, currency, loaded, loading, vault, vaults, wcRefrence } = state;
+  const { core, currency, loaded, loading, tokens, vault, vaults, wcRefrence } =
+    state;
 
-  const changeCurrency = (currency: Currency): void => {
-    if (vault) {
-      setState((prevState) => ({ ...prevState, currency }));
+  const changeCurrency = (vault: VaultProps, currency: Currency): void => {
+    if (!loading) {
+      setState((prevState) => ({ ...prevState, loading: true }));
 
-      useVault(vault, currency);
+      getValue(vault.coins, currency)
+        .then((coins) => {
+          setState((prevState) => ({
+            ...prevState,
+            currency,
+            loading: false,
+            vault: { ...vault, coins },
+          }));
 
-      localStorage.setItem(storage.CURRENCY, currency);
+          localStorage.setItem(storageKey.CURRENCY, currency);
+        })
+        .catch(() => {
+          setState((prevState) => ({ ...prevState, loading: false }));
+        });
     }
+  };
+
+  const fetchTokens = (coin: CoinProps): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const token = defTokens.find((item) => item.chain === coin.chain);
+      let id: number;
+
+      switch (coin.chain) {
+        case Chain.ARBITRUM:
+          id = OneInch.ARBITRUM;
+          break;
+        case Chain.AVALANCHE:
+          id = OneInch.AVALANCHE;
+          break;
+        case Chain.BASE:
+          id = OneInch.BASE;
+          break;
+        case Chain.BLAST:
+          id = OneInch.BLAST;
+          break;
+        case Chain.BSCCHAIN:
+          id = OneInch.BSCCHAIN;
+          break;
+        case Chain.CRONOSCHAIN:
+          id = OneInch.CRONOSCHAIN;
+          break;
+        case Chain.ETHEREUM:
+          id = OneInch.ETHEREUM;
+          break;
+        case Chain.OPTIMISM:
+          id = OneInch.OPTIMISM;
+          break;
+        case Chain.POLYGON:
+          id = OneInch.POLYGON;
+          break;
+        default:
+          id = 0;
+          break;
+      }
+
+      if (id && token) {
+        api
+          .oneInch(id)
+          .then(({ data }) => {
+            setState((prevState) => {
+              const tokens: TokenProps[] = [];
+
+              Object.entries(data.tokens).forEach(([key, value]) => {
+                const notFound =
+                  prevState.tokens.findIndex(
+                    (token) => token.contractAddress === key
+                  ) < 0;
+
+                if (notFound) {
+                  tokens.push({
+                    chain: coin.chain,
+                    cmcId: 0,
+                    contractAddress: key,
+                    decimals: value.decimals,
+                    hexPublicKey: token.hexPublicKey,
+                    isDefault: false,
+                    isLocally: false,
+                    isNative: false,
+                    logo: value.logoURI,
+                    ticker: value.symbol,
+                  });
+                }
+              });
+
+              return { ...prevState, tokens: [...prevState.tokens, ...tokens] };
+            });
+
+            resolve();
+          })
+          .catch(() => {
+            reject();
+          });
+      } else {
+        reject();
+      }
+    });
   };
 
   const getECDSAAddress = (
@@ -140,10 +238,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const getAddress = (
-    coin: Coin.Metadata,
-    vault: VaultProps
-  ): Promise<string> => {
+  const getAddress = (coin: TokenProps, vault: VaultProps): Promise<string> => {
     return new Promise((resolve, reject) => {
       if (coin.isNative) {
         switch (coin.chain) {
@@ -206,13 +301,11 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const addCoin = (
-    coin: Coin.Metadata,
-    vault: VaultProps
-  ): Promise<Coin.Props> => {
+  const addCoin = (coin: TokenProps, vault: VaultProps): Promise<CoinProps> => {
     return new Promise((resolve, reject) => {
-      const newCoin: Coin.Params = {
+      const newCoin: CoinProps = {
         address: "",
+        balance: 0,
         chain: coin.chain,
         cmcId: coin.cmcId,
         contractAddress: coin.contractAddress,
@@ -221,8 +314,11 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
           coin.hexPublicKey === "ECDSA"
             ? vault.publicKeyEcdsa
             : vault.publicKeyEddsa,
+        ID: 0,
         isNativeToken: coin.isNative,
+        logo: coin.logo,
         ticker: coin.ticker,
+        value: 0,
       };
 
       getAddress(coin, vault)
@@ -232,12 +328,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
           api.coin
             .add(vault, newCoin)
             .then(({ data: { coinId } }) => {
-              const coin: Coin.Props = {
-                ...newCoin,
-                balance: 0,
-                ID: coinId,
-                value: 0,
-              };
+              const coin: CoinProps = { ...newCoin, ID: coinId };
 
               getBalance(coin)
                 .then((coin) => {
@@ -263,7 +354,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const delCoin = (coin: Coin.Props, vault: VaultProps): Promise<void> => {
+  const delCoin = (coin: CoinProps, vault: VaultProps): Promise<void> => {
     return new Promise((resolve, reject) => {
       api.coin
         .del(vault, coin)
@@ -276,10 +367,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const toggleCoin = (
-    coin: Coin.Metadata,
-    vault: VaultProps
-  ): Promise<void> => {
+  const toggleCoin = (coin: TokenProps, vault: VaultProps): Promise<void> => {
     return new Promise((resolve, reject) => {
       const selectedCoin = vault.coins.find(
         ({ chain, ticker }) => coin.chain === chain && coin.ticker === ticker
@@ -311,23 +399,29 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
             reject();
           });
       } else {
-        addCoin(coin, vault)
-          .then((coin) => {
-            setState((prevState) => {
-              if (prevState.vault?.uid === vault.uid) {
-                return {
-                  ...prevState,
-                  vault: {
-                    ...prevState.vault,
-                    coins: [...prevState.vault.coins, coin],
-                  },
-                };
-              }
+        getCMC(coin)
+          .then((cmcId) => {
+            addCoin({ ...coin, cmcId }, vault)
+              .then((coin) => {
+                setState((prevState) => {
+                  if (prevState.vault?.uid === vault.uid) {
+                    return {
+                      ...prevState,
+                      vault: {
+                        ...prevState.vault,
+                        coins: [...prevState.vault.coins, coin],
+                      },
+                    };
+                  }
 
-              return prevState;
-            });
+                  return prevState;
+                });
 
-            resolve();
+                resolve();
+              })
+              .catch(() => {
+                reject();
+              });
           })
           .catch(() => {
             reject();
@@ -336,7 +430,26 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const getBalance = (coin: Coin.Props): Promise<Coin.Props> => {
+  const getCMC = (coin: TokenProps): Promise<number> => {
+    return new Promise((resolve, reject) => {
+      if (coin.isLocally) {
+        resolve(coin.cmcId);
+      } else {
+        api.coin
+          .cmc(coin.contractAddress)
+          .then(({ data }) => {
+            const [key] = Object.keys(data.data);
+
+            key ? resolve(parseInt(key)) : reject();
+          })
+          .catch(() => {
+            reject();
+          });
+      }
+    });
+  };
+
+  const getBalance = (coin: CoinProps): Promise<CoinProps> => {
     return new Promise((resolve) => {
       const uid = Math.floor(Math.random() * 10000);
       const path = balanceAPI[coin.chain];
@@ -495,11 +608,11 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   const getValue = (
-    coins: Coin.Props[],
+    coins: CoinProps[],
     currency: Currency
-  ): Promise<Coin.Props[]> => {
+  ): Promise<CoinProps[]> => {
     return new Promise((resolve, reject) => {
-      const ids = coins.map(({ cmcId }) => cmcId);
+      const ids = tokens.map(({ cmcId }) => cmcId);
 
       api.coin
         .values(ids, currency)
@@ -525,7 +638,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
       api.vault
         .add(vault)
         .then(() => {
-          getVault(vault, currency)
+          getVault(vault)
             .then((vault) => {
               setState((prevState) => {
                 const vaults = [
@@ -547,7 +660,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
         .catch((error) => {
           switch (error) {
             case errorKey.VAULT_ALREADY_REGISTERED: {
-              getVault(vault, currency)
+              getVault(vault)
                 .then((vault) => {
                   setState((prevState) => {
                     const vaults = [
@@ -580,10 +693,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const getVault = (
-    vault: VaultProps,
-    currency: Currency
-  ): Promise<VaultProps> => {
+  const getVault = (vault: VaultProps): Promise<VaultProps> => {
     return new Promise((resolve, reject) => {
       api.vault
         .get(vault)
@@ -605,7 +715,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
                 reject();
               });
           } else {
-            const promises = coins
+            const promises = tokens
               .filter((coin) => coin.isDefault)
               .map((coin) => addCoin(coin, { ...vault, ...data }));
 
@@ -641,7 +751,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
       const [vault, ...remainingVaults] = vaults;
 
       if (vault) {
-        getVault(vault, currency)
+        getVault(vault)
           .then((vault) => {
             resolve([vault, ...remainingVaults]);
           })
@@ -666,19 +776,21 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   const setVaults = (vaults: VaultProps[]): void => {
-    localStorage.setItem(storage.VAULTS, JSON.stringify(vaults));
+    localStorage.setItem(storageKey.VAULTS, JSON.stringify(vaults));
   };
 
-  const useVault = (vault: VaultProps, currency: Currency): void => {
-    setState((prevState) => ({ ...prevState, loading: true }));
+  const useVault = (vault: VaultProps): void => {
+    if (!loading) {
+      setState((prevState) => ({ ...prevState, loading: true }));
 
-    getVault(vault, currency)
-      .then((vault) => {
-        setState((prevState) => ({ ...prevState, loading: false, vault }));
-      })
-      .catch(() => {
-        setState((prevState) => ({ ...prevState, loading: false }));
-      });
+      getVault(vault)
+        .then((vault) => {
+          setState((prevState) => ({ ...prevState, loading: false, vault }));
+        })
+        .catch(() => {
+          setState((prevState) => ({ ...prevState, loading: false }));
+        });
+    }
   };
 
   const componentDidUpdate = () => {
@@ -690,7 +802,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
       };
 
       try {
-        const data = localStorage.getItem(storage.VAULTS);
+        const data = localStorage.getItem(storageKey.VAULTS);
         const vaults: VaultProps[] = data ? JSON.parse(data) : [];
 
         if (Array.isArray(vaults) && vaults.length) {
@@ -723,7 +835,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
         let currency: Currency;
         let language: Language;
 
-        switch (localStorage.getItem(storage.CURRENCY)) {
+        switch (localStorage.getItem(storageKey.CURRENCY)) {
           case Currency.AUD:
             currency = Currency.AUD;
             break;
@@ -756,7 +868,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
             break;
         }
 
-        switch (localStorage.getItem(storage.LANGUAGE)) {
+        switch (localStorage.getItem(storageKey.LANGUAGE)) {
           case Language.CROATIA:
             language = Language.CROATIA;
             break;
@@ -827,10 +939,12 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
       value={{
         addVault,
         changeCurrency,
+        fetchTokens,
         setVault,
         useVault,
         toggleCoin,
         currency,
+        tokens,
         vault,
         vaults,
       }}

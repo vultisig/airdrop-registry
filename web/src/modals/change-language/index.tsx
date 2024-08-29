@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { List, Modal } from "antd";
 
-import { Language, languageName, storage } from "utils/constants";
+import { Language, languageName, storageKey } from "utils/constants";
 import i18n from "i18n/config";
 import constantModals from "modals/constant-modals";
 
@@ -20,7 +20,7 @@ const Component: FC = () => {
   const handleSelect = (key: string): void => {
     i18n.changeLanguage(key);
 
-    localStorage.setItem(storage.LANGUAGE, key);
+    localStorage.setItem(storageKey.LANGUAGE, key);
 
     navigate(-1);
   };

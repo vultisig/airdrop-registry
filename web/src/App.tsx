@@ -9,10 +9,6 @@ const App = () => {
       theme={{
         algorithm: theme.darkAlgorithm,
         components: {
-          Drawer: {
-            colorBgElevated: "#02122b",
-            paddingLG: 8,
-          },
           Modal: {
             colorBgElevated: "#02122b",
             paddingLG: 8,
