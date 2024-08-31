@@ -1,7 +1,6 @@
 import { FC } from "react";
 
 import { useVaultContext } from "context";
-import { currencySymbol } from "utils/constants";
 import { CoinProps } from "utils/interfaces";
 
 const Component: FC<CoinProps> = ({ balance, logo, ticker, value }) => {
@@ -17,15 +16,11 @@ const Component: FC<CoinProps> = ({ balance, logo, ticker, value }) => {
         />
         <span className="name">{ticker}</span>
       </div>
-      <span className="balance">
-        {balance.toString().split(".")[1]?.length > 8
-          ? balance.toFixed(8)
-          : balance}
-      </span>
+      <span className="balance">{balance.toBalanceFormat()}</span>
       <span className="value">
         {balance
-          ? `${currencySymbol[currency]}${(balance * value).toFixed(2)}`
-          : `${currencySymbol[currency]}0.00`}
+          ? (balance * value).toValueFormat(currency)
+          : (0).toValueFormat(currency)}
       </span>
     </div>
   );

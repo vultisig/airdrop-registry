@@ -12,8 +12,8 @@ import constantPaths from "routes/constant-paths";
 import Layout from "layout";
 
 import AssetPage from "pages/asset";
-import BalancePage from "pages/balance";
-import LandingPage from "pages/landing";
+import ChainsPage from "pages/chains";
+import ImportPage from "pages/import";
 
 interface RouteConfig {
   path: string;
@@ -52,11 +52,11 @@ const Component = () => {
   const routes: RouteConfig[] = [
     {
       path: constantPaths.root,
-      redirect: vaults.length ? constantPaths.balance : constantPaths.landing,
+      redirect: vaults.length ? constantPaths.chains : constantPaths.import,
     },
     {
-      path: constantPaths.landing,
-      element: <LandingPage />,
+      path: constantPaths.import,
+      element: <ImportPage />,
     },
     ...(vaults.length
       ? [
@@ -66,11 +66,11 @@ const Component = () => {
             children: [
               {
                 path: constantPaths.root,
-                redirect: constantPaths.balance,
+                redirect: constantPaths.chains,
               },
               {
-                path: constantPaths.balance,
-                element: <BalancePage />,
+                path: constantPaths.chains,
+                element: <ChainsPage />,
               },
               {
                 path: constantPaths.asset,
@@ -84,7 +84,6 @@ const Component = () => {
           },
         ]
       : []),
-
     {
       path: "*",
       redirect: constantPaths.root,

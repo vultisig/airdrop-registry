@@ -6,7 +6,7 @@ export default {
     [translation.CHOOSE_CHAIN]: "Ketens kiezen",
     [translation.CHOOSE_TOKEN]: "Tokens kiezen",
     [translation.CURRENCY]: "Valuta",
-    [translation.DOWNLOAD_APP]: "Heb je nog geen kluis? Download nu Vault",
+    [translation.DOWNLOAD_APP]: "Heb je nog geen kluis? Download nu Vultisig",
     [translation.DEFAULT_CHAINS]: "Standaard ketens",
     [translation.DROP_FILE_HERE]: "Sleep je bestand hierheen of",
     // E
@@ -34,7 +34,7 @@ export default {
     // U
     [translation.UPLOAD_IT]: "upload het",
     [translation.UPLOAD_QR_CODE]: "Upload je QR-code hier",
-    [translation.UPLOAD_VAULT_SHARE]: "Upload je kluisdeel om te beginnen",
+    [translation.UPLOAD_VAULT_SHARE]: "Upload uw Vultisig openbare sleutel om te beginnen",
     // V
     [translation.VAULT_SETTINGS]: "Kluisinstellingen",
     [translation.VULT_TOKEN]: "De $VULT Token",

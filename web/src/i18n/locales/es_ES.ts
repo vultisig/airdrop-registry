@@ -6,7 +6,7 @@ export default {
   [translation.CHOOSE_CHAIN]: "Elegir cadenas",
   [translation.CHOOSE_TOKEN]: "Elegir tokens",
   [translation.CURRENCY]: "Moneda",
-  [translation.DOWNLOAD_APP]: "¿Aún no tienes una bóveda? Descarga Vault ahora",
+  [translation.DOWNLOAD_APP]: "¿Aún no tienes una bóveda? Descarga Vultisig ahora",
   [translation.DEFAULT_CHAINS]: "Cadenas predeterminadas",
   [translation.DROP_FILE_HERE]: "Suelta tu archivo aquí o",
   // E
@@ -34,7 +34,7 @@ export default {
   // U
   [translation.UPLOAD_IT]: "cárgalo",
   [translation.UPLOAD_QR_CODE]: "Sube tu código QR aquí",
-  [translation.UPLOAD_VAULT_SHARE]: "Sube tu parte de la bóveda para comenzar",
+  [translation.UPLOAD_VAULT_SHARE]: "Sube tu clave pública de Vultisig para comenzar",
   // V
   [translation.VAULT_SETTINGS]: "Configuración de la bóveda",
   [translation.VULT_TOKEN]: "El token $VULT",

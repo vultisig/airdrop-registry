@@ -7,6 +7,8 @@ import { Chain, defTokens } from "utils/constants";
 import { TokenProps } from "utils/interfaces";
 import constantModals from "modals/constant-modals";
 
+import { SearchOutlined } from "icons";
+
 interface InitialState {
   loading: Chain | null;
   search: string;
@@ -73,7 +75,12 @@ const Component: FC = () => {
       footer={false}
       onClose={() => navigate(-1)}
       title={
-        <Input onChange={(e) => handleSearch(e.target.value)} value={search} />
+        <Input
+          onChange={(e) => handleSearch(e.target.value)}
+          placeholder="Search..."
+          prefix={<SearchOutlined />}
+          value={search}
+        />
       }
       closeIcon={false}
       open={visible}

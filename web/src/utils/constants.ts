@@ -127,10 +127,10 @@ export const balanceAPI: ChainStrRef = {
   [Chain.POLKADOT]: "https://polkadot.api.subscan.io/api/v2/scan/search",
   [Chain.POLYGON]: "https://polygon-bor-rpc.publicnode.com",
   [Chain.SOLANA]: "https://solana-rpc.publicnode.com",
-  [Chain.SUI]: "",
+  [Chain.SUI]: "https://suiscan.xyz/mainnet/address", //$address
   [Chain.THORCHAIN]:
     "https://thornode.ninerealms.com/cosmos/bank/v1beta1/balances", //$address
-  [Chain.ZKSYNC]: "",
+  [Chain.ZKSYNC]: "https://explorer.zksync.io/address", //$address
 };
 
 export const chooseToken: ChainBoolRef = {

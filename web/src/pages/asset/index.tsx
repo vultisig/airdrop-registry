@@ -5,7 +5,7 @@ import { Button, Card, Empty, message, Spin, Tooltip } from "antd";
 import { Truncate } from "@re-dev/react-truncate";
 
 import { useVaultContext } from "context";
-import { chooseToken, currencySymbol, exploreToken } from "utils/constants";
+import { chooseToken, exploreToken } from "utils/constants";
 import { CoinProps } from "utils/interfaces";
 import constantModals from "modals/constant-modals";
 import constantPaths from "routes/constant-paths";
@@ -68,10 +68,10 @@ const Component: FC = () => {
 
         setState((prevState) => ({ ...prevState, coin }));
       } else {
-        navigate(constantPaths.balance);
+        navigate(constantPaths.chains);
       }
     } else {
-      navigate(constantPaths.balance);
+      navigate(constantPaths.chains);
     }
   };
 
@@ -108,7 +108,7 @@ const Component: FC = () => {
                 </div>
                 <span className="amount">
                   {vault
-                    ? `${currencySymbol[currency]}${vault.coins
+                    ? vault.coins
                         .filter(
                           ({ chain }) => chain.toLocaleLowerCase() === chainKey
                         )
@@ -116,8 +116,8 @@ const Component: FC = () => {
                           (acc, coin) => acc + coin.balance * coin.value,
                           0
                         )
-                        .toFixed(2)}`
-                    : `${currencySymbol[currency]}0.00`}
+                        .toValueFormat(currency)
+                    : (0).toValueFormat(currency)}
                 </span>
                 <div className="actions">
                   <Tooltip title="Copy Address">

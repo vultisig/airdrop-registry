@@ -13,7 +13,6 @@ import {
 } from "antd";
 
 import { useVaultContext } from "context";
-import { currencySymbol } from "utils/constants";
 import translation from "i18n/constant-keys";
 import constantModals from "modals/constant-modals";
 import constantPaths from "routes/constant-paths";
@@ -40,7 +39,7 @@ const Component: FC = () => {
       key: "1",
       label: (
         <>
-          <Link to={constantPaths.landing}>
+          <Link to={constantPaths.import}>
             + {t(translation.ADD_NEW_VAULT)}
           </Link>
           <CaretRightOutlined />
@@ -81,16 +80,18 @@ const Component: FC = () => {
           <span className="title">{t(translation.TOTAL_BALANCE)}</span>
           <span className="value">
             {vault
-              ? `${currencySymbol[currency]}${vault.coins
+              ? vault.coins
                   .reduce((acc, coin) => acc + coin.balance * coin.value, 0)
-                  .toFixed(2)}`
-              : `${currencySymbol[currency]}0.00`}
+                  .toValueFormat(currency)
+              : (0).toValueFormat(currency)}
           </span>
         </div>
         {vault ? (
           vault.coins.length ? (
             vault.coins
               .filter((coin) => coin.isNativeToken)
+              .slice()
+              .sort((a, b) => b.totalValue - a.totalValue)
               .map(({ chain, ...res }) => (
                 <BalanceItem key={chain} {...{ ...res, chain }} />
               ))

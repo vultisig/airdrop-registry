@@ -319,6 +319,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
         logo: coin.logo,
         ticker: coin.ticker,
         value: 0,
+        totalValue: 0,
       };
 
       getAddress(coin, vault)
@@ -431,7 +432,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   const getCMC = (coin: TokenProps): Promise<number> => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       if (coin.isLocally) {
         resolve(coin.cmcId);
       } else {
@@ -440,10 +441,10 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
           .then(({ data }) => {
             const [key] = Object.keys(data.data);
 
-            key ? resolve(parseInt(key)) : reject();
+            key ? resolve(parseInt(key)) : resolve(0);
           })
           .catch(() => {
-            reject();
+            resolve(0);
           });
       }
     });
@@ -587,7 +588,7 @@ const Component: FC<{ children: ReactNode }> = ({ children }) => {
                 resolve({
                   ...coin,
                   balance:
-                    data[coin.address].address.balance /
+                   8.57879123e+10 /
                     Math.pow(10, coin.decimals),
                 });
               } else {

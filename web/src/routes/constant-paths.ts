@@ -1,7 +1,7 @@
 export default {
   root: "/",
-  basePath: "/webapp",
-  asset: "/balance/:chainKey",
-  balance: "/balance",
-  landing: "/landing",
+  basePath: import.meta.env.VITE_BASE_PATH ? import.meta.env.VITE_BASE_PATH : "/",
+  asset: "/chains/:chainKey",
+  chains: "/chains",
+  import: "/import",
 };

@@ -6,7 +6,7 @@ export default {
     [translation.CHOOSE_CHAIN]: "Scegli catene",
     [translation.CHOOSE_TOKEN]: "Scegli token",
     [translation.CURRENCY]: "Valuta",
-    [translation.DOWNLOAD_APP]: "Non hai ancora una cassaforte? Scarica Vault ora",
+    [translation.DOWNLOAD_APP]: "Non hai ancora una cassaforte? Scarica Vultisig ora",
     [translation.DEFAULT_CHAINS]: "Catene predefinite",
     [translation.DROP_FILE_HERE]: "Trascina qui il tuo file o",
     // E
@@ -34,7 +34,7 @@ export default {
     // U
     [translation.UPLOAD_IT]: "caricalo",
     [translation.UPLOAD_QR_CODE]: "Carica qui il tuo codice QR",
-    [translation.UPLOAD_VAULT_SHARE]: "Carica la tua parte della cassaforte per iniziare",
+    [translation.UPLOAD_VAULT_SHARE]: "Carica la tua chiave pubblica Vultisig per iniziare",
     // V
     [translation.VAULT_SETTINGS]: "Impostazioni cassaforte",
     [translation.VULT_TOKEN]: "Il token $VULT",

@@ -36,7 +36,7 @@ const Component: FC = () => {
         .then(() => {
           setState((prevState) => ({ ...prevState, loading: false }));
 
-          navigate(constantPaths.balance);
+          navigate(constantPaths.chains);
         })
         .catch(() => {
           setState((prevState) => ({
@@ -171,9 +171,7 @@ const Component: FC = () => {
             </>
           )}
         </Upload.Dragger>
-        <p className="hint">
-        {t(translation.HINT)}
-        </p>
+        <p className="hint">{t(translation.HINT)}</p>
         <Button
           disabled={status !== "success"}
           loading={loading}

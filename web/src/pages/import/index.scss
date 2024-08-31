@@ -6,7 +6,12 @@
   text-align: center;
 
   .ant-upload-btn {
+    display: block !important;
     padding: 3rem 1rem !important;
+  }
+
+  .ant-upload-drag-container {
+    display: block !important;
   }
 
   .ant-upload-drag {
@@ -59,6 +64,10 @@
   .text {
     font-size: 0.875rem;
     margin-top: 0.5rem;
+
+    u {
+      margin-left: 0.25rem;
+    }
   }
 
   .close {
@@ -81,6 +90,9 @@
 
   .name {
     font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .error {
