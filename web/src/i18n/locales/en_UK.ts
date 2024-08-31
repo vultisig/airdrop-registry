@@ -4,16 +4,17 @@ export default {
   [translation.ADD_NEW_VAULT]: "Add new vault",
   // B
   [translation.CHOOSE_CHAIN]: "Choose Chains",
-  [translation.CHOOSE_TOKEN]:"Choose Tokens",
+  [translation.CHOOSE_TOKEN]: "Choose Tokens",
   [translation.CURRENCY]: "Currency",
-  [translation.DOWNLOAD_APP]: "Don’t have a vault yet? Download Vault now",
+  [translation.DOWNLOAD_APP]: "Don’t have a vault yet? Download Vultisig now",
   [translation.DEFAULT_CHAINS]: "Default Chains",
   [translation.DROP_FILE_HERE]: "Drop your file here or",
   // E
   // F
   [translation.FAQ]: "FAQ",
   // G
-  [translation.HINT]: "If you didn’t save the QR code yet, you can find it in the app in the top right on the main screen",
+  [translation.HINT]:
+    "If you didn’t save the QR code yet, you can find it in the app in the top right on the main screen",
   // I
   [translation.JOIN_AIRDROP]: "Join Airdrop",
   // K
@@ -34,7 +35,7 @@ export default {
   // U
   [translation.UPLOAD_IT]: "upload it",
   [translation.UPLOAD_QR_CODE]: "Upload your QR code here",
-  [translation.UPLOAD_VAULT_SHARE]: "Upload your vault share to start",
+  [translation.UPLOAD_VAULT_SHARE]: "Upload your Vultisig Public Key to start",
   // V
   [translation.VAULT_SETTINGS]: "Vault Settings",
   [translation.VULT_TOKEN]: "The $VULT Token",

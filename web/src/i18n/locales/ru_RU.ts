@@ -6,7 +6,7 @@ export default {
     [translation.CHOOSE_CHAIN]: "Выбрать цепочки",
     [translation.CHOOSE_TOKEN]: "Выбрать токены",
     [translation.CURRENCY]: "Валюта",
-    [translation.DOWNLOAD_APP]: "Еще нет хранилища? Скачайте Vault сейчас",
+    [translation.DOWNLOAD_APP]: "Еще нет хранилища? Скачайте Vultisig сейчас",
     [translation.DEFAULT_CHAINS]: "Цепочки по умолчанию",
     [translation.DROP_FILE_HERE]: "Перетащите файл сюда или",
     // E
@@ -34,7 +34,7 @@ export default {
     // U
     [translation.UPLOAD_IT]: "загрузите его",
     [translation.UPLOAD_QR_CODE]: "Загрузите ваш QR-код сюда",
-    [translation.UPLOAD_VAULT_SHARE]: "Загрузите вашу часть хранилища для начала",
+    [translation.UPLOAD_VAULT_SHARE]: "Загрузите свой открытый ключ Vultisig, чтобы начать",
     // V
     [translation.VAULT_SETTINGS]: "Настройки хранилища",
     [translation.VULT_TOKEN]: "Токен $VULT",

@@ -87,6 +87,12 @@ export const RefreshOutlined: FC<SVGProps<SVGSVGElement>> = ({ ...props }) => (
   </svg>
 );
 
+export const SearchOutlined: FC<SVGProps<SVGSVGElement>> = ({ ...props }) => (
+  <svg viewBox="0 0 24 24" {...props}>
+    <path d="M21.7,20.3l-3.9-3.9c1.2-1.5,1.9-3.4,1.9-5.5,0-4.9-4-8.9-8.9-8.9S2,6,2,10.9s4,8.9,8.9,8.9,4-.7,5.5-1.9l3.9,3.9c.2.2.5.3.7.3s.5,0,.7-.3c.4-.4.4-1,0-1.4ZM4,10.9c0-3.8,3.1-6.9,6.9-6.9s6.9,3.1,6.9,6.9-3.1,6.9-6.9,6.9-6.9-3.1-6.9-6.9Z" />
+  </svg>
+);
+
 export const ShareOutlined: FC<SVGProps<SVGSVGElement>> = ({ ...props }) => (
   <svg viewBox="0 0 24 24" {...props}>
     <path d="M18.1,22H3.7c-.4,0-.9-.2-1.2-.5-.3-.3-.5-.7-.5-1.2v-11.4c0-.5.4-.9.9-.9s.9.4.9.9v11.2h14.2c.5,0,.9.4.9.9s-.4.9-.9.9Z" />

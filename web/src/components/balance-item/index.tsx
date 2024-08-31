@@ -4,6 +4,7 @@ import { Button, Spin, Tooltip, message } from "antd";
 import { Truncate } from "@re-dev/react-truncate";
 
 import { useVaultContext } from "context";
+import { exploreToken } from "utils/constants";
 import { CoinProps } from "utils/interfaces";
 import constantModals from "modals/constant-modals";
 import constantPaths from "routes/constant-paths";
@@ -15,16 +16,15 @@ import {
   QRCodeOutlined,
 } from "icons";
 import QRCode from "modals/qr-code";
-import { currencySymbol, exploreToken } from "utils/constants";
 
 interface InitialState {
-  assets: CoinProps[];
+  assetsNum: number;
 }
 
 const Component: FC<CoinProps> = ({ address, balance, chain, ticker }) => {
-  const initialState: InitialState = { assets: [] };
+  const initialState: InitialState = { assetsNum: 1 };
   const [state, setState] = useState(initialState);
-  const { assets } = state;
+  const { assetsNum } = state;
   const { currency, vault } = useVaultContext();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -46,17 +46,18 @@ const Component: FC<CoinProps> = ({ address, balance, chain, ticker }) => {
   };
 
   const componentDidUpdate = (): void => {
-    const assets = vault
-      ? vault.coins.filter((coin) => coin.chain === chain)
-      : [];
-
-    setState((prevState) => ({ ...prevState, assets }));
+    setState((prevState) => ({
+      ...prevState,
+      hasAsset: vault
+        ? vault.coins.filter((coin) => coin.chain === chain).length
+        : 1,
+    }));
   };
 
   const componentDidMount = (): void => {};
 
   useEffect(componentDidMount, []);
-  useEffect(componentDidUpdate, [address]);
+  useEffect(componentDidUpdate, [vault?.coins]);
 
   return (
     <>
@@ -79,20 +80,16 @@ const Component: FC<CoinProps> = ({ address, balance, chain, ticker }) => {
             <Spin />
           )}
         </div>
-        <span className={`asset${assets.length > 1 ? " multi" : ""}`}>
-          {assets.length > 1
-            ? `${assets.length} assets`
-            : balance.toString().split(".")[1]?.length > 8
-            ? balance.toFixed(8)
-            : balance}
+        <span className={`asset${assetsNum > 1 ? " multi" : ""}`}>
+          {assetsNum > 1 ? `${assetsNum} assets` : balance.toBalanceFormat()}
         </span>
         <span className="amount">
           {vault
-            ? `${currencySymbol[currency]}${vault.coins
+            ? vault.coins
                 .filter((coin) => coin.chain === chain)
                 .reduce((acc, coin) => acc + coin.balance * coin.value, 0)
-                .toFixed(2)}`
-            : `${currencySymbol[currency]}0.00`}
+                .toValueFormat(currency)
+            : (0).toValueFormat(currency)}
         </span>
         <div className="actions">
           <Tooltip title="Copy Address">
@@ -116,7 +113,7 @@ const Component: FC<CoinProps> = ({ address, balance, chain, ticker }) => {
           </Tooltip>
         </div>
         <Link
-          to={`${constantPaths.balance}/${chain.toLocaleLowerCase()}`}
+          to={`${constantPaths.chains}/${chain.toLocaleLowerCase()}`}
           className="arrow"
         >
           <CaretRightOutlined />

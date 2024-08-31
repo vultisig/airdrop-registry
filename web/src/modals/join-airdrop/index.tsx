@@ -79,6 +79,7 @@ const Component: FC = () => {
   };
 
   useEffect(componentDidUpdate, [hash]);
+
   return (
     <Modal
       className="join-airdrop"
@@ -129,7 +130,10 @@ const Component: FC = () => {
         <span className="desc">
           You are registering your Public Keys and vault addresses.
         </span>
-        <Link to="#" className="link">
+        <Link
+          to="https://github.com/vultisig/airdrop-registry"
+          className="link"
+        >
           Inspect the code here.
         </Link>
       </div>
@@ -144,8 +148,11 @@ const Component: FC = () => {
 
       <div className="hint">
         <span className="desc">No other information is collected.</span>
-        <Link to="#" className="link">
-          Read the Founder Pledge on Privacy here.
+        <Link
+          to="https://github.com/vultisig/docs/blob/main/other/privacy.md"
+          className="link"
+        >
+          Read the Privacy Policy here
         </Link>
       </div>
 

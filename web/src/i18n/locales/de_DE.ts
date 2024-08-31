@@ -6,7 +6,7 @@ export default {
     [translation.CHOOSE_CHAIN]: "Ketten auswählen",
     [translation.CHOOSE_TOKEN]: "Token auswählen",
     [translation.CURRENCY]: "Währung",
-    [translation.DOWNLOAD_APP]: "Haben Sie noch keinen Tresor? Laden Sie Vault jetzt herunter",
+    [translation.DOWNLOAD_APP]: "Haben Sie noch keinen Tresor? Laden Sie Vultisig jetzt herunter",
     [translation.DEFAULT_CHAINS]: "Standardketten",
     [translation.DROP_FILE_HERE]: "Legen Sie Ihre Datei hier ab oder",
     // E
@@ -34,7 +34,7 @@ export default {
     // U
     [translation.UPLOAD_IT]: "hochladen",
     [translation.UPLOAD_QR_CODE]: "Laden Sie hier Ihren QR-Code hoch",
-    [translation.UPLOAD_VAULT_SHARE]: "Laden Sie Ihren Tresoranteil hoch, um zu beginnen",
+    [translation.UPLOAD_VAULT_SHARE]: "Laden Sie Ihren öffentlichen Vultisig-Schlüssel hoch, um zu beginnen",
     // V
     [translation.VAULT_SETTINGS]: "Tresoreinstellungen",
     [translation.VULT_TOKEN]: "Der $VULT-Token",

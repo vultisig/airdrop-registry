@@ -16,8 +16,8 @@
 @import "../layout";
 
 @import "../pages/asset";
-@import "../pages/balance";
-@import "../pages/landing";
+@import "../pages/chains";
+@import "../pages/import";
 
 body {
   background-color: $blue-dark;
@@ -117,13 +117,26 @@ body {
   }
 }
 
-.ant-input {
+.ant-input-affix-wrapper {
   background-color: $blue-base !important;
   border: none;
   box-shadow: none !important;
-  line-height: 2rem;
 
-  &:hover {
+  .ant-input {
+    background-color: transparent;
+    line-height: 2rem;
+  }
+
+  .ant-input-prefix {
+    svg {
+      fill: $gray-1;
+      height: 1.5rem;
+      opacity: 0.4;
+      width: 1.5rem;
+    }
+  }
+
+  &.ant-input-affix-wrapper-focused {
     background-color: $blue-light !important;
   }
 }

@@ -1,12 +1,10 @@
 .asset-item {
   border-top: solid 1px $blue-light;
-  display: flex;
-  justify-content: space-between;
+  position: relative;
 
   .token {
     padding-left: 3rem;
     position: relative;
-    width: 30%;
 
     .logo {
       height: 1.5rem;
@@ -25,16 +23,47 @@
   }
 
   .balance {
-    font-weight: 700;
-    line-height: 4.25rem;
-    text-align: center;
-    width: 30%;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    position: absolute;
+    right: 0;
+    top: 2.375rem;
+    white-space: nowrap;
   }
 
   .value {
+    font-size: 1.25em;
     font-weight: 700;
-    line-height: 4.25rem;
-    text-align: right;
-    width: 30%;
+    line-height: 1.375rem;
+    position: absolute;
+    right: 0;
+    top: 0.75rem;
+    white-space: nowrap;
+  }
+}
+
+@media (min-width: 48rem) {
+  .asset-item {
+    display: flex;
+    justify-content: space-between;
+
+    .token {
+      width: 30%;
+    }
+
+    .balance {
+      font-size: 1rem;
+      line-height: 4.25rem;
+      position: static;
+      text-align: center;
+      width: 30%;
+    }
+
+    .value {
+      line-height: 4.25rem;
+      position: static;
+      text-align: right;
+      width: 30%;
+    }
   }
 }

@@ -5,6 +5,7 @@ import "core-js";
 import App from "App.tsx";
 
 import "i18n/config";
+import "utils/prototypes";
 import "styles/index.scss";
 
 import.meta.env.DEV

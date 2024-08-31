@@ -135,6 +135,7 @@ export interface CoinProps {
   isNativeToken: boolean;
   logo: string;
   ticker: string;
+  totalValue: number;
   value: number;
 }
 
