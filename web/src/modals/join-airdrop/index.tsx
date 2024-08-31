@@ -152,7 +152,7 @@ const Component: FC = () => {
           to="https://github.com/vultisig/docs/blob/main/other/privacy.md"
           className="link"
         >
-          Read the Founder Pledge on Privacy here.
+          Read the Privacy Policy here
         </Link>
       </div>
 
