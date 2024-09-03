@@ -13,7 +13,7 @@ type CoinBase struct {
 	ContractAddress string       `json:"contract_address" gorm:"type:varchar(255)"`
 	Decimals        int          `json:"decimals" binding:"required" gorm:"type:Integer;not null"`
 	PriceProviderID string       `json:"price_provider_id" gorm:"type:varchar(255)"`
-	IsNativeToken   bool         `json:"is_native"`
+	IsNative        bool         `json:"is_native" gorm:"column:is_native_token"`
 	HexPublicKey    string       `json:"hex_public_key" binding:"required" gorm:"type:varchar(255);not null"`
 	CMCId           int          `json:"cmc_id" gorm:"type:Integer"`
 	Logo            string       `json:"logo" gorm:"type:varchar(255)"`
