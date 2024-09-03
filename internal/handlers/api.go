@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -54,24 +53,6 @@ func (a *Api) setupRouting() {
 	a.router.Use(ErrorHandler())
 	a.router.Use(gzip.Gzip(gzip.DefaultCompression))
 
-	a.router.GET("/webapp", func(c *gin.Context) {
-		c.File("web/dist/index.html")
-	})
-	a.router.GET("/webapp/*path", func(c *gin.Context) {
-		if strings.Contains(c.Request.URL.Path, "wallet-core.wasm") {
-			c.File("web/dist/wallet-core.wasm")
-			return
-		}
-		c.File("web/dist/index.html")
-	})
-
-	a.router.Static("/assets", "web/dist/assets")
-	a.router.Static("/fonts", "web/dist/fonts")
-	a.router.Static("/images", "web/dist/images")
-	a.router.Static("/coins", "web/dist/coins")
-	a.router.StaticFile("/wallet-core.wasm", "web/dist/wallet-core.wasm")
-	a.router.StaticFile("/favicon.ico", "web/dist/favicon.ico")
-	
 	// register api group
 	rg := a.router.Group("/api")
 	// endpoint for health check
