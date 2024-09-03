@@ -87,7 +87,7 @@ func (a *Api) deleteCoin(c *gin.Context) {
 		return
 	}
 	// If the coin is native token, delete all coins with the same chain
-	if coin.IsNativeToken {
+	if coin.IsNative {
 		coins, err := a.s.GetCoins(vault.ID)
 		if err != nil {
 			a.logger.Error(err)
