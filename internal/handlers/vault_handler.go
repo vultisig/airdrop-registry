@@ -64,13 +64,28 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		PublicKeyEDDSA: vault.EDDSA,
 		TotalPoints:    vault.TotalPoints,
 		JoinAirdrop:    vault.JoinAirdrop,
-		Coins:          []models.CoinDBModel{},
+		Coins:          []models.ChainCoins{},
 	}
 	for _, coin := range coins {
-		vaultResp.Coins = append(vaultResp.Coins, coin)
+		found := false
+		for i, _ := range vaultResp.Coins {
+			if vaultResp.Coins[i].Name == coin.Chain {
+				vaultResp.Coins[i].Coins = append(vaultResp.Coins[i].Coins, models.NewCoin(coin))
+				found = true
+			}
+		}
+		if !found {
+			vaultResp.Coins = append(vaultResp.Coins, models.ChainCoins{
+				Name:         coin.Chain,
+				Address:      coin.Address,
+				HexPublicKey: coin.HexPublicKey,
+				Coins:        []models.Coin{models.NewCoin(coin)},
+			})
+		}
 	}
 	c.JSON(http.StatusOK, vaultResp)
 }
+
 func (a *Api) joinAirdrop(c *gin.Context) {
 	var vault models.VaultRequest
 	if err := c.ShouldBindJSON(&vault); err != nil {
@@ -96,6 +111,9 @@ func (a *Api) joinAirdrop(c *gin.Context) {
 			c.Error(errFailedToJoinRegistry)
 			return
 		}
+	} else {
+		c.Error(errForbiddenAccess)
+		return
 	}
 	c.Status(http.StatusOK)
 }
