@@ -13,13 +13,42 @@ type CoinBase struct {
 	ContractAddress string       `json:"contract_address" gorm:"type:varchar(255)"`
 	Decimals        int          `json:"decimals" binding:"required" gorm:"type:Integer;not null"`
 	PriceProviderID string       `json:"price_provider_id" gorm:"type:varchar(255)"`
-	IsNativeToken   bool         `json:"is_native_token"`
+	IsNative        bool         `json:"is_native" gorm:"column:is_native_token"`
 	HexPublicKey    string       `json:"hex_public_key" binding:"required" gorm:"type:varchar(255);not null"`
 	CMCId           int          `json:"cmc_id" gorm:"type:Integer"`
 	Logo            string       `json:"logo" gorm:"type:varchar(255)"`
 	Balance         string       `json:"balance" gorm:"type:varchar(50)"`
 	PriceUSD        string       `json:"price" gorm:"type:varchar(50)"`
 	USDValue        string       `json:"usd_value" gorm:"type:varchar(50)"`
+}
+
+type ChainCoins struct {
+	Name         common.Chain `json:"name"`
+	Address      string       `json:"address"`
+	HexPublicKey string       `json:"hex_public_key"`
+	Coins        []Coin       `json:"coins"`
+}
+
+type Coin struct {
+	ID              uint   `json:"id"`
+	Ticker          string `json:"ticker"`
+	ContractAddress string `json:"contract_address"`
+	Decimals        int    `json:"decimals"`
+	IsNative        bool   `json:"is_native"`
+	CMCId           int    `json:"cmc_id"`
+	Logo            string `json:"logo"`
+}
+
+func NewCoin(c CoinDBModel) Coin {
+	return Coin{
+		ID:              c.ID,
+		Ticker:          c.Ticker,
+		ContractAddress: c.ContractAddress,
+		Decimals:        c.Decimals,
+		IsNative:        c.IsNative,
+		CMCId:           c.CMCId,
+		Logo:            c.Logo,
+	}
 }
 
 type CoinDBModel struct {

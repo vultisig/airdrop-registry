@@ -15,6 +15,9 @@ func (a *Api) addCoin(c *gin.Context) {
 		c.Error(errInvalidRequest)
 		return
 	}
+	coin.Balance = ""
+	coin.USDValue = ""
+	coin.PriceUSD = ""
 	ecdsaPublicKey := c.Param("ecdsaPublicKey")
 	eddsaPublicKey := c.Param("eddsaPublicKey")
 	hexChainCode := c.GetHeader("x-hex-chain-code")
@@ -77,8 +80,32 @@ func (a *Api) deleteCoin(c *gin.Context) {
 		c.Error(errForbiddenAccess)
 		return
 	}
-
-	if err := a.s.DeleteCoin(strCoinID, vault.ID); err != nil {
+	coin, err := a.s.GetCoin(strCoinID)
+	if err != nil {
+		a.logger.Error(err)
+		c.Error(errFailedToGetCoin)
+		return
+	}
+	// If the coin is native token, delete all coins with the same chain
+	if coin.IsNative {
+		coins, err := a.s.GetCoins(vault.ID)
+		if err != nil {
+			a.logger.Error(err)
+			c.Error(errFailedToGetCoin)
+			return
+		}
+		coinIds := make([]uint, 0)
+		for i := range coins {
+			if coins[i].Chain == coin.Chain {
+				coinIds = append(coinIds, coins[i].ID)
+			}
+		}
+		if err := a.s.DeleteCoins(coinIds, vault.ID); err != nil {
+			a.logger.Error(err)
+			c.Error(errFailedToDeleteCoin)
+			return
+		}
+	} else if err := a.s.DeleteCoin(strCoinID, vault.ID); err != nil {
 		a.logger.Error(err)
 		c.Error(errFailedToDeleteCoin)
 		return
