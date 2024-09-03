@@ -25,6 +25,14 @@ func (s *Storage) GetVault(ecdsa, eddsa string) (*models.Vault, error) {
 	return &vault, nil
 }
 
+func (s *Storage) GetVaultByUID(uid string) (*models.Vault, error) {
+	var vault models.Vault
+	if err := s.db.Where("uid = ?",uid).First(&vault).Error; err != nil {
+		return nil, fmt.Errorf("failed to get vault with UID %s: %w", uid, err)
+	}
+	return &vault, nil
+}
+
 func (s *Storage) UpdateVault(vault *models.Vault) error {
 	if err := s.db.Save(vault).Error; err != nil {
 		return fmt.Errorf("failed to update vault: %w", err)
