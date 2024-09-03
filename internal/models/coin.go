@@ -45,7 +45,7 @@ func NewCoin(c CoinDBModel) Coin {
 		Ticker:          c.Ticker,
 		ContractAddress: c.ContractAddress,
 		Decimals:        c.Decimals,
-		IsNative:        c.IsNative,
+		IsNative:        c.IsNativeToken,
 		CMCId:           c.CMCId,
 		Logo:            c.Logo,
 	}
