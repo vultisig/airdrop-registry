@@ -117,6 +117,7 @@ func (a *Api) getVaultByUIDHandler(c *gin.Context) {
 	vaultResp := models.VaultResponse{
 		UId:            vault.Uid,
 		Name:           vault.Alias,
+		Alias:          vault.Alias,
 		PublicKeyECDSA: "",
 		PublicKeyEDDSA: "",
 		TotalPoints:    vault.TotalPoints,
