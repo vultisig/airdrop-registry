@@ -206,28 +206,32 @@ func (a *Api) exitAirdrop(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 func (a *Api) deleteVaultHandler(c *gin.Context) {
-	var vault models.VaultRequest
-	if err := c.ShouldBindJSON(&vault); err != nil {
-		c.Error(errInvalidRequest)
+	ecdsaPublicKey := c.Param("ecdsaPublicKey")
+	eddsaPublicKey := c.Param("eddsaPublicKey")
+	hexChainCode := c.GetHeader("x-hex-chain-code")
+	if hexChainCode == "" {
+		c.Error(errForbiddenAccess)
 		return
 	}
-	// check vault already exists , should we tell front-end that vault already registered?
-	v, err := a.s.GetVault(vault.PublicKeyECDSA, vault.PublicKeyEDDSA)
+	vault, err := a.s.GetVault(ecdsaPublicKey, eddsaPublicKey)
 	if err != nil {
 		a.logger.Error(err)
 		c.Error(errFailedToGetVault)
 		return
 	}
-	if v == nil {
+	if vault == nil {
 		c.Error(errVaultNotFound)
 		return
 	}
-	if v.HexChainCode == vault.HexChainCode && v.Uid == vault.Uid {
-		if err := a.s.DeleteVault(vault.PublicKeyECDSA, vault.PublicKeyEDDSA); err != nil {
+	if hexChainCode == vault.HexChainCode {
+		if err := a.s.DeleteVault(ecdsaPublicKey, eddsaPublicKey); err != nil {
 			a.logger.Error(err)
 			c.Error(errFailedToDeleteVault)
 			return
 		}
+	} else {
+		c.Error(errForbiddenAccess)
+		return
 	}
 	c.Status(http.StatusOK)
 }
