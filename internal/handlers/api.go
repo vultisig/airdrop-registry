@@ -65,7 +65,7 @@ func (a *Api) setupRouting() {
 	rg.POST("/derive-public-key", a.derivePublicKeyHandler)
 	// Vaults
 	rg.POST("/vault", a.registerVaultHandler)
-	rg.DELETE("/vault", a.deleteVaultHandler)
+	rg.DELETE("/vault/:ecdsaPublicKey/:eddsaPublicKey", a.deleteVaultHandler)
 	rg.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey", a.getVaultHandler)
 	rg.POST("/vault/:ecdsaPublicKey/:eddsaPublicKey/alias", a.updateAliasHandler)
 	rg.GET("/vault/shared/:uid", a.getVaultByUIDHandler)
