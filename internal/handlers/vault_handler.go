@@ -219,14 +219,7 @@ func (a *Api) deleteVaultHandler(c *gin.Context) {
 		c.Error(errFailedToGetVault)
 		return
 	}
-	// check vault already exists , should we tell front-end that vault already registered?
-	v, err := a.s.GetVault(ecdsaPublicKey, eddsaPublicKey)
-	if err != nil {
-		a.logger.Error(err)
-		c.Error(errFailedToGetVault)
-		return
-	}
-	if v == nil {
+	if vault == nil {
 		c.Error(errVaultNotFound)
 		return
 	}
