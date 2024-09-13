@@ -169,6 +169,9 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 		}
 
 		if job.IsSuccess {
+			if p.storage.UpdateVaultRanks() != nil {
+				p.logger.Errorf("failed to update vault ranks: %v", err)
+			}
 			return
 		}
 	}

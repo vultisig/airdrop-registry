@@ -73,3 +73,15 @@ func (s *Storage) UpdateJob(job *models.Job) error {
 	}
 	return nil
 }
+func (s *Storage) UpdateVaultRanks() error {
+	sql := `
+UPDATE vaults
+JOIN (
+    SELECT id, RANK() OVER (ORDER BY total_points DESC) as rank
+    FROM vaults
+) ranked_vaults ON vaults.id = ranked_vaults.id
+SET vaults.rank = ranked_vaults.rank;
+`
+	return s.db.Exec(sql).Error
+
+}
