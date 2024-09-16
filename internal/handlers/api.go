@@ -12,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/gin-contrib/gzip"
+
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/models"
 	"github.com/vultisig/airdrop-registry/internal/services"
@@ -76,6 +77,7 @@ func (a *Api) setupRouting() {
 	rg.DELETE("/coin/:ecdsaPublicKey/:eddsaPublicKey/:coinID", a.deleteCoin)
 	rg.POST("/coin/:ecdsaPublicKey/:eddsaPublicKey", a.addCoin)
 	rg.GET("/coin/:ecdsaPublicKey/:eddsaPublicKey", a.getCoin)
+	// leader board
 
 }
 

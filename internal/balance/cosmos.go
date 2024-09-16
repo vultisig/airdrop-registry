@@ -14,7 +14,65 @@ func (b *BalanceResolver) FetchThorchainBalanceOfAddress(address string) (float6
 		return 0, fmt.Errorf("address cannot be empty")
 	}
 	url := fmt.Sprintf("https://thornode.ninerealms.com/cosmos/bank/v1beta1/balances/%s", address)
-	return b.fetchSpecificCosmosBalance(url, "rune", 8)
+	runeBalance, err := b.fetchSpecificCosmosBalance(url, "rune", 8)
+	if err != nil {
+		return 0, fmt.Errorf("error fetching thorchain balance: %w", err)
+	}
+	// consider thorchain bond
+	bondValue, ok := b.thorchainBondProviders.Load(address)
+	if !ok {
+		return runeBalance, nil
+	}
+	b.logger.Infof("address: %s, bond: %s", address, bondValue)
+	bond, err := strconv.ParseFloat(bondValue.(string), 64)
+	if err != nil {
+		b.logger.Errorf("failed to parse bond value: %v", err)
+		return runeBalance, nil
+	}
+	return runeBalance + bond/math.Pow10(8), nil
+}
+
+type THORNodeBondProvider struct {
+	BondAddress string `json:"bond_address"`
+	Bond        string `json:"bond"`
+}
+type THORNodeBondProviders struct {
+	Providers []THORNodeBondProvider `json:"providers"`
+}
+type THORNode struct {
+	BondProviders THORNodeBondProviders `json:"bond_providers"`
+}
+
+// GetTHORChainBondProviders fetches the bond providers from THORChain
+func (b *BalanceResolver) GetTHORChainBondProviders() error {
+	url := "https://thornode.ninerealms.com/thorchain/nodes"
+	resp, err := http.Get(url)
+	if err != nil {
+		return fmt.Errorf("error fetching bond providers from %s: %w", url, err)
+	}
+
+	defer b.closer(resp.Body)
+	var nodes []THORNode
+	if err := json.NewDecoder(resp.Body).Decode(&nodes); err != nil {
+		return fmt.Errorf("error unmarshalling response: %w", err)
+	}
+	if len(nodes) == 0 {
+		return nil
+	}
+	for _, node := range nodes {
+		for _, item := range node.BondProviders.Providers {
+			b.thorchainBondProviders.Store(item.BondAddress, item.Bond)
+		}
+	}
+
+	b.thorchainBondProviders.Range(func(k, v interface{}) bool {
+		b.logger.Infof("bond provider: %s, bond: %s", k, v)
+		return true
+	})
+	return nil
+}
+func (b *BalanceResolver) GetLP(address string) (float64, error) {
+	return 0.0, nil
 }
 
 func (b *BalanceResolver) FetchMayachainBalanceOfAddress(address string) (float64, error) {

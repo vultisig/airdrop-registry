@@ -3,6 +3,7 @@ package balance
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -19,12 +20,14 @@ const (
 
 // BalanceResolver is to fetch address balances
 type BalanceResolver struct {
-	logger *logrus.Logger
+	logger                 *logrus.Logger
+	thorchainBondProviders *sync.Map
 }
 
 func NewBalanceResolver() (*BalanceResolver, error) {
 	return &BalanceResolver{
-		logger: logrus.WithField("module", "balance_resolver").Logger,
+		logger:                 logrus.WithField("module", "balance_resolver").Logger,
+		thorchainBondProviders: &sync.Map{},
 	}, nil
 }
 

@@ -24,6 +24,7 @@ type Vault struct {
 	Uid          string  `gorm:"type:varchar(255)" json:"uid" binding:"required"`
 	TotalPoints  float64 `json:"total_points"` // total point of the vault
 	JoinAirdrop  bool    `json:"join_airdrop"` // join airdrop or not
+	Rank         int64   `json:"rank"`         // rank of the vault
 }
 
 func (*Vault) TableName() string {

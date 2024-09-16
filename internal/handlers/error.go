@@ -34,21 +34,26 @@ func ErrorHandler() gin.HandlerFunc {
 			err := c.Errors.Last().Err
 			var statusCode int
 			errText := err.Error()
-			switch err {
-			case errInvalidRequest, errVaultAlreadyRegist:
+			switch {
+			case errors.Is(err, errInvalidRequest), errors.Is(err, errVaultAlreadyRegist):
 				statusCode = http.StatusBadRequest
-			case errAddressNotMatch:
+			case errors.Is(err, errAddressNotMatch):
 				statusCode = http.StatusBadRequest
-			case errVaultNotFound:
+			case errors.Is(err, errVaultNotFound):
 				statusCode = http.StatusNotFound
-			case errForbiddenAccess:
+			case errors.Is(err, errForbiddenAccess):
 				statusCode = http.StatusForbidden
-			case errFailedToRegisterVault, errFailedToGetVault, errFailedToDeleteVault,
-				errFailedToGetCoin, errFailedToJoinRegistry, errFailedToExitRegistry,
-				errFailedToGetAddress, errFailedToAddCoin, errFailedToDeleteCoin,
-				errFailedToDerivePublicKey:
+			case errors.Is(err, errFailedToRegisterVault),
+				errors.Is(err, errFailedToGetVault),
+				errors.Is(err, errFailedToDeleteVault),
+				errors.Is(err, errFailedToGetCoin),
+				errors.Is(err, errFailedToJoinRegistry),
+				errors.Is(err, errFailedToExitRegistry),
+				errors.Is(err, errFailedToGetAddress),
+				errors.Is(err, errFailedToAddCoin),
+				errors.Is(err, errFailedToDeleteCoin),
+				errors.Is(err, errFailedToDerivePublicKey):
 				statusCode = http.StatusInternalServerError
-
 			default:
 				statusCode = http.StatusInternalServerError
 				errText = errUnknown.Error()
