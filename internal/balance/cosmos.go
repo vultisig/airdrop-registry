@@ -23,6 +23,7 @@ func (b *BalanceResolver) FetchThorchainBalanceOfAddress(address string) (float6
 	if !ok {
 		return runeBalance, nil
 	}
+	b.logger.Infof("address: %s, bond: %s", address, bondValue)
 	bond, err := strconv.ParseFloat(bondValue.(string), 64)
 	if err != nil {
 		b.logger.Errorf("failed to parse bond value: %v", err)
@@ -42,7 +43,7 @@ type THORNode struct {
 	BondProviders THORNodeBondProviders `json:"bond_providers"`
 }
 
-// get RUNE pool
+// GetTHORChainBondProviders fetches the bond providers from THORChain
 func (b *BalanceResolver) GetTHORChainBondProviders() error {
 	url := "https://thornode.ninerealms.com/thorchain/nodes"
 	resp, err := http.Get(url)
@@ -51,13 +52,23 @@ func (b *BalanceResolver) GetTHORChainBondProviders() error {
 	}
 
 	defer b.closer(resp.Body)
-	var node THORNode
-	if err := json.NewDecoder(resp.Body).Decode(&node); err != nil {
+	var nodes []THORNode
+	if err := json.NewDecoder(resp.Body).Decode(&nodes); err != nil {
 		return fmt.Errorf("error unmarshalling response: %w", err)
 	}
-	for _, item := range node.BondProviders.Providers {
-		b.thorchainBondProviders.Store(item.Bond, item.Bond)
+	if len(nodes) == 0 {
+		return nil
 	}
+	for _, node := range nodes {
+		for _, item := range node.BondProviders.Providers {
+			b.thorchainBondProviders.Store(item.BondAddress, item.Bond)
+		}
+	}
+
+	b.thorchainBondProviders.Range(func(k, v interface{}) bool {
+		b.logger.Infof("bond provider: %s, bond: %s", k, v)
+		return true
+	})
 	return nil
 }
 func (b *BalanceResolver) GetLP(address string) (float64, error) {
