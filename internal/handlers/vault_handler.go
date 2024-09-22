@@ -23,6 +23,7 @@ func (a *Api) registerVaultHandler(c *gin.Context) {
 	}
 	vaultModel := models.Vault{
 		Name:         vault.Name,
+		Alias:        vault.Name,
 		ECDSA:        vault.PublicKeyECDSA,
 		EDDSA:        vault.PublicKeyEDDSA,
 		Uid:          vault.Uid,
