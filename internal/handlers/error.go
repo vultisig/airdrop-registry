@@ -24,6 +24,9 @@ var (
 	errFailedToAddCoin         = errors.New("FAIL_TO_ADD_COIN")
 	errFailedToDeleteCoin      = errors.New("FAIL_TO_DELETE_COIN")
 	errFailedToDerivePublicKey = errors.New("FAIL_TO_DERIVE_PUBLIC_KEY")
+	errFailedToGetTheme        = errors.New("FAIL_TO_GET_THEME")
+	errFailedToSetTheme        = errors.New("FAIL_TO_SET_THEME")
+	errLogoTooLarge            = errors.New("LOGO_TOO_LARGE")
 )
 
 func ErrorHandler() gin.HandlerFunc {
@@ -35,7 +38,9 @@ func ErrorHandler() gin.HandlerFunc {
 			var statusCode int
 			errText := err.Error()
 			switch {
-			case errors.Is(err, errInvalidRequest), errors.Is(err, errVaultAlreadyRegist):
+			case errors.Is(err, errInvalidRequest),
+				errors.Is(err, errVaultAlreadyRegist),
+				errors.Is(err, errLogoTooLarge):
 				statusCode = http.StatusBadRequest
 			case errors.Is(err, errAddressNotMatch):
 				statusCode = http.StatusBadRequest
@@ -52,7 +57,9 @@ func ErrorHandler() gin.HandlerFunc {
 				errors.Is(err, errFailedToGetAddress),
 				errors.Is(err, errFailedToAddCoin),
 				errors.Is(err, errFailedToDeleteCoin),
-				errors.Is(err, errFailedToDerivePublicKey):
+				errors.Is(err, errFailedToDerivePublicKey),
+				errors.Is(err, errFailedToSetTheme),
+				errors.Is(err, errFailedToGetTheme):
 				statusCode = http.StatusInternalServerError
 			default:
 				statusCode = http.StatusInternalServerError

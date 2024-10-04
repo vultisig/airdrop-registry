@@ -27,7 +27,7 @@ func (s *Storage) GetVault(ecdsa, eddsa string) (*models.Vault, error) {
 
 func (s *Storage) GetVaultByUID(uid string) (*models.Vault, error) {
 	var vault models.Vault
-	if err := s.db.Where("uid = ?",uid).First(&vault).Error; err != nil {
+	if err := s.db.Where("uid = ?", uid).First(&vault).Error; err != nil {
 		return nil, fmt.Errorf("failed to get vault with UID %s: %w", uid, err)
 	}
 	return &vault, nil
@@ -52,6 +52,9 @@ func (s *Storage) DeleteVault(ecdsa, eddsa string) error {
 
 	if err := s.db.Exec("delete from coins where vault_id in (select id from vaults where ecdsa = ? and eddsa = ?)", ecdsa, eddsa).Error; err != nil {
 		return fmt.Errorf("fail to delete coins in vault,err: %w", err)
+	}
+	if err := s.db.Exec("delete from vault_share_appearances where vault_id in (select id from vaults where ecdsa = ? and eddsa = ?)", ecdsa, eddsa).Error; err != nil {
+		return fmt.Errorf("fail to delete vault_share_appearances in vault,err: %w", err)
 	}
 	if err := s.db.Where("ecdsa = ? AND eddsa = ?", ecdsa, eddsa).Unscoped().Delete(&models.Vault{}).Error; err != nil {
 		return fmt.Errorf("failed to delete vault with ECDSA %s and EDDSA %s: %w", ecdsa, eddsa, err)
