@@ -6,12 +6,11 @@ import (
 	"time"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/vultisig/mobile-tss-lib/tss"
 
 	"github.com/sirupsen/logrus"
-
-	"github.com/gin-contrib/gzip"
 
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/models"
@@ -77,6 +76,11 @@ func (a *Api) setupRouting() {
 	rg.DELETE("/coin/:ecdsaPublicKey/:eddsaPublicKey/:coinID", a.deleteCoin)
 	rg.POST("/coin/:ecdsaPublicKey/:eddsaPublicKey", a.addCoin)
 	rg.GET("/coin/:ecdsaPublicKey/:eddsaPublicKey", a.getCoin)
+
+	// Vault Share Appearance
+	rg.GET("vault/theme/:uid", a.getVaultShareAppearanceHandler)
+	rg.POST("vault/theme", a.updateVaultShareAppearanceHandler)
+
 	// leader board
 
 }
