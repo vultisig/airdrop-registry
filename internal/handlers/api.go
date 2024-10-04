@@ -50,9 +50,9 @@ func (a *Api) setupRouting() {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
-	a.router.Use(ErrorHandler())
-	a.router.Use(gzip.Gzip(gzip.DefaultCompression))
 
+	a.router.Use(gzip.Gzip(gzip.DefaultCompression))
+	a.router.Use(ErrorHandler())
 	// register api group
 	rg := a.router.Group("/api")
 	// endpoint for health check
