@@ -16,9 +16,18 @@ func (a *Api) registerVaultHandler(c *gin.Context) {
 		return
 	}
 	// check vault already exists , should we tell front-end that vault already registered?
-	if _, err := a.s.GetVault(vault.PublicKeyECDSA, vault.PublicKeyEDDSA); err == nil {
+	if v, err := a.s.GetVault(vault.PublicKeyECDSA, vault.PublicKeyEDDSA); err == nil {
 		a.logger.Error(err)
-		_ = c.Error(errVaultAlreadyRegist)
+		c.JSON(http.StatusOK, models.VaultResponse{
+			UId:            v.Uid,
+			Name:           v.Name,
+			Alias:          v.Alias,
+			PublicKeyECDSA: v.ECDSA,
+			PublicKeyEDDSA: v.EDDSA,
+			TotalPoints:    v.TotalPoints,
+			JoinAirdrop:    v.JoinAirdrop,
+			Coins:          []models.ChainCoins{},
+		})
 		return
 	}
 	vaultModel := models.Vault{
@@ -41,7 +50,18 @@ func (a *Api) registerVaultHandler(c *gin.Context) {
 		_ = c.Error(errFailedToRegisterVault)
 		return
 	}
-	c.Status(http.StatusCreated)
+
+	c.JSON(http.StatusOK, models.VaultResponse{
+		UId:            vaultModel.Uid,
+		Name:           vaultModel.Name,
+		Alias:          vaultModel.Alias,
+		PublicKeyECDSA: vaultModel.ECDSA,
+		PublicKeyEDDSA: vaultModel.EDDSA,
+		TotalPoints:    vaultModel.TotalPoints,
+		JoinAirdrop:    vaultModel.JoinAirdrop,
+		Coins:          []models.ChainCoins{},
+	})
+
 }
 
 func (a *Api) getVaultHandler(c *gin.Context) {
