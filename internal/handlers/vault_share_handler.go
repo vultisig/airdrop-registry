@@ -33,7 +33,7 @@ func (a *Api) getVaultShareAppearanceHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, v)
 }
 
-const MaxLogoSize = 30 * 1024 // 30KB in bytes
+const MaxLogoSize = 100 * 1024 // 100KB in bytes
 
 func (a *Api) updateVaultShareAppearanceHandler(c *gin.Context) {
 	var app models.SharedVaultRequest
