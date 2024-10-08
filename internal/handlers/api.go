@@ -82,6 +82,7 @@ func (a *Api) setupRouting() {
 	rg.POST("vault/theme", a.updateVaultShareAppearanceHandler)
 
 	// leader board
+	rg.GET("/leaderboard/vaults", a.getVaultsByRankHandler)
 
 }
 

@@ -3,11 +3,14 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/vultisig/airdrop-registry/internal/models"
 )
+
+const MaxPageSize = 100
 
 func (a *Api) registerVaultHandler(c *gin.Context) {
 	var vault models.VaultRequest
@@ -67,6 +70,7 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		PublicKeyEDDSA: vault.EDDSA,
 		TotalPoints:    vault.TotalPoints,
 		JoinAirdrop:    vault.JoinAirdrop,
+		Rank:           vault.Rank,
 		Coins:          []models.ChainCoins{},
 	}
 	for _, coin := range coins {
@@ -267,4 +271,48 @@ func (a *Api) updateAliasHandler(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusOK)
+}
+
+func (a *Api) getVaultsByRankHandler(c *gin.Context) {
+	fromStr := c.DefaultQuery("from", "0")
+	limitStr := c.DefaultQuery("limit", "10")
+	from, err := strconv.ParseInt(fromStr, 10, 64)
+	if err != nil {
+		c.Error(errInvalidRequest)
+		return
+	}
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		c.Error(errInvalidRequest)
+		return
+	}
+	if limit > MaxPageSize {
+		limit = MaxPageSize
+	}
+	vaultsResp := models.VaultsResponse{
+		Vaults:          []models.VaultResponse{},
+		TotalVaultCount: 0,
+	}
+	vaultsResp.TotalVaultCount, err = a.s.GetLeaderVaultCount()
+	if err != nil {
+		a.logger.Error(err)
+		c.Error(errFailedToGetVault)
+		return
+	}
+	vaults, err := a.s.GetLeaderVaults(from, limit)
+	if err != nil {
+		a.logger.Error(err)
+		c.Error(errFailedToGetVault)
+		return
+	}
+	for _, vault := range vaults {
+		vaultResp := models.VaultResponse{
+			Name:        vault.Alias,
+			Alias:       vault.Alias,
+			TotalPoints: vault.TotalPoints,
+			Rank:        vault.Rank,
+		}
+		vaultsResp.Vaults = append(vaultsResp.Vaults, vaultResp)
+	}
+	c.JSON(http.StatusOK, vaultsResp)
 }

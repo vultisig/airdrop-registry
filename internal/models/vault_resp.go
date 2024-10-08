@@ -9,5 +9,11 @@ type VaultResponse struct {
 	PublicKeyEDDSA string       `json:"public_key_eddsa"`
 	TotalPoints    float64      `json:"total_points"`
 	JoinAirdrop    bool         `json:"join_airdrop"`
+	Rank           int64        `json:"rank"`
 	Coins          []ChainCoins `json:"chains"`
+}
+
+type VaultsResponse struct {
+	Vaults          []VaultResponse `json:"vaults"`
+	TotalVaultCount int64           `json:"total_vault_count"`
 }
