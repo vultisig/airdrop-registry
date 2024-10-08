@@ -201,6 +201,7 @@ func (a *Api) exitAirdrop(c *gin.Context) {
 	}
 	if v.HexChainCode == vault.HexChainCode && v.Uid == vault.Uid {
 		v.JoinAirdrop = false
+		v.Rank = 0
 		if err := a.s.UpdateVault(v); err != nil {
 			a.logger.Error(err)
 			_ = c.Error(errFailedToExitRegistry)
