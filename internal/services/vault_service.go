@@ -74,7 +74,7 @@ func (s *Storage) GetLeaderVaults(fromRank int64, limit int) ([]models.Vault, er
 
 func (s *Storage) GetLeaderVaultCount() (int64, error) {
 	var count int64
-	if err := s.db.Model(&models.Vault{}).Where("`rank` is not null").Count(&count).Error; err != nil {
+	if err := s.db.Model(&models.Vault{}).Where("`rank` is not null and `rank` > 0").Count(&count).Error; err != nil {
 		return 0, fmt.Errorf("failed to get leader vault count: %w", err)
 	}
 	return count, nil
