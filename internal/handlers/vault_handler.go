@@ -71,6 +71,8 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		TotalPoints:    vault.TotalPoints,
 		JoinAirdrop:    vault.JoinAirdrop,
 		Rank:           vault.Rank,
+		Balance:        vault.Balance,
+		RegisteredAt:   vault.Model.CreatedAt.UTC().Unix(),
 		Coins:          []models.ChainCoins{},
 	}
 	for _, coin := range coins {
@@ -126,6 +128,9 @@ func (a *Api) getVaultByUIDHandler(c *gin.Context) {
 		PublicKeyEDDSA: "",
 		TotalPoints:    vault.TotalPoints,
 		JoinAirdrop:    vault.JoinAirdrop,
+		Balance:        vault.Balance,
+		Rank:           vault.Rank,
+		RegisteredAt:   vault.Model.CreatedAt.UTC().Unix(),
 		Coins:          []models.ChainCoins{},
 	}
 	for i, _ := range coins {
@@ -308,10 +313,12 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 	}
 	for _, vault := range vaults {
 		vaultResp := models.VaultResponse{
-			Name:        vault.Alias,
-			Alias:       vault.Alias,
-			TotalPoints: vault.TotalPoints,
-			Rank:        vault.Rank,
+			Name:         vault.Alias,
+			Alias:        vault.Alias,
+			TotalPoints:  vault.TotalPoints,
+			Rank:         vault.Rank,
+			Balance:      vault.Balance,
+			RegisteredAt: vault.Model.CreatedAt.UTC().Unix(),
 		}
 		vaultsResp.Vaults = append(vaultsResp.Vaults, vaultResp)
 	}

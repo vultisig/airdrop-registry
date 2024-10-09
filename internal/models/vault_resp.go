@@ -10,7 +10,9 @@ type VaultResponse struct {
 	TotalPoints    float64      `json:"total_points"`
 	JoinAirdrop    bool         `json:"join_airdrop"`
 	Rank           int64        `json:"rank"`
+	Balance        int64        `json:"balance"`
 	Coins          []ChainCoins `json:"chains"`
+	RegisteredAt   int64        `json:"registered_at"`
 }
 
 type VaultsResponse struct {
