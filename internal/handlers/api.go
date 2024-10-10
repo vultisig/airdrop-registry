@@ -9,11 +9,11 @@ import (
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/vultisig/mobile-tss-lib/tss"
-	"gitlab.com/thorchain/midgard/openapi/generated/oapigen"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/vultisig/airdrop-registry/config"
+	"github.com/vultisig/airdrop-registry/docs/openapi/generated/oapigen"
 	"github.com/vultisig/airdrop-registry/internal/models"
 	"github.com/vultisig/airdrop-registry/internal/services"
 )
