@@ -9,6 +9,7 @@ import (
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/vultisig/mobile-tss-lib/tss"
+	"gitlab.com/thorchain/midgard/openapi/generated/oapigen"
 
 	"github.com/sirupsen/logrus"
 
@@ -84,6 +85,9 @@ func (a *Api) setupRouting() {
 	// leader board
 	rg.GET("/leaderboard/vaults", a.getVaultsByRankHandler)
 
+	// openapi doc
+	rg.GET("/swagger.json", jsonSwagger)
+	rg.GET("/doc", serveDoc)
 }
 
 func (a *Api) Start() error {
@@ -105,4 +109,17 @@ func (a *Api) derivePublicKeyHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"public_key": result})
+}
+
+func serveDoc(c *gin.Context) {
+	c.File("./docs/openapi/generated/doc.html")
+}
+
+func jsonSwagger(c *gin.Context) {
+	swagger, err := oapigen.GetSwagger()
+	if err != nil {
+		c.Error(errAddressNotMatch)
+		return
+	}
+	c.JSON(http.StatusOK, swagger)
 }
