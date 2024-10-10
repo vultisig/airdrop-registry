@@ -1,0 +1,676 @@
+openapi: 3.0.0
+info:
+  title: Vultisig Airdrop Registry API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+paths:
+  /ping:
+    get:
+      summary: Health check
+      description: API health check endpoint
+      tags:
+        - Health
+      responses:
+        '200':
+          description: API is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Vultisig Airdrop Registry"
+
+  /derive-public-key:
+    post:
+      summary: Derive a public key
+      description: Derive a public key from the provided ECDSA key and chain code.
+      tags:
+        - Public Key
+      requestBody:
+        description: Public key derivation request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DerivePublicKeyRequest'
+      responses:
+        '200':
+          description: Public key derived successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  public_key:
+                    type: string
+                    example: "0x9876543210abcdef"
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /vault:
+    post:
+      summary: Register a vault
+      description: Register a new vault in the system.
+      tags:
+        - Vault
+      requestBody:
+        description: Vault registration data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VaultRequest'
+      responses:
+        '201':
+          description: Vault registered successfully
+        '400':
+          description: Invalid request data or vault already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidVaultData:
+                  summary: Invalid vault data
+                  value:
+                    error: "Invalid vault data"
+                vaultAlreadyRegistered:
+                  summary: Vault already registered
+                  value:
+                    error: "Vault already registered"
+
+
+  /vault/{ecdsaPublicKey}/{eddsaPublicKey}:
+    get:
+      summary: Get vault details
+      description: Fetch the vault details by ECDSA and EDDSA public keys.
+      tags:
+        - Vault
+      parameters:
+        - name: ecdsaPublicKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: eddsaPublicKey
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vault details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VaultResponse'
+        '404':
+          description: Vault not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete a vault
+      description: Delete a vault identified by ECDSA and EDDSA public keys.
+      tags:
+        - Vault
+      parameters:
+        - name: ecdsaPublicKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: eddsaPublicKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: x-hex-chain-code
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vault deleted successfully
+        '403':
+          description: Forbidden access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Vault not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /vault/{ecdsaPublicKey}/{eddsaPublicKey}/alias:
+    post:
+      summary: Update vault alias
+      description: Update the alias of a vault.
+      tags:
+        - Vault
+      parameters:
+        - name: ecdsaPublicKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: eddsaPublicKey
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Vault alias update data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VaultRequest'
+      responses:
+        '200':
+          description: Alias updated successfully
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Vault not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /vault/shared/{uid}:
+    get:
+      summary: Get vault by UID
+      description: Retrieve vault information by UID.
+      tags:
+        - Vault
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vault retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VaultResponseShared'
+        '404':
+          description: Vault not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /vault/join-airdrop:
+    post:
+      summary: Join airdrop
+      description: Mark vault as joining the airdrop.
+      tags:
+        - Vault
+      requestBody:
+        description: Vault data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VaultRequest'
+      responses:
+        '200':
+          description: Successfully joined airdrop
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Vault not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /vault/exit-airdrop:
+    post:
+      summary: Exit airdrop
+      description: Mark vault as exiting the airdrop.
+      tags:
+        - Vault
+      requestBody:
+        description: Vault data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VaultRequest'
+      responses:
+        '200':
+          description: Successfully exited airdrop
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Vault not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /coin/{ecdsaPublicKey}/{eddsaPublicKey}/{coinID}:
+    delete:
+      summary: Delete a coin
+      description: Delete a coin from a vault.
+      tags:
+        - Coin
+      parameters:
+        - name: ecdsaPublicKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: eddsaPublicKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: coinID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: x-hex-chain-code
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Coin deleted successfully
+        '403':
+          description: Forbidden access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Coin or Vault not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /coin/{ecdsaPublicKey}/{eddsaPublicKey}:
+    post:
+      summary: Add a coin
+      description: Add a coin to a vault.
+      tags:
+        - Coin
+      parameters:
+        - name: ecdsaPublicKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: eddsaPublicKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: x-hex-chain-code
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Coin data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoinBase'
+      responses:
+        '201':
+          description: Coin added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coin_id:
+                    type: integer
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Vault not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: Get coins
+      description: Retrieve coins associated with a vault.
+      tags:
+        - Coin
+      parameters:
+        - name: ecdsaPublicKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: eddsaPublicKey
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Coins retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CoinBase'
+        '404':
+          description: Vault not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /leaderboard/vaults:
+    get:
+      summary: Get vaults by rank
+      description: Retrieve vaults ordered by rank.
+      tags:
+        - Leaderboard
+      parameters:
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Starting rank (default 0)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of vaults to retrieve (default 10, max 100)
+      responses:
+        '200':
+          description: Vaults retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VaultsResponse'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    DerivePublicKeyRequest:
+      type: object
+      properties:
+        public_key_ecdsa:
+          type: string
+          description: ECDSA public key
+          example: "0x123456789abcdef"
+        hex_chain_code:
+          type: string
+          description: Hex chain code
+          example: "0xabcdef123456789"
+        derive_path:
+          type: string
+          description: Derivation path
+          example: "m/44'/60'/0'/0/0"
+      required:
+        - public_key_ecdsa
+        - hex_chain_code
+        - derive_path
+
+    VaultRequest:
+      type: object
+      properties:
+        uid:
+          type: string
+          description: Unique identifier
+          example: "unique-uid"
+        name:
+          type: string
+          description: Name of the vault
+          example: "vault1"
+        public_key_ecdsa:
+          type: string
+          description: ECDSA public key
+          example: "0x123456789abcdef"
+        public_key_eddsa:
+          type: string
+          description: EDDSA public key
+          example: "0xabcdef123456789"
+        hex_chain_code:
+          type: string
+          description: Hex chain code
+          example: "0xabcdef123456789"
+      required:
+        - uid
+        - name
+        - public_key_ecdsa
+        - public_key_eddsa
+        - hex_chain_code
+
+    VaultResponse:
+      type: object
+      properties:
+        uid:
+          type: string
+        name:
+          type: string
+        alias:
+          type: string
+        public_key_ecdsa:
+          type: string
+        public_key_eddsa:
+          type: string
+        total_points:
+          type: number
+        join_airdrop:
+          type: boolean
+        rank:
+          type: integer
+        balance:
+          type: integer
+        registered_at:
+          type: integer
+        chains:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChainCoins'
+
+    VaultResponseShared:
+      type: object
+      properties:
+        uid:
+          type: string
+        name:
+          type: string
+        alias:
+          type: string
+        total_points:
+          type: number
+        join_airdrop:
+          type: boolean
+        rank:
+          type: integer
+        balance:
+          type: string
+        registered_at:
+          type: integer
+        chains:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChainCoinsShared'
+
+    ChainCoins:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        hex_public_key:
+          type: string
+        coins:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coin'
+
+    ChainCoinsShared:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        hex_public_key:
+          type: string
+        coins:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coin'
+
+    Coin:
+      type: object
+      properties:
+        id:
+          type: integer
+        ticker:
+          type: string
+        contract_address:
+          type: string
+        decimals:
+          type: integer
+        is_native:
+          type: boolean
+        cmc_id:
+          type: integer
+        logo:
+          type: string
+
+    CoinBase:
+      type: object
+      properties:
+        chain:
+          type: string
+        ticker:
+          type: string
+        address:
+          type: string
+        contract_address:
+          type: string
+        decimals:
+          type: integer
+        price_provider_id:
+          type: string
+        is_native:
+          type: boolean
+        hex_public_key:
+          type: string
+        cmc_id:
+          type: integer
+        logo:
+          type: string
+      required:
+        - chain
+        - ticker
+        - address
+        - decimals
+        - is_native
+        - hex_public_key
+
+    VaultsResponse:
+      type: object
+      properties:
+        vaults:
+          type: array
+          items:
+            $ref: '#/components/schemas/VaultResponseLeaderboard'
+        total_vault_count:
+          type: integer
+
+    VaultResponseLeaderboard:
+      type: object
+      properties:
+        name:
+          type: string
+        alias:
+          type: string
+        total_points:
+          type: number
+        rank:
+          type: integer
+        balance:
+          type: string
+        registered_at:
+          type: integer
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error message describing the issue"
