@@ -1,6 +1,0 @@
-{
-    "devDependencies": {
-      "redoc-cli": "^0.13.10",
-      "swagger2openapi": "^7.0.8"
-    }
-  }
