@@ -8,14 +8,13 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
-	"github.com/vultisig/mobile-tss-lib/tss"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/vultisig/airdrop-registry/config"
-	"github.com/vultisig/airdrop-registry/docs/openapi/generated/oapigen"
 	"github.com/vultisig/airdrop-registry/internal/models"
 	"github.com/vultisig/airdrop-registry/internal/services"
+	"github.com/vultisig/airdrop-registry/openapi"
+	"github.com/vultisig/mobile-tss-lib/tss"
 )
 
 // Api is the main handler for the API
@@ -86,8 +85,8 @@ func (a *Api) setupRouting() {
 	rg.GET("/leaderboard/vaults", a.getVaultsByRankHandler)
 
 	// openapi doc
-	rg.GET("/swagger.json", jsonSwagger)
-	rg.GET("/doc", serveDoc)
+	rg.GET("/doc", openapi.HandleSwaggerUI)
+	rg.GET("/doc/openapi.yaml", openapi.HandleSpecYAML)
 }
 
 func (a *Api) Start() error {
@@ -111,15 +110,36 @@ func (a *Api) derivePublicKeyHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"public_key": result})
 }
 
-func serveDoc(c *gin.Context) {
-	c.File("./docs/openapi/generated/doc.html")
-}
-
-func jsonSwagger(c *gin.Context) {
-	swagger, err := oapigen.GetSwagger()
-	if err != nil {
-		c.Error(errAddressNotMatch)
-		return
-	}
-	c.JSON(http.StatusOK, swagger)
-}
+var swaggerUI = []byte(`
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="SwaggerUI"
+    />
+    <title>SwaggerUI</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui.css" />
+  </head>
+  <body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-bundle.js" crossorigin></script>
+  <script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-standalone-preset.js" crossorigin></script>
+  <script>
+    window.onload = () => {
+      window.ui = SwaggerUIBundle({
+        url: window.location.pathname + '/openapi.yaml',
+        dom_id: '#swagger-ui',
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        layout: "StandaloneLayout",
+      });
+    };
+  </script>
+  </body>
+</html>
+	`)
