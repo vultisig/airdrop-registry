@@ -60,13 +60,23 @@ func (s *Storage) UpdateCoinPrice(chain common.Chain, ticker string, priceUSD fl
 	return nil
 }
 
+func (s *Storage) UpdateCoinPriceByCMCID(cmcID int, priceUSD float64) error {
+	qry := `UPDATE coins SET price_usd = ? WHERE cmc_id = ? `
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	if err := s.db.WithContext(ctx).Exec(qry, priceUSD, cmcID).Error; err != nil {
+		return fmt.Errorf("failed to update coin price: %w", err)
+	}
+	return nil
+}
+
 func (s *Storage) GetUniqueCoins() ([]models.CoinIdentity, error) {
 	var coinIdentities []models.CoinIdentity
 	// if the query takes more than 2 minutes, it will be cancelled
 	// let's investigate why it take so long to finish
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*2)
 	defer cancel()
-	qry := "SELECT DISTINCT chain, ticker, contract_address FROM coins where vault_id in (select id from vaults where join_airdrop = 1)"
+	qry := "SELECT DISTINCT chain, ticker, contract_address,cmc_id FROM coins where vault_id in (select id from vaults where join_airdrop = 1)"
 	if err := s.db.WithContext(ctx).Raw(qry).Scan(&coinIdentities).Error; err != nil {
 		return nil, fmt.Errorf("failed to get unique coins: %w", err)
 	}
