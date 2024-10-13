@@ -8,13 +8,13 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
-	"github.com/vultisig/mobile-tss-lib/tss"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/models"
 	"github.com/vultisig/airdrop-registry/internal/services"
+	"github.com/vultisig/airdrop-registry/openapi"
+	"github.com/vultisig/mobile-tss-lib/tss"
 )
 
 // Api is the main handler for the API
@@ -84,6 +84,9 @@ func (a *Api) setupRouting() {
 	// leader board
 	rg.GET("/leaderboard/vaults", a.getVaultsByRankHandler)
 
+	// openapi doc
+	rg.GET("/doc", openapi.HandleSwaggerUI)
+	rg.GET("/doc/openapi.yaml", openapi.HandleSpecYAML)
 }
 
 func (a *Api) Start() error {
