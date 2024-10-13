@@ -25,9 +25,11 @@ type PointWorker struct {
 	wg              *sync.WaitGroup
 	stopChan        chan struct{}
 	cfg             *config.Config
+	isJobInProgress bool
 }
 
 func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceResolver, balanceResolver *balance.BalanceResolver) (*PointWorker, error) {
+
 	if nil == storage {
 		return nil, fmt.Errorf("storage is nil")
 	}
@@ -114,6 +116,9 @@ func (p *PointWorker) ensureJobs() {
 }
 
 func (p *PointWorker) startJob(job *models.Job) {
+	if p.isJobInProgress {
+		return
+	}
 	if job.CurrentID == 0 {
 		p.logger.Infof("start job %s", job.JobDate.Format("2006-01-02"))
 	} else {
@@ -143,6 +148,10 @@ func (p *PointWorker) Stop() {
 
 func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBModel) {
 	defer p.wg.Done()
+	p.isJobInProgress = true
+	defer func() {
+		p.isJobInProgress = false
+	}()
 	currentID := uint64(job.CurrentID)
 	for {
 		coins, err := p.storage.GetCoinsWithPage(currentID, 1000)
@@ -204,6 +213,9 @@ func (p *PointWorker) updateBalance(coin models.CoinDBModel, multiplier int64) e
 	if err := p.storage.UpdateCoinBalance(uint64(coin.ID), coinBalance); err != nil {
 		return fmt.Errorf("failed to update coin balance: %w", err)
 	}
+	if coin.PriceUSD == "" {
+		coin.PriceUSD = "0"
+	}
 	// increase vault's point
 	price, err := strconv.ParseFloat(coin.PriceUSD, 64)
 	if err != nil {
@@ -234,14 +246,9 @@ func (p *PointWorker) updateCoinPrice() error {
 		return fmt.Errorf("failed to get all token prices: %w", err)
 	}
 	p.logger.Infof("%+v", coinPrices)
-	for _, coinIden := range coinIdentities {
-		key := fmt.Sprintf("%s-%s", coinIden.Chain, coinIden.Ticker)
-		price, ok := coinPrices[key]
-		if !ok {
-			continue
-		}
-		if err := p.storage.UpdateCoinPrice(coinIden.Chain, coinIden.Ticker, price); err != nil {
-			p.logger.Errorf("failed to update coin price: %s-%s, err: %v", coinIden.Chain, coinIden.Ticker, err)
+	for id, coinIden := range coinPrices {
+		if err := p.storage.UpdateCoinPriceByCMCID(id, coinIden); err != nil {
+			p.logger.Errorf("failed to update coin price: %d, err: %v", id, err)
 			// log the error and move on
 			continue
 		}

@@ -77,17 +77,18 @@ func (p *PriceResolver) closer(closer io.Closer) {
 func (p *PriceResolver) resolveIds(coinIds []models.CoinIdentity) string {
 	var ids []string
 	for _, coinId := range coinIds {
-		for _, item := range p.cmcMap.Data {
-			if strings.EqualFold(item.Symbol, coinId.Ticker) &&
-				strings.EqualFold(item.Name, coinId.Chain.String()) {
-				ids = append(ids, strconv.Itoa(item.ID))
-			}
-		}
+		ids = append(ids, strconv.Itoa(coinId.CMCId))
+		//for _, item := range p.cmcMap.Data {
+		//	if strings.EqualFold(item.Symbol, coinId.Ticker) &&
+		//		strings.EqualFold(item.Name, coinId.Chain.String()) {
+		//		ids = append(ids, strconv.Itoa(item.ID))
+		//	}
+		//}
 	}
 	return strings.Join(ids, ",")
 }
 
-func (p *PriceResolver) GetAllTokenPrices(coinIds []models.CoinIdentity) (map[string]float64, error) {
+func (p *PriceResolver) GetAllTokenPrices(coinIds []models.CoinIdentity) (map[int]float64, error) {
 	strIds := p.resolveIds(coinIds)
 	url := CMC_Base_URL + "/v2/cryptocurrency/quotes/latest?id=" + strIds
 	resp, err := http.Get(url)
@@ -116,10 +117,10 @@ func (p *PriceResolver) GetAllTokenPrices(coinIds []models.CoinIdentity) (map[st
 	if err := json.NewDecoder(resp.Body).Decode(&cmcQuoteResp); err != nil {
 		return nil, fmt.Errorf("error decoding CMC quote response: %w", err)
 	}
-	priceMap := make(map[string]float64)
+	priceMap := make(map[int]float64)
 	for _, item := range cmcQuoteResp.Data {
-		key := fmt.Sprintf("%s-%s", item.Name, item.Symbol)
-		priceMap[key] = item.Quote.USD.Price
+
+		priceMap[item.ID] = item.Quote.USD.Price
 	}
 	return priceMap, nil
 }

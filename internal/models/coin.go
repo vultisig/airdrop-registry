@@ -65,4 +65,5 @@ type CoinIdentity struct {
 	Chain           common.Chain
 	Ticker          string
 	ContractAddress string
+	CMCId           int
 }
