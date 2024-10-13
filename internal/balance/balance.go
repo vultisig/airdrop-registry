@@ -73,7 +73,10 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 	case common.Dydx:
 		return b.FetchDydxBalanceOfAddress(coin.Address)
 	case common.Kujira:
-		return b.FetchKujiraBalanceOfAddress(coin.Address)
+		balanceKujira, nil := b.FetchKujiraBalanceOfAddress(coin.Address)
+		balanceRkujira, nil := b.FetchRkujiraBalanceOfAddress(coin.Address)
+		totalBalance := balanceKujira + balanceRkujira
+		return totalBalance, nil
 	case common.Solana:
 		return b.FetchSolanaBalanceOfAddress(coin.Address)
 	case common.Polkadot:
