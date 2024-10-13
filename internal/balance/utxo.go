@@ -68,6 +68,6 @@ func (b *BalanceResolver) FetchUtxoBalanceOfAddress(address string, chain common
 		return 0, 0, fmt.Errorf("address data not found in response")
 	}
 
-	return data.Address.Balance, data.Address.BalanceUSD, nil
+	return data.Address.Balance / 1e8, data.Address.BalanceUSD, nil
 
 }
