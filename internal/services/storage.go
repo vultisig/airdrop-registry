@@ -83,5 +83,14 @@ UPDATE vaults
 SET vaults.rank = ranked_vaults.vaultrank;
 `
 	return s.db.Exec(sql).Error
-
+}
+func (s *Storage) UpdateVaultBalance() error {
+	sql := `UPDATE vaults
+		JOIN (
+			SELECT vault_id, SUM(usd_value) AS total_balance
+			FROM coins
+			GROUP BY vault_id
+		) AS coin_sums ON vaults.id = coin_sums.vault_id
+		SET vaults.balance = coin_sums.total_balance;`
+	return s.db.Exec(sql).Error
 }
