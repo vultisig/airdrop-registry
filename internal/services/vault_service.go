@@ -40,7 +40,7 @@ func (s *Storage) UpdateVault(vault *models.Vault) error {
 	return nil
 }
 func (s *Storage) IncreaseVaultTotalPoints(id uint, newPoints int64) error {
-	qry := `UPDATE vaults SET total_points = total_points + ? WHERE id = ?`
+	qry := `UPDATE vaults SET total_points = total_points + ? WHERE id = ? and join_airdrop = 1`
 	if err := s.db.Exec(qry, newPoints, id).Error; err != nil {
 		return fmt.Errorf("failed to update vault total points: %w", err)
 	}
