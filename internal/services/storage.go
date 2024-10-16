@@ -80,7 +80,7 @@ UPDATE vaults
         SELECT id, RANK() OVER (ORDER BY total_points DESC) as vaultrank
         FROM vaults
     ) ranked_vaults ON vaults.id = ranked_vaults.id
-SET vaults.rank = ranked_vaults.vaultrank;
+SET vaults.rank = ranked_vaults.vaultrank where vaults.join_airdrop = 1;
 `
 	return s.db.Exec(sql).Error
 }
