@@ -61,7 +61,20 @@ func (b *BalanceResolver) GetTHORChainBondProviders() error {
 	}
 	for _, node := range nodes {
 		for _, item := range node.BondProviders.Providers {
-			b.thorchainBondProviders.Store(item.BondAddress, item.Bond)
+			bond := 0.0
+			existing, ok := b.thorchainBondProviders.Load(item.BondAddress)
+			if ok {
+				bond, err = strconv.ParseFloat(existing.(string), 64)
+				if err != nil {
+					b.logger.Errorf("failed to parse bond value: %v", err)
+				}
+			}
+			newBond, err := strconv.ParseFloat(item.Bond, 64)
+			if err != nil {
+				b.logger.Errorf("failed to parse bond value: %v", err)
+				continue
+			}
+			b.thorchainBondProviders.Store(item.BondAddress, strconv.FormatFloat(bond+newBond, 'f', -1, 64))
 		}
 	}
 
