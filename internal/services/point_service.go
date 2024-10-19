@@ -153,6 +153,10 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 		p.isJobInProgress = false
 	}()
 	currentID := uint64(job.CurrentID)
+	// refresh bond providers
+	if err := p.balanceResolver.GetTHORChainBondProviders(); err != nil {
+		p.logger.Errorf("failed to get thorchain bond providers: %v", err)
+	}
 	for {
 		coins, err := p.storage.GetCoinsWithPage(currentID, 1000)
 		if err != nil {

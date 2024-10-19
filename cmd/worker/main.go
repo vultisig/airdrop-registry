@@ -34,10 +34,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// get all thorchain bond providers
-	if err := balanceResolver.GetTHORChainBondProviders(); err != nil {
-		panic(err)
-	}
 	pointWorker, err := services.NewPointWorker(cfg, storage, priceResolver, balanceResolver)
 	if err != nil {
 		panic(err)
