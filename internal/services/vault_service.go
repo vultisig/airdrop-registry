@@ -66,7 +66,7 @@ func (s *Storage) DeleteVault(ecdsa, eddsa string) error {
 func (s *Storage) GetLeaderVaults(fromRank int64, limit int) ([]models.Vault, error) {
 	var vaults []models.Vault
 	// where rank is not null and rank > fromRank
-	if err := s.db.Where("`rank` is not null and `rank` > ?", fromRank).Order("`rank` asc").Limit(limit).Find(&vaults).Error; err != nil {
+	if err := s.db.Where("`rank` is not null and `rank` > ?  and join_airdrop = 1", fromRank).Order("`rank` asc").Limit(limit).Find(&vaults).Error; err != nil {
 		return nil, fmt.Errorf("failed to get leader vaults: %w", err)
 	}
 	return vaults, nil
@@ -74,7 +74,7 @@ func (s *Storage) GetLeaderVaults(fromRank int64, limit int) ([]models.Vault, er
 
 func (s *Storage) GetLeaderVaultCount() (int64, error) {
 	var count int64
-	if err := s.db.Model(&models.Vault{}).Where("`rank` is not null and `rank` > 0").Count(&count).Error; err != nil {
+	if err := s.db.Model(&models.Vault{}).Where("`rank` is not null and `rank` > 0  and join_airdrop = 1").Count(&count).Error; err != nil {
 		return 0, fmt.Errorf("failed to get leader vault count: %w", err)
 	}
 	return count, nil
