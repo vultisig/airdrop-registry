@@ -12,6 +12,7 @@ import (
 
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/balance"
+	"github.com/vultisig/airdrop-registry/internal/common"
 	"github.com/vultisig/airdrop-registry/internal/models"
 )
 
@@ -260,6 +261,15 @@ func (p *PointWorker) updateCoinPrice() error {
 			continue
 		}
 	}
+	cacaoPrice, err := p.priceResolver.GetCoinGeckoPrice("CACAO", "USD")
+	if err != nil {
+		p.logger.Errorf("failed to get CACAO price: %v", err)
+	} else {
+		if err := p.storage.UpdateCoinPrice(common.MayaChain, "CACAO", cacaoPrice); err != nil {
+			p.logger.Errorf("failed to update CACAO price: %v", err)
+		}
+	}
+
 	defer p.logger.Info("finish updating coin prices")
 	return nil
 }
