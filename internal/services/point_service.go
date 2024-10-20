@@ -214,9 +214,10 @@ func (p *PointWorker) taskWorker(idx int, workerChan <-chan models.CoinDBModel, 
 }
 
 func (p *PointWorker) updateBalance(coin models.CoinDBModel, multiplier int64) error {
+	p.logger.Infof("start to update balance for chain: %s, ticker: %s, address: %s ", coin.Chain, coin.Ticker, coin.Address)
 	coinBalance, err := p.balanceResolver.GetBalanceWithRetry(coin)
 	if err != nil {
-		return fmt.Errorf("failed to get balance: %w", err)
+		return fmt.Errorf("failed to get balance for address:%s : %w", coin.Address, err)
 	}
 	if err := p.storage.UpdateCoinBalance(uint64(coin.ID), coinBalance); err != nil {
 		return fmt.Errorf("failed to update coin balance: %w", err)
