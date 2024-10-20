@@ -87,6 +87,24 @@ func (p *PriceResolver) resolveIds(coinIds []models.CoinIdentity) string {
 	}
 	return strings.Join(ids, ",")
 }
+func (p *PriceResolver) GetCoinGeckoPrice(priceProviderId string, currency string) (float64, error) {
+	url := fmt.Sprintf("https://api.vultisig.com/coingeicko/api/v3/simple/price?ids=%s&vs_currencies=%s", priceProviderId, currency)
+	resp, err := http.Get(url)
+	if err != nil {
+		p.logger.Error(err)
+		return 0, fmt.Errorf("fail to get price from CoinGecko,err: %w", err)
+	}
+	defer p.closer(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("error fetching CoinGecko price: %s", resp.Status)
+	}
+	var result map[string]map[string]float64
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		fmt.Println("Error parsing JSON:", err)
+		return 0, fmt.Errorf("error decoding CoinGecko price response: %w", err)
+	}
+	return result[priceProviderId][currency], nil
+}
 
 func (p *PriceResolver) GetAllTokenPrices(coinIds []models.CoinIdentity) (map[int]float64, error) {
 	strIds := p.resolveIds(coinIds)
@@ -119,7 +137,6 @@ func (p *PriceResolver) GetAllTokenPrices(coinIds []models.CoinIdentity) (map[in
 	}
 	priceMap := make(map[int]float64)
 	for _, item := range cmcQuoteResp.Data {
-
 		priceMap[item.ID] = item.Quote.USD.Price
 	}
 	return priceMap, nil
