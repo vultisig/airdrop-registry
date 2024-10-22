@@ -92,16 +92,9 @@ func main() {
 
 	fmt.Printf("WEWE price: %f\n", wewePrice)
 
-	// Convert WEWE price to big.Float
 	wewePriceFloat := new(big.Float).SetFloat64(wewePrice)
-
-	// Convert userWEWEAmount to big.Float
 	userWEWEAmountFloat := new(big.Float).SetInt(userWEWEAmount)
-
-	// Multiply to get USD amount
 	userWEWEUSDAmountFloat := new(big.Float).Mul(userWEWEAmountFloat, wewePriceFloat)
-
-	// Convert result back to big.Int (rounding down)
 	userWEWEUSDAmount, _ := userWEWEUSDAmountFloat.Int(nil)
 
 	fmt.Printf("User WEWE USD amount: %s\n", userWEWEUSDAmount.String())
