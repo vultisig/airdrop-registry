@@ -1,4 +1,4 @@
-package main
+package balance
 
 import (
 	"context"
@@ -45,7 +45,6 @@ var (
 	contractAddress     = common.HexToAddress("0x76B4B28194170f9847Ae1566E44dCB4f2D97Ac24")
 	vaultAddress        = common.HexToAddress("0x3Fd7957D9F98D46c755685B67dFD8505468A7Cb6")
 	ArrakisTokenAddress = common.HexToAddress("0x3Fd7957D9F98D46c755685B67dFD8505468A7Cb6")
-	testUser            = common.HexToAddress("0x6159DfAEbea7522a493ad1d402B3B5aaFB8e1E37")
 	weweUsdcAddress     = common.HexToAddress("0x6f71796114b9cdaef29a801bc5cdbcb561990eeb")
 )
 
@@ -58,7 +57,7 @@ type UnderlyingOutput struct {
 	LeftOver1 *big.Int `json:"leftOver1"`
 }
 
-func main() {
+func (b *BalanceResolver) FetchWeweLpBalanceOfAddress(userAddress common.Address) (float64, error) {
 	client, err := ethclient.Dial("https://mainnet.base.org")
 	if err != nil {
 		log.Fatalf("Failed to connect to the Base network: %v", err)
@@ -69,10 +68,7 @@ func main() {
 		log.Fatalf("Failed to fetch aux info: %v", err)
 	}
 
-	fmt.Printf("WEWE total pool balance: %s\n", wewetotalPoolBalance.String())
-	fmt.Printf("USDC total pool balance: %s\n", usdcTotalPoolBalance.String())
-
-	totalSupply, balance, err := fetchTotalSupplyAndBalance(client, testUser)
+	totalSupply, balance, err := fetchTotalSupplyAndBalance(client, userAddress)
 	if err != nil {
 		log.Fatalf("Failed to fetch total supply and balance: %v", err)
 	}
@@ -82,26 +78,22 @@ func main() {
 	userUSDCAmount := new(big.Int).Mul(balance, usdcTotalPoolBalance)
 	userUSDCAmount.Div(userUSDCAmount, totalSupply)
 
-	fmt.Printf("User WEWE amount: %s\n", userWEWEAmount.String()) //wewe has 18 decimals
-	fmt.Printf("User USDC amount: %s\n", userUSDCAmount.String()) //usdc has 6 decimals
-
 	wewePrice, err := FetchWEWEPrice(client)
 	if err != nil {
 		log.Fatalf("Failed to fetch WEWE price: %v", err)
 	}
-
-	fmt.Printf("WEWE price: %f\n", wewePrice)
 
 	wewePriceFloat := new(big.Float).SetFloat64(wewePrice)
 	userWEWEAmountFloat := new(big.Float).SetInt(userWEWEAmount)
 	userWEWEUSDAmountFloat := new(big.Float).Mul(userWEWEAmountFloat, wewePriceFloat)
 	userWEWEUSDAmount, _ := userWEWEUSDAmountFloat.Int(nil)
 
-	fmt.Printf("User WEWE USD amount: %s\n", userWEWEUSDAmount.String())
-	scaledUSDC := new(big.Int).Mul(userUSDCAmount, big.NewInt(1e12))
+	scaledUSDC := new(big.Int).Mul(userUSDCAmount, big.NewInt(1e12)) //wewe has 18 decimals and usdc has 6decimals
 	totalUserUsdBalance := new(big.Int).Add(userWEWEUSDAmount, scaledUSDC)
 
-	fmt.Printf("Total user USD balance: %s\n", totalUserUsdBalance.String())
+	value, _ := totalUserUsdBalance.Float64()
+	return value, err
+
 }
 
 type Slot0 struct {
