@@ -16,13 +16,15 @@ import (
 const CMC_Base_URL = "https://api.vultisig.com/cmc/"
 
 type PriceResolver struct {
-	logger *logrus.Logger
-	cmcMap *CmcMapResp
+	logger          *logrus.Logger
+	cmcMap          *CmcMapResp
+	lifiBaseAddress string
 }
 
 func NewPriceResolver() (*PriceResolver, error) {
 	pr := &PriceResolver{
-		logger: logrus.WithField("module", "price_resolver").Logger,
+		logger:          logrus.WithField("module", "price_resolver").Logger,
+		lifiBaseAddress: "https://li.quest",
 	}
 	result, err := pr.getCMCMap()
 	if err != nil {
@@ -104,6 +106,37 @@ func (p *PriceResolver) GetCoinGeckoPrice(priceProviderId string, currency strin
 		return 0, fmt.Errorf("error decoding CoinGecko price response: %w", err)
 	}
 	return result[priceProviderId][currency], nil
+}
+
+func (p *PriceResolver) GetLiFiPrice(chain, contractAddress string) (float64, error) {
+	url := fmt.Sprintf("%s/v1/token?chain=%s&token=%s", p.lifiBaseAddress, chain, contractAddress)
+	resp, err := http.Get(url)
+	if err != nil {
+		p.logger.Error(err)
+		return 0, fmt.Errorf("fail to get price from LiQuest,err: %w", err)
+	}
+	defer p.closer(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("error fetching LiQuest price: %s", resp.Status)
+	}
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		fmt.Println("Error parsing JSON:", err)
+		return 0, fmt.Errorf("error decoding LiQuest price response: %w", err)
+	}
+	if _, ok := result["priceUSD"]; !ok {
+		return 0, fmt.Errorf("priceUSD not found in response")
+	}
+	if _, ok := result["priceUSD"].(string); !ok {
+		return 0, fmt.Errorf("priceUSD is not string")
+	}
+	//convert "0.45" to float64
+	strPrice := result["priceUSD"].(string)
+	price, err := strconv.ParseFloat(strPrice, 32)
+	if err != nil {
+		return 0, fmt.Errorf("error parsing price: %w", err)
+	}
+	return price, nil
 }
 
 func (p *PriceResolver) GetAllTokenPrices(coinIds []models.CoinIdentity) (map[int]float64, error) {
