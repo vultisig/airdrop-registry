@@ -279,8 +279,8 @@ func (p *PointWorker) updateCoinPrice() error {
 			p.logger.Errorf("failed to update VTHOR price: %v", err)
 		}
 	}
-	MayaPrice := float64(40)
-	if err := p.storage.UpdateCoinPrice(common.MayaChain, "MAYA", MayaPrice); err != nil {
+	mayaPrice := float64(40)
+	if err := p.storage.UpdateCoinPrice(common.MayaChain, "MAYA", mayaPrice); err != nil {
 		p.logger.Errorf("failed to update VTHOR price: %v", err)
 	}
 
