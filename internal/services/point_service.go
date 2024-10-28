@@ -127,7 +127,7 @@ func (p *PointWorker) startJob(job *models.Job) {
 	}
 
 	if err := p.updateCoinPrice(); err != nil {
-		p.logger.Errorf("failed to update coin prices: %w", err)
+		p.logger.Errorf("failed to update coin prices: %e", err)
 		return
 	}
 
@@ -269,6 +269,19 @@ func (p *PointWorker) updateCoinPrice() error {
 		if err := p.storage.UpdateCoinPrice(common.MayaChain, "CACAO", cacaoPrice); err != nil {
 			p.logger.Errorf("failed to update CACAO price: %v", err)
 		}
+	}
+
+	vthorPrice, err := p.priceResolver.GetLiFiPrice("eth", "0x815C23eCA83261b6Ec689b60Cc4a58b54BC24D8D")
+	if err != nil {
+		p.logger.Errorf("failed to get VTHOR price: %v", err)
+	} else {
+		if err := p.storage.UpdateCoinPrice(common.Ethereum, "vTHOR", vthorPrice); err != nil {
+			p.logger.Errorf("failed to update VTHOR price: %v", err)
+		}
+	}
+	MayaPrice := float64(40)
+	if err := p.storage.UpdateCoinPrice(common.MayaChain, "MAYA", MayaPrice); err != nil {
+		p.logger.Errorf("failed to update VTHOR price: %v", err)
 	}
 
 	defer p.logger.Info("finish updating coin prices")
