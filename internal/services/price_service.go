@@ -121,7 +121,7 @@ func (p *PriceResolver) GetLiFiPrice(chain, contractAddress string) (float64, er
 	}
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		fmt.Println("Error parsing JSON:", err)
+		p.logger.Errorf("Error parsing JSON: %s", err)
 		return 0, fmt.Errorf("error decoding LiQuest price response: %w", err)
 	}
 	if _, ok := result["priceUSD"]; !ok {
