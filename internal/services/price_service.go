@@ -16,15 +16,17 @@ import (
 const CMC_Base_URL = "https://api.vultisig.com/cmc/"
 
 type PriceResolver struct {
-	logger          *logrus.Logger
-	cmcMap          *CmcMapResp
-	lifiBaseAddress string
+	logger               *logrus.Logger
+	cmcMap               *CmcMapResp
+	lifiBaseAddress      string
+	coingeckoBaseAddress string
 }
 
 func NewPriceResolver() (*PriceResolver, error) {
 	pr := &PriceResolver{
-		logger:          logrus.WithField("module", "price_resolver").Logger,
-		lifiBaseAddress: "https://li.quest",
+		logger:               logrus.WithField("module", "price_resolver").Logger,
+		lifiBaseAddress:      "https://li.quest",
+		coingeckoBaseAddress: "https://api.vultisig.com/coingeicko/api/v3/simple/price",
 	}
 	result, err := pr.getCMCMap()
 	if err != nil {
@@ -90,7 +92,7 @@ func (p *PriceResolver) resolveIds(coinIds []models.CoinIdentity) string {
 	return strings.Join(ids, ",")
 }
 func (p *PriceResolver) GetCoinGeckoPrice(priceProviderId string, currency string) (float64, error) {
-	url := fmt.Sprintf("https://api.vultisig.com/coingeicko/api/v3/simple/price?ids=%s&vs_currencies=%s", priceProviderId, currency)
+	url := fmt.Sprintf("%s?ids=%s&vs_currencies=%s", p.coingeckoBaseAddress, priceProviderId, currency)
 	resp, err := http.Get(url)
 	if err != nil {
 		p.logger.Error(err)

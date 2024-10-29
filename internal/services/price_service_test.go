@@ -47,3 +47,27 @@ func TestGetLifiPrice(t *testing.T) {
 		t.Errorf("Expected price 100.5 but got %v", price)
 	}
 }
+
+func TestCacaoPrice(t *testing.T) {
+	// Create a mock HTTP server
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Create a mock response
+		response := map[string]map[string]interface{}{"cacao": {"usd": 0.5}}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+	}))
+	defer mockServer.Close()
+
+	// Create a PriceResolver instance
+	priceResolver := &PriceResolver{
+		coingeckoBaseAddress: mockServer.URL,
+	}
+
+	price, err := priceResolver.GetCoinGeckoPrice("cacao", "usd")
+	assert.NoErrorf(t, err, "Failed to get CACAO price: %v", err)
+	assert.Equal(t, float64(0.5), price)
+
+	price, err = priceResolver.GetCoinGeckoPrice("CACAO", "USD")
+	assert.NoErrorf(t, err, "Failed to get CACAO price: %v", err)
+	assert.Equal(t, float64(0), price)
+}
