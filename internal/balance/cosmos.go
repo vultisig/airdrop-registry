@@ -116,6 +116,11 @@ func (b *BalanceResolver) GetTHORChainRuneProviders() error {
 	if err := json.NewDecoder(resp.Body).Decode(&runeProviders); err != nil {
 		return fmt.Errorf("error unmarshalling response: %w", err)
 	}
+	//clear all the existing rune providers
+	b.thorchainRuneProviders.Range(func(k, v interface{}) bool {
+		b.thorchainRuneProviders.Delete(k)
+		return true
+	})
 	if len(runeProviders) == 0 {
 		return nil
 	}
