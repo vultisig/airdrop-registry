@@ -68,6 +68,11 @@ func (b *BalanceResolver) GetTHORChainBondProviders() error {
 	if len(nodes) == 0 {
 		return nil
 	}
+	// clear all the existing bond providers
+	b.thorchainBondProviders.Range(func(k, v interface{}) bool {
+		b.thorchainBondProviders.Delete(k)
+		return true
+	})
 	for _, node := range nodes {
 		for _, item := range node.BondProviders.Providers {
 			bond := 0.0
