@@ -13,11 +13,20 @@ func (b *BalanceResolver) FetchThorchainBalanceOfAddress(address string) (float6
 	if address == "" {
 		return 0, fmt.Errorf("address cannot be empty")
 	}
-	url := fmt.Sprintf("https://thornode.ninerealms.com/cosmos/bank/v1beta1/balances/%s", address)
+	url := fmt.Sprintf("%s/cosmos/bank/v1beta1/balances/%s", b.thornodeBaseAddress, address)
 	runeBalance, err := b.fetchSpecificCosmosBalance(url, "rune", 8)
 	if err != nil {
 		return 0, fmt.Errorf("error fetching thorchain balance: %w", err)
 	}
+	// consider thorchain pooled rune
+	pooledRune, ok := b.thorchainRuneProviders.Load(address)
+	if ok {
+		b.logger.Infof("address: %s, pooled rune: %v", address, pooledRune)
+		if _, ok := pooledRune.(float64); ok {
+			runeBalance += pooledRune.(float64) / math.Pow10(8)
+		}
+	}
+
 	// consider thorchain bond
 	bondValue, ok := b.thorchainBondProviders.Load(address)
 	if !ok {
@@ -84,6 +93,38 @@ func (b *BalanceResolver) GetTHORChainBondProviders() error {
 	})
 	return nil
 }
+
+type THORNodeRuneProviderResponse struct {
+	RuneAddress string  `json:"rune_address"`
+	Value       float64 `json:"value,string"`
+}
+
+func (b *BalanceResolver) GetTHORChainRuneProviders() error {
+	url := fmt.Sprintf("%s/thorchain/rune_providers", b.thornodeBaseAddress)
+	resp, err := http.Get(url)
+	if err != nil {
+		return fmt.Errorf("error fetching bond providers from %s: %w", url, err)
+	}
+
+	defer b.closer(resp.Body)
+	var runeProviders []THORNodeRuneProviderResponse
+	if err := json.NewDecoder(resp.Body).Decode(&runeProviders); err != nil {
+		return fmt.Errorf("error unmarshalling response: %w", err)
+	}
+	if len(runeProviders) == 0 {
+		return nil
+	}
+	for _, provider := range runeProviders {
+		b.thorchainRuneProviders.Store(provider.RuneAddress, provider.Value)
+	}
+
+	b.thorchainRuneProviders.Range(func(k, v interface{}) bool {
+		b.logger.Infof("rune provider: %s, value: %s", k, v)
+		return true
+	})
+	return nil
+}
+
 func (b *BalanceResolver) GetLP(address string) (float64, error) {
 	return 0.0, nil
 }
