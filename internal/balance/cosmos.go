@@ -22,8 +22,8 @@ func (b *BalanceResolver) FetchThorchainBalanceOfAddress(address string) (float6
 	pooledRune, ok := b.thorchainRuneProviders.Load(address)
 	if ok {
 		b.logger.Infof("address: %s, pooled rune: %v", address, pooledRune)
-		if _, ok := pooledRune.(float64); ok {
-			runeBalance += pooledRune.(float64) / math.Pow10(8)
+		if _, ok := pooledRune.(int64); ok {
+			runeBalance += (float64)(pooledRune.(int64)) / math.Pow10(8)
 		}
 	}
 
@@ -95,8 +95,8 @@ func (b *BalanceResolver) GetTHORChainBondProviders() error {
 }
 
 type THORNodeRuneProviderResponse struct {
-	RuneAddress string  `json:"rune_address"`
-	Value       float64 `json:"value,string"`
+	RuneAddress string `json:"rune_address"`
+	Value       int64  `json:"value,string"`
 }
 
 func (b *BalanceResolver) GetTHORChainRuneProviders() error {

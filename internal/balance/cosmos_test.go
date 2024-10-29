@@ -18,12 +18,12 @@ func TestFetchThorchainBalanceOfAddress(t *testing.T) {
 		response := map[string]interface{}{
 			"balances": []map[string]interface{}{
 				{
-					"asset":  "rune",
+					"denom":  "rune",
 					"amount": "2500000000",
 				},
 			},
 			"pagination": map[string]interface{}{
-				"next_key": "",
+				"next_key": nil,
 				"total":    "1",
 			},
 		}
@@ -39,15 +39,15 @@ func TestFetchThorchainBalanceOfAddress(t *testing.T) {
 		thorchainRuneProviders: &sync.Map{},
 		thorchainBondProviders: &sync.Map{},
 	}
-	balanceResolver.thorchainRuneProviders.Store("thor2rjxghep6g3j3z0k3jwz3wzrj3z0k3jwz3wzrj", 1200000000)
+	balanceResolver.thorchainRuneProviders.Store("thor2rjxghep6g3j3z0k3jwz3wzrj3z0k3jwz3wzrj", int64(1200000000))
 	balanceResolver.thorchainBondProviders.Store("thor2rjxghep6g3j3z0k3jwz3wzrj3z0k3jwz3wzrj", "2000000000")
 	balance, err := balanceResolver.FetchThorchainBalanceOfAddress("thor2rjxghep6g3j3z0k3jwz3wzrj3z0k3jwz3wzrj")
 	assert.NoErrorf(t, err, "Failed to get thorchain rune providers: %v", err)
-	assert.Equal(t, float64(20), balance)
+	assert.Equal(t, float64(57), balance)
 
 	balance, err = balanceResolver.FetchThorchainBalanceOfAddress("thor2")
 	assert.NoErrorf(t, err, "Failed to get thorchain rune providers: %v", err)
-	assert.Equal(t, float64(20), balance)
+	assert.Equal(t, float64(25), balance)
 }
 
 func TestGetTHORChainRuneProviders(t *testing.T) {
