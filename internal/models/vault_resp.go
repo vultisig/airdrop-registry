@@ -18,4 +18,5 @@ type VaultResponse struct {
 type VaultsResponse struct {
 	Vaults          []VaultResponse `json:"vaults"`
 	TotalVaultCount int64           `json:"total_vault_count"`
+	TotalBalance    int64           `json:"total_balance"`
 }

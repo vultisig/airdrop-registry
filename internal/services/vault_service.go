@@ -79,3 +79,12 @@ func (s *Storage) GetLeaderVaultCount() (int64, error) {
 	}
 	return count, nil
 }
+
+func (s *Storage) GetLeaderVaultTotalBalance() (int64, error) {
+	//return sum of balance of all leader vaults
+	var totalBalance int64
+	if err := s.db.Model(&models.Vault{}).Select("sum(balance)").Where("`rank` is not null and `rank` > 0").Row().Scan(&totalBalance); err != nil {
+		return 0, fmt.Errorf("failed to get leader vault total balance: %w", err)
+	}
+	return totalBalance, nil
+}
