@@ -115,11 +115,14 @@ func (b *BalanceResolver) GetTHORChainRuneProviders() error {
 		return nil
 	}
 	for _, provider := range runeProviders {
-		b.thorchainRuneProviders.Store(provider.RuneAddress, provider.Value)
+		//discard rune provider with 0 value
+		if provider.Value > 0 {
+			b.thorchainRuneProviders.Store(provider.RuneAddress, provider.Value)
+		}
 	}
 
 	b.thorchainRuneProviders.Range(func(k, v interface{}) bool {
-		b.logger.Infof("rune provider: %s, value: %s", k, v)
+		b.logger.Infof("rune provider: %s, value: %d", k, v)
 		return true
 	})
 	return nil
