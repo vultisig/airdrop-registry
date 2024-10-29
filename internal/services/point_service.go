@@ -158,6 +158,9 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 	if err := p.balanceResolver.GetTHORChainBondProviders(); err != nil {
 		p.logger.Errorf("failed to get thorchain bond providers: %v", err)
 	}
+	if err := p.balanceResolver.GetTHORChainRuneProviders(); err != nil {
+		p.logger.Errorf("failed to get thorchain rune providers: %v", err)
+	}
 	for {
 		coins, err := p.storage.GetCoinsWithPage(currentID, 1000)
 		if err != nil {
@@ -279,8 +282,8 @@ func (p *PointWorker) updateCoinPrice() error {
 			p.logger.Errorf("failed to update VTHOR price: %v", err)
 		}
 	}
-	MayaPrice := float64(40)
-	if err := p.storage.UpdateCoinPrice(common.MayaChain, "MAYA", MayaPrice); err != nil {
+	mayaPrice := float64(40)
+	if err := p.storage.UpdateCoinPrice(common.MayaChain, "MAYA", mayaPrice); err != nil {
 		p.logger.Errorf("failed to update VTHOR price: %v", err)
 	}
 
