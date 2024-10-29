@@ -8,10 +8,11 @@ import (
 
 type Job struct {
 	gorm.Model
-	JobDate    time.Time `gorm:"type:date;not null"`
-	Multiplier int64
-	CurrentID  int64
-	IsSuccess  bool
+	JobDate        time.Time `gorm:"type:date;not null"`
+	Multiplier     int64
+	CurrentID      int64
+	CurrentVaultID uint
+	IsSuccess      bool
 }
 
 func (*Job) TableName() string {

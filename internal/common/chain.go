@@ -60,6 +60,18 @@ var chainToString = map[Chain]string{
 	Zksync:      "Zksync",
 	Dydx:        "Dydx",
 }
+var EVMChains = []Chain{
+	Ethereum,
+	Avalanche,
+	BscChain,
+	Base,
+	Arbitrum,
+	Optimism,
+	Polygon,
+	Blast,
+	CronosChain,
+	Zksync,
+}
 
 var chainDerivePath = map[Chain]string{
 	Bitcoin:     "m/84'/0'/0'/0/0",

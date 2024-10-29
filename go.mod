@@ -17,6 +17,8 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/ltcsuite/ltcd v0.23.5
 	github.com/ltcsuite/ltcd/ltcutil v1.1.3
+	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/sigurn/crc16 v0.0.0-20240131213347-83fcde1e29d1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
