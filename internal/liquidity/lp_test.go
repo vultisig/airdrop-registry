@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -88,8 +89,8 @@ func TestGetLiquidityPosition(t *testing.T) {
 	liquidityPositionResolver := &LiquidityPositionResolver{
 		thorwalletBaseURL: mockServer.URL,
 	}
-
-	lp, err := liquidityPositionResolver.GetLiquidityPosition([]string{"thor21cfzgzg02cp7yjrkagzdrdp7dqh0xlsdhawwjc", "0x3d512341ca1ff1142caca57d75ead1179ba1dd3a"})
+	addrs := []string{"thor21cfzgzg02cp7yjrkagzdrdp7dqh0xlsdhawwjc", "0x3d512341ca1ff1142caca57d75ead1179ba1dd3a"}
+	lp, err := liquidityPositionResolver.GetLiquidityPosition(strings.Join(addrs, ","))
 	if err != nil {
 		t.Fatalf("Failed to get liquidity position: %v", err)
 	}

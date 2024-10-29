@@ -1,8 +1,10 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/vultisig/airdrop-registry/internal/models"
 )
@@ -78,4 +80,14 @@ func (s *Storage) GetLeaderVaultCount() (int64, error) {
 		return 0, fmt.Errorf("failed to get leader vault count: %w", err)
 	}
 	return count, nil
+}
+
+func (s *Storage) GetVaultsWithPage(startId, limit uint) ([]models.Vault, error) {
+	var vaults []models.Vault
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	if err := s.db.WithContext(ctx).Model(&models.Vault{}).Where("id > ?", startId).Limit(int(limit)).Scan(&vaults).Error; err != nil {
+		return vaults, fmt.Errorf("failed to get vaults: %w", err)
+	}
+	return vaults, nil
 }

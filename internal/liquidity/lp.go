@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -27,9 +26,8 @@ type poolPositionResponse struct {
 }
 
 // fetch Thorchain and Maya LP position from Thorwallet api
-func (l *LiquidityPositionResolver) GetLiquidityPosition(addresses []string) (float64, error) {
-	address := strings.Join(addresses, ",")
-	if len(address) == 0 {
+func (l *LiquidityPositionResolver) GetLiquidityPosition(address string) (float64, error) {
+	if address == "" {
 		return 0, fmt.Errorf("address cannot be empty")
 	}
 	url := fmt.Sprintf("%s/pools/positions?addresses=%s", l.thorwalletBaseURL, address)

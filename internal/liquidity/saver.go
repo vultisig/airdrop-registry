@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	cache "github.com/patrickmn/go-cache"
@@ -27,8 +26,8 @@ func NewSaverPositionResolver() *SaverPositionResolver {
 	}
 }
 
-func (l *SaverPositionResolver) GetSaverPosition(addresses []string) (float64, error) {
-	positions, err := l.fetchSaverPosition(addresses)
+func (l *SaverPositionResolver) GetSaverPosition(address string) (float64, error) {
+	positions, err := l.fetchSaverPosition(address)
 	if err != nil {
 		return 0, err
 	}
@@ -38,21 +37,20 @@ func (l *SaverPositionResolver) GetSaverPosition(addresses []string) (float64, e
 		if err != nil {
 			return 0, err
 		}
-		totalLiquidity += v.AssetAdded * pool.AssetPriceUsd
+		totalLiquidity += v.AssetRedeem * pool.AssetPriceUsd
 	}
-	return totalLiquidity, nil
+	return totalLiquidity * 1e-8, nil
 }
 
 type saverResponse struct {
 	SaverPosition []struct {
-		AssetAdded float64 `json:"assetAdded,string"`
-		Pool       string  `json:"pool"`
+		AssetRedeem float64 `json:"assetRedeem,string"`
+		Pool        string  `json:"pool"`
 	} `json:"pools"`
 }
 
-func (l *SaverPositionResolver) fetchSaverPosition(addresses []string) (saverResponse, error) {
-	address := strings.Join(addresses, ",")
-	if len(address) == 0 {
+func (l *SaverPositionResolver) fetchSaverPosition(address string) (saverResponse, error) {
+	if address == "" {
 		return saverResponse{}, fmt.Errorf("address cannot be empty")
 	}
 	url := fmt.Sprintf("%s/saver/positions?addresses=%s", l.thorwalletBaseURL, address)

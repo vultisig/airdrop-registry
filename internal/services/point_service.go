@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -13,7 +14,9 @@ import (
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/balance"
 	"github.com/vultisig/airdrop-registry/internal/common"
+	"github.com/vultisig/airdrop-registry/internal/liquidity"
 	"github.com/vultisig/airdrop-registry/internal/models"
+	"github.com/vultisig/airdrop-registry/internal/utils"
 )
 
 // PointWorker is a worker that processes points
@@ -22,6 +25,8 @@ type PointWorker struct {
 	storage         *Storage
 	priceResolver   *PriceResolver
 	balanceResolver *balance.BalanceResolver
+	lpResolver      *liquidity.LiquidityPositionResolver
+	saverResolver   *liquidity.SaverPositionResolver
 	startCoinID     int64
 	wg              *sync.WaitGroup
 	stopChan        chan struct{}
@@ -43,6 +48,8 @@ func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceRe
 		storage:         storage,
 		priceResolver:   priceResolver,
 		balanceResolver: balanceResolver,
+		lpResolver:      liquidity.NewLiquidtyPositionResolver(),
+		saverResolver:   liquidity.NewSaverPositionResolver(),
 		startCoinID:     cfg.Worker.StartID,
 		stopChan:        make(chan struct{}),
 		wg:              &sync.WaitGroup{},
@@ -126,6 +133,12 @@ func (p *PointWorker) startJob(job *models.Job) {
 		p.logger.Infof("continue job %s from %d", job.JobDate.Format("2006-01-02"), job.CurrentID)
 	}
 
+	if job.CurrentVaultID == 0 {
+		p.logger.Infof("start lp calculation job %s", job.JobDate.Format("2006-01-02"))
+	} else {
+		p.logger.Infof("continue lp calculation job %s from %d", job.JobDate.Format("2006-01-02"), job.CurrentVaultID)
+	}
+
 	if err := p.updateCoinPrice(); err != nil {
 		p.logger.Errorf("failed to update coin prices: %e", err)
 		return
@@ -133,7 +146,16 @@ func (p *PointWorker) startJob(job *models.Job) {
 
 	p.wg.Add(1)
 	workChan := make(chan models.CoinDBModel)
-	go p.taskProvider(job, workChan)
+	// worker channel for lp calculation (key is vault id and value is vault addresses)
+	positionWorkerChan := make(chan models.VaultAddress)
+	go p.taskProvider(job, workChan, positionWorkerChan)
+
+	// We have 2 type of concurrent workers, one for updating balance and one for updating position
+	for i := 0; i < int(p.cfg.Worker.Concurrency); i++ {
+		p.wg.Add(1)
+		idx := i
+		go p.activePositionWorker(idx, positionWorkerChan, *job)
+	}
 	for i := 0; i < int(p.cfg.Worker.Concurrency); i++ {
 		p.wg.Add(1)
 		idx := i
@@ -147,12 +169,13 @@ func (p *PointWorker) Stop() {
 	p.wg.Wait()
 }
 
-func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBModel) {
+func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBModel, positionWorkerChan chan models.VaultAddress) {
 	defer p.wg.Done()
 	p.isJobInProgress = true
 	defer func() {
 		p.isJobInProgress = false
 	}()
+	currentVaultId := job.CurrentVaultID
 	currentID := uint64(job.CurrentID)
 	// refresh bond providers
 	if err := p.balanceResolver.GetTHORChainBondProviders(); err != nil {
@@ -160,6 +183,36 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 	}
 	if err := p.balanceResolver.GetTHORChainRuneProviders(); err != nil {
 		p.logger.Errorf("failed to get thorchain rune providers: %v", err)
+	}
+	for {
+		vaults, err := p.storage.GetVaultsWithPage(currentVaultId, 1000)
+		if err != nil {
+			p.logger.Errorf("failed to get vaults: %v", err)
+			continue
+		}
+		if len(vaults) == 0 {
+			p.logger.Info("no more vaults to process")
+			break
+		}
+		for _, vault := range vaults {
+			coins, err := p.storage.GetCoins(vault.ID)
+			if err != nil {
+				p.logger.Errorf("failed to get coins for vault: %v", err)
+				continue
+			}
+			vaultAddress := models.NewVaultAddress(vault.ID)
+			for _, coin := range coins {
+				vaultAddress.SetAddress(coin.Chain, coin.Address)
+			}
+			if len(coins) > 0 {
+				positionWorkerChan <- vaultAddress
+			}
+			currentVaultId = vault.ID
+			job.CurrentVaultID = vault.ID
+			if err := p.storage.UpdateJob(job); err != nil {
+				p.logger.Errorf("failed to update job: %v", err)
+			}
+		}
 	}
 	for {
 		coins, err := p.storage.GetCoinsWithPage(currentID, 1000)
@@ -196,7 +249,24 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 		}
 	}
 }
-
+func (p *PointWorker) activePositionWorker(idx int, workerChan <-chan models.VaultAddress, job models.Job) {
+	p.logger.Infof("active position worker %d started", idx)
+	defer p.wg.Done()
+	for {
+		select {
+		case <-p.stopChan:
+			p.logger.Infof("active position worker %d stop signal received, stopping worker", idx)
+			return
+		case v, more := <-workerChan:
+			if !more {
+				return
+			}
+			if err := p.updatePosition(v, job.Multiplier); err != nil {
+				p.logger.Errorf("failed to update position: %v", err)
+			}
+		}
+	}
+}
 func (p *PointWorker) taskWorker(idx int, workerChan <-chan models.CoinDBModel, job models.Job) {
 	p.logger.Infof("worker %d started", idx)
 	defer p.wg.Done()
@@ -214,6 +284,33 @@ func (p *PointWorker) taskWorker(idx int, workerChan <-chan models.CoinDBModel, 
 			}
 		}
 	}
+}
+
+func (p *PointWorker) updatePosition(vaultAddress models.VaultAddress, multiplier int64) error {
+	backoffRetry := utils.NewBackoffRetry(5)
+	address := strings.Join(vaultAddress.GetAllAddress(), ",")
+	p.logger.Infof("start to update position for vault: %d,  address: %s ", vaultAddress.GetVaultID(), address)
+	tcmayalp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetLiquidityPosition, address)
+	if err != nil {
+		return fmt.Errorf("failed to get tc/maya liquidity position for vault:%d : %w", vaultAddress.GetVaultID(), err)
+	}
+	tgtlp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetTGTStakePosition, vaultAddress.GetEVMAddress())
+	if err != nil {
+		return fmt.Errorf("failed to get tgt stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
+	}
+	//TODO: Add wewe position
+	saver, err := backoffRetry.RetryWithBackoff(p.saverResolver.GetSaverPosition, address)
+	if err != nil {
+		return fmt.Errorf("failed to get saver position for vault:%d : %w", vaultAddress.GetVaultID(), err)
+	}
+	newPoints := int64((tcmayalp + tgtlp + saver) * float64(multiplier))
+	if newPoints == 0 {
+		return nil
+	}
+	if err := p.storage.IncreaseVaultTotalPoints(vaultAddress.GetVaultID(), newPoints); err != nil {
+		return fmt.Errorf("failed to increase vault total points: %w", err)
+	}
+	return nil
 }
 
 func (p *PointWorker) updateBalance(coin models.CoinDBModel, multiplier int64) error {

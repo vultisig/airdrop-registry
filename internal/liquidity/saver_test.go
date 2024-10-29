@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,7 +22,7 @@ func TestGetSaverPosition(t *testing.T) {
 					"assetAdded":     "4",
 					"assetAddress":   "0x1d204941ca5ff1143caca57d71ead1179ba1dd3a",
 					"assetDeposit":   "547855400",
-					"assetRedeem":    "552114601",
+					"assetRedeem":    "1200000000",
 					"assetWithdrawn": "0",
 					"dateFirstAdded": "1726804546",
 					"dateLastAdded":  "1726804546",
@@ -32,7 +33,7 @@ func TestGetSaverPosition(t *testing.T) {
 					"assetAdded":     "3",
 					"assetAddress":   "0x3d204941ca5ff1143caca57d71ead1179ba1dd3a",
 					"assetDeposit":   "527592",
-					"assetRedeem":    "533361",
+					"assetRedeem":    "1300000000",
 					"assetWithdrawn": "0",
 					"dateFirstAdded": "1712193841",
 					"dateLastAdded":  "1712193841",
@@ -43,7 +44,7 @@ func TestGetSaverPosition(t *testing.T) {
 					"assetAdded":     "2",
 					"assetAddress":   "0x3d204941ca5ff1143caca57d71ead1179ba1dd3a",
 					"assetDeposit":   "219100",
-					"assetRedeem":    "220217",
+					"assetRedeem":    "1400000000",
 					"assetWithdrawn": "0",
 					"dateFirstAdded": "1726459134",
 					"dateLastAdded":  "1726459134",
@@ -54,7 +55,7 @@ func TestGetSaverPosition(t *testing.T) {
 					"assetAdded":     "1",
 					"assetAddress":   "0x3d204941ca5ff1143caca57d71ead1179ba1dd3a",
 					"assetDeposit":   "165316700",
-					"assetRedeem":    "361892956",
+					"assetRedeem":    "1500000000",
 					"assetWithdrawn": "500030745",
 					"dateFirstAdded": "1701211207",
 					"dateLastAdded":  "1725317140",
@@ -88,10 +89,10 @@ func TestGetSaverPosition(t *testing.T) {
 	poolCache.Add("ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7", poolResp{
 		Pool:          "ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7",
 		AssetPriceUsd: 1}, cache.DefaultExpiration)
-
-	position, err := saverPositionResolver.GetSaverPosition([]string{"0x3d204941ca5ff1143caca57d71ead1179ba1dd3a", "0x1d204941ca5ff1143caca57d71ead1179ba1dd3a"})
-	assert.NoErrorf(t, err, "Failed to get saveer position: %v", err)
-	assert.Equal(t, float64(4905), position)
+	addrs := []string{"0x3d204941ca5ff1143caca57d71ead1179ba1dd3a", "0x1d204941ca5ff1143caca57d71ead1179ba1dd3a"}
+	position, err := saverPositionResolver.GetSaverPosition(strings.Join(addrs, ","))
+	assert.NoErrorf(t, err, "Failed to get saver position: %v", err)
+	assert.Equal(t, float64(31927), position)
 }
 
 func TestFetchPools(t *testing.T) {
