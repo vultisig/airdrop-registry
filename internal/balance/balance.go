@@ -3,6 +3,7 @@ package balance
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -71,7 +72,11 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 	case common.THORChain:
 		return b.FetchThorchainBalanceOfAddress(coin.Address)
 	case common.MayaChain:
-		return b.FetchMayachainBalanceOfAddress(coin.Address)
+		if strings.EqualFold(coin.Ticker, "maya") {
+			return b.FetchMayachainMayaBalanceOfAddress(coin.Address)
+		} else if strings.EqualFold(coin.Ticker, "cacao") {
+			return b.FetchMayachainCacoBalanceOfAddress(coin.Address)
+		}
 	case common.GaiaChain:
 		return b.FetchCosmosBalanceOfAddress(coin.Address)
 	case common.Dydx:
@@ -88,7 +93,10 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 		}
 		return totalBalance, nil
 	case common.Solana:
-		return b.FetchSolanaBalanceOfAddress(coin.Address)
+		//ignore none native coins (spl tokens)
+		if coin.IsNative {
+			return b.FetchSolanaBalanceOfAddress(coin.Address)
+		}
 	case common.Polkadot:
 		return b.FetchPolkadotBalanceOfAddress(coin.Address)
 	case common.Sui:
@@ -96,4 +104,5 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 	default:
 		return 0, fmt.Errorf("chain: %s doesn't support", coin.Chain)
 	}
+	return 0, nil
 }
