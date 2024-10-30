@@ -96,6 +96,10 @@ func (p *PriceResolver) resolveIds(coinIds []models.CoinIdentity) string {
 	return strings.Join(ids, ",")
 }
 func (p *PriceResolver) GetCoinGeckoPrice(priceProviderId string, currency string) (float64, error) {
+	cacheKey := fmt.Sprintf("cg_%s_%s", priceProviderId, currency)
+	if cachedPrice, ok := p.priceCache.Get(cacheKey); ok {
+		return cachedPrice.(float64), nil
+	}
 	url := fmt.Sprintf("%s?ids=%s&vs_currencies=%s", p.coingeckoBaseAddress, priceProviderId, currency)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -111,7 +115,13 @@ func (p *PriceResolver) GetCoinGeckoPrice(priceProviderId string, currency strin
 		fmt.Println("Error parsing JSON:", err)
 		return 0, fmt.Errorf("error decoding CoinGecko price response: %w", err)
 	}
-	return result[priceProviderId][currency], nil
+	if _, ok := result[priceProviderId]; ok {
+		if _, ok := result[priceProviderId][currency]; ok {
+			p.priceCache.Set(cacheKey, result[priceProviderId][currency], cache.DefaultExpiration)
+			return result[priceProviderId][currency], nil
+		}
+	}
+	return 0, fmt.Errorf("price not found in response")
 }
 
 func (p *PriceResolver) GetLiFiPrice(chain, contractAddress string) (float64, error) {
@@ -143,22 +153,6 @@ func (p *PriceResolver) GetLiFiPrice(chain, contractAddress string) (float64, er
 		return 0, fmt.Errorf("error parsing price: %w", err)
 	}
 	return price, nil
-}
-
-func (p *PriceResolver) GetCMCPriceByCMCID(cmcid int) (float64, error) {
-	cacheKey := fmt.Sprintf("cmc_%d", cmcid)
-	if cachedPrice, ok := p.priceCache.Get(cacheKey); ok {
-		return cachedPrice.(float64), nil
-	}
-	prices, err := p.GetAllTokenPrices([]models.CoinIdentity{{CMCId: int(cmcid)}})
-	if err != nil {
-		return 0, err
-	}
-	if _, ok := prices[cmcid]; !ok {
-		return 0, fmt.Errorf("price not found in response")
-	}
-	p.priceCache.Set(cacheKey, prices[cmcid], cache.DefaultExpiration)
-	return prices[cmcid], nil
 }
 
 func (p *PriceResolver) GetAllTokenPrices(coinIds []models.CoinIdentity) (map[int]float64, error) {
