@@ -298,6 +298,13 @@ func (p *PointWorker) updatePosition(vaultAddress models.VaultAddress, multiplie
 	if err != nil {
 		return fmt.Errorf("failed to get tgt stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
+	if tgtlp > 0 {
+		tgtPrice, err := p.priceResolver.GetCoinGeckoPrice("thorwallet", "usd")
+		if err != nil {
+			return fmt.Errorf("failed to get tgt price: %w", err)
+		}
+		tgtlp = tgtlp * tgtPrice
+	}
 	wewelp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetWeWeLPPosition, vaultAddress.GetEVMAddress())
 	if err != nil {
 		return fmt.Errorf("failed to get wewel liquidity position for vault:%d : %w", vaultAddress.GetVaultID(), err)

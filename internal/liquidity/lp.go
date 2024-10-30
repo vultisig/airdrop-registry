@@ -65,6 +65,10 @@ type tgtLPPositionResponse struct {
 }
 
 func (l *LiquidityPositionResolver) GetTGTStakePosition(addresses string) (float64, error) {
+	if addresses == "" {
+		return 0, nil
+	}
+
 	url := fmt.Sprintf("%s/stake/%s", l.thorwalletBaseURL, addresses)
 	resp, err := http.Get(url)
 	if err != nil {
