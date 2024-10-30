@@ -60,6 +60,9 @@ type UnderlyingOutput struct {
 }
 
 func (w *weweLpResolver) GetLiquidityPosition(address string) (float64, error) {
+	if address == "" {
+		return 0, nil
+	}
 	userAddress := common.HexToAddress(address)
 	client, err := ethclient.Dial(w.ethAddress)
 	if err != nil {
