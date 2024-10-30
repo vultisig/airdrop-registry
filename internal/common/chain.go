@@ -33,6 +33,7 @@ const (
 	Polkadot
 	Zksync
 	Dydx
+	Ton
 )
 
 var chainToString = map[Chain]string{
@@ -59,6 +60,7 @@ var chainToString = map[Chain]string{
 	Polkadot:    "Polkadot",
 	Zksync:      "Zksync",
 	Dydx:        "Dydx",
+	Ton:         "TON",
 }
 
 var chainDerivePath = map[Chain]string{
@@ -85,6 +87,7 @@ var chainDerivePath = map[Chain]string{
 	Solana:      "",
 	Sui:         "",
 	Polkadot:    "",
+	Ton:         "m/44'/607'/0'", //why some are empty?
 }
 
 func (c Chain) String() string {
@@ -141,7 +144,7 @@ func (c *Chain) GetDerivePath() string {
 }
 
 func (c *Chain) IsEdDSA() bool {
-	if *c == Solana || *c == Sui || *c == Polkadot {
+	if *c == Solana || *c == Sui || *c == Polkadot || *c == Ton {
 		return true
 	}
 	return false
