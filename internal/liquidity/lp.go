@@ -11,12 +11,14 @@ import (
 type LiquidityPositionResolver struct {
 	logger            *logrus.Logger
 	thorwalletBaseURL string
+	wewelpResolver    *weweLpResolver
 }
 
 func NewLiquidtyPositionResolver() *LiquidityPositionResolver {
 	return &LiquidityPositionResolver{
 		logger:            logrus.WithField("module", "liquidity_position_resolver").Logger,
 		thorwalletBaseURL: "https://api-v2-prod.thorwallet.org",
+		wewelpResolver:    NewWeWeLpResolver(),
 	}
 }
 
@@ -83,4 +85,8 @@ func (l *LiquidityPositionResolver) GetTGTStakePosition(addresses string) (float
 		return 0, fmt.Errorf("error decoding stake position response: %e", err)
 	}
 	return positions.StakeAmount + positions.Reward, nil
+}
+
+func (l *LiquidityPositionResolver) GetWeWeLPPosition(address string) (float64, error) {
+	return l.wewelpResolver.GetLiquidityPosition(address)
 }

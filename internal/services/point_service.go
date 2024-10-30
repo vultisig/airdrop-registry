@@ -306,12 +306,15 @@ func (p *PointWorker) updatePosition(vaultAddress models.VaultAddress, multiplie
 		}
 		tgtlp = tgtlp * tgtPrice
 	}
-	//TODO: Add wewe position
+	wewelp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetWeWeLPPosition, vaultAddress.GetEVMAddress())
+	if err != nil {
+		return fmt.Errorf("failed to get wewel liquidity position for vault:%d : %w", vaultAddress.GetVaultID(), err)
+	}
 	saver, err := backoffRetry.RetryWithBackoff(p.saverResolver.GetSaverPosition, address)
 	if err != nil {
 		return fmt.Errorf("failed to get saver position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
-	newPoints := int64((tcmayalp + tgtlp + saver) * float64(multiplier))
+	newPoints := int64((tcmayalp + tgtlp + wewelp + saver) * float64(multiplier))
 	if newPoints == 0 {
 		return nil
 	}
