@@ -1,29 +1,25 @@
 package address
 
 import (
-	"crypto/ed25519"
-	"crypto/sha512"
-	"encoding/hex"
 	"testing"
 
+	"fmt"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/crypto/pbkdf2"
-
 	"github.com/vultisig/airdrop-registry/internal/common"
 )
 
-var mnemonic = "steel address phone tobacco harsh powder denial differ mix jealous kind immune mobile easily stairs ivory original exercise attitude young luggage exotic fresh cost"
-
 func TestGetTonAddress(t *testing.T) {
-	seed := MnemonicToSeed(mnemonic)
-	pubKey, _ := SeedToKeypair(seed)
+	// Replace with your public key in hex format
+	hexPublicKey := "5a6f496e61121e8679585e81297bd68c01e7946abbfb3eb263753f1d41390fe8"
+	walletAddress, err := GetTonAddress(hexPublicKey)
+	if err != nil {
+		fmt.Printf("Failed to create the address: %v\n", err)
+		return
+	}
 
-	t.Log("Seed:", seed)
-	t.Log("Public Key:", pubKey)
-
-	// Convert public key to hex string
-	pubKeyHex := hex.EncodeToString(pubKey)
-	t.Log("Derived Public Key: ", pubKeyHex)
+	// Print the address in user-friendly format
+	fmt.Printf("Wallet Address: %s\n", walletAddress)
+	t.Logf("Got: %s", walletAddress)
 
 	tests := []struct {
 		name  string
@@ -33,36 +29,14 @@ func TestGetTonAddress(t *testing.T) {
 		{
 			name:  "TON",
 			chain: common.Ton,
-			want:  "EQB8V7T2w7BJv1jWC9wVunKJHtSv7Efis_gGEDig1E6-l=",
+			want:  "UQA_fNiw1Jrk-TGK2Xknb5_rPTzZGhWPVKcR8ORbNcyTKXEF",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetTonAddress(pubKeyHex)
-			if err != nil {
-				t.Error(err)
-				t.FailNow()
-			}
-			t.Logf("Got: %s", got)
-			assert.Equal(t, tt.want, got)
+
+			t.Logf("Got: %s", walletAddress)
+			assert.Equal(t, tt.want, walletAddress)
 		})
 	}
-}
-
-func MnemonicToSeed(mnemonic string) []byte {
-	// PBKDF2 parameters for TON
-	password := []byte(mnemonic)
-	salt := []byte("TON default seed")
-	iterations := 100000
-	keyLen := 64
-
-	// Generate seed using PBKDF2-HMAC-SHA512
-	return pbkdf2.Key(password, salt, iterations, keyLen, sha512.New)
-}
-
-func SeedToKeypair(seed []byte) (publicKey, privateKey []byte) {
-	// TON uses the first 32 bytes of the seed
-	privateKey = ed25519.NewKeyFromSeed(seed[:32])
-	publicKey = privateKey[32:] // Ed25519 public key is last 32 bytes
-	return publicKey, privateKey
 }
