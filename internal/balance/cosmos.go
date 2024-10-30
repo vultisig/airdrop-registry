@@ -142,10 +142,15 @@ func (b *BalanceResolver) GetLP(address string) (float64, error) {
 	return 0.0, nil
 }
 
-func (b *BalanceResolver) FetchMayachainBalanceOfAddress(address string) (float64, error) {
+func (b *BalanceResolver) FetchMayachainCacoBalanceOfAddress(address string) (float64, error) {
 	url := fmt.Sprintf("https://mayanode.mayachain.info/cosmos/bank/v1beta1/balances/%s", address)
 	return b.fetchSpecificCosmosBalance(url, "cacao", 10)
 }
+func (b *BalanceResolver) FetchMayachainMayaBalanceOfAddress(address string) (float64, error) {
+	url := fmt.Sprintf("https://mayanode.mayachain.info/cosmos/bank/v1beta1/balances/%s", address)
+	return b.fetchSpecificCosmosBalance(url, "maya", 4)
+}
+
 func (b *BalanceResolver) FetchCosmosBalanceOfAddress(address string) (float64, error) {
 	url := fmt.Sprintf("https://cosmos-rest.publicnode.com/cosmos/bank/v1beta1/balances/%s", address)
 	return b.fetchSpecificCosmosBalance(url, "uatom", 6)
