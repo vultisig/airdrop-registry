@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 
 	"github.com/vultisig/airdrop-registry/internal/models"
@@ -20,6 +22,7 @@ type PriceResolver struct {
 	cmcMap               *CmcMapResp
 	lifiBaseAddress      string
 	coingeckoBaseAddress string
+	priceCache           cache.Cache
 }
 
 func NewPriceResolver() (*PriceResolver, error) {
@@ -27,6 +30,7 @@ func NewPriceResolver() (*PriceResolver, error) {
 		logger:               logrus.WithField("module", "price_resolver").Logger,
 		lifiBaseAddress:      "https://li.quest",
 		coingeckoBaseAddress: "https://api.vultisig.com/coingeicko/api/v3/simple/price",
+		priceCache:           *cache.New(4*time.Hour, 5*time.Hour),
 	}
 	result, err := pr.getCMCMap()
 	if err != nil {
@@ -139,6 +143,22 @@ func (p *PriceResolver) GetLiFiPrice(chain, contractAddress string) (float64, er
 		return 0, fmt.Errorf("error parsing price: %w", err)
 	}
 	return price, nil
+}
+
+func (p *PriceResolver) GetCMCPriceByCMCID(cmcid int) (float64, error) {
+	cacheKey := fmt.Sprintf("cmc_%d", cmcid)
+	if cachedPrice, ok := p.priceCache.Get(cacheKey); ok {
+		return cachedPrice.(float64), nil
+	}
+	prices, err := p.GetAllTokenPrices([]models.CoinIdentity{{CMCId: int(cmcid)}})
+	if err != nil {
+		return 0, err
+	}
+	if _, ok := prices[cmcid]; !ok {
+		return 0, fmt.Errorf("price not found in response")
+	}
+	p.priceCache.Set(cacheKey, prices[cmcid], cache.DefaultExpiration)
+	return prices[cmcid], nil
 }
 
 func (p *PriceResolver) GetAllTokenPrices(coinIds []models.CoinIdentity) (map[int]float64, error) {

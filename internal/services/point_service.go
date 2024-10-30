@@ -298,6 +298,14 @@ func (p *PointWorker) updatePosition(vaultAddress models.VaultAddress, multiplie
 	if err != nil {
 		return fmt.Errorf("failed to get tgt stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
+	if tgtlp > 0 {
+		//tgt id is 16049 (http://api.vultisig.com/cmc/v2/cryptocurrency/quotes/latest?id=16049)
+		tgtPrice, err := p.priceResolver.GetCMCPriceByCMCID(16049)
+		if err != nil {
+			return fmt.Errorf("failed to get tgt price: %w", err)
+		}
+		tgtlp = tgtlp * tgtPrice
+	}
 	//TODO: Add wewe position
 	saver, err := backoffRetry.RetryWithBackoff(p.saverResolver.GetSaverPosition, address)
 	if err != nil {
