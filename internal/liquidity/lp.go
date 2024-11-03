@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 )
@@ -12,6 +13,8 @@ type LiquidityPositionResolver struct {
 	logger            *logrus.Logger
 	thorwalletBaseURL string
 	wewelpResolver    *weweLpResolver
+	tgtPrice          float64
+	mu                sync.RWMutex
 }
 
 func NewLiquidtyPositionResolver() *LiquidityPositionResolver {
@@ -84,7 +87,19 @@ func (l *LiquidityPositionResolver) GetTGTStakePosition(addresses string) (float
 	if err := json.NewDecoder(resp.Body).Decode(&positions); err != nil {
 		return 0, fmt.Errorf("error decoding stake position response: %e", err)
 	}
-	return positions.StakeAmount + positions.Reward, nil
+	return positions.StakeAmount*l.GetTGTPrice() + positions.Reward, nil
+}
+
+func (l *LiquidityPositionResolver) SetTGTPrice(price float64) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.tgtPrice = price
+}
+
+func (l *LiquidityPositionResolver) GetTGTPrice() float64 {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+	return l.tgtPrice
 }
 
 func (l *LiquidityPositionResolver) GetWeWeLPPosition(address string) (float64, error) {

@@ -232,7 +232,7 @@ func (w *weweLpResolver) fetchTotalSupply(client EVMClient) (*big.Int, error) {
 
 	result, err := client.CallContract(context.Background(), msg, nil)
 	if err != nil {
-		w.logger.Error("Failed to call contract: %v", err)
+		w.logger.Errorf("Failed to call contract: %v", err)
 		return nil, err
 	}
 	var totalSupply *big.Int

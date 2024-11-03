@@ -112,10 +112,11 @@ func TestGetTGTStakePosition(t *testing.T) {
 	liquidityPositionResolver := &LiquidityPositionResolver{
 		thorwalletBaseURL: mockServer.URL,
 	}
+	liquidityPositionResolver.SetTGTPrice(0.5)
 
 	tgtlp, err := liquidityPositionResolver.GetTGTStakePosition("0x143A044e411222F36a0f1E35847eCf2400A0d3Df")
 	if err != nil {
 		t.Fatalf("Failed to get liquidity position: %e", err)
 	}
-	assert.Equal(t, 171.5, tgtlp)
+	assert.Equal(t, 170*0.5+1.5, tgtlp)
 }
