@@ -325,10 +325,17 @@ func (p *PointWorker) updateBalance(coin models.CoinDBModel, multiplier int64) e
 	p.logger.Infof("start to update balance for chain: %s, ticker: %s, address: %s ", coin.Chain, coin.Ticker, coin.Address)
 	coinBalance, err := p.balanceResolver.GetBalanceWithRetry(coin)
 	if err != nil {
-		return fmt.Errorf("failed to get balance for address:%s : %w", coin.Address, err)
-	}
-	if err := p.storage.UpdateCoinBalance(uint64(coin.ID), coinBalance); err != nil {
-		return fmt.Errorf("failed to update coin balance: %w", err)
+		p.logger.Errorf("failed to get balance for address:%s : %v", coin.Address, err)
+		prevBalance, errP := strconv.ParseFloat(coin.Balance, 64)
+		if errP != nil {
+			return fmt.Errorf("failed to parse previous balance: %w", errP)
+		}
+		// server failed to get the latest balance , assume his previous balance is correct and use it to accumulate points
+		coinBalance = prevBalance
+	} else {
+		if err := p.storage.UpdateCoinBalance(uint64(coin.ID), coinBalance); err != nil {
+			return fmt.Errorf("failed to update coin balance: %w", err)
+		}
 	}
 	if coin.PriceUSD == "" {
 		coin.PriceUSD = "0"

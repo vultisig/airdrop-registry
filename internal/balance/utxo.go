@@ -45,6 +45,7 @@ func (b *BalanceResolver) FetchUtxoBalanceOfAddress(address string, chain common
 		return 0, 0, fmt.Errorf("unsupported chain: %s", chain)
 	}
 	url := fmt.Sprintf("%s/blockchair/%s/dashboards/address/%s?state=latest", vultisigApiProxy, chainName, address)
+
 	resp, err := http.Get(url)
 	if err != nil {
 		return 0, 0, fmt.Errorf("error fetching UTXO balance of address %s: %w", address, err)
