@@ -326,6 +326,7 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 			TotalPoints:  vault.TotalPoints,
 			Rank:         vault.Rank,
 			Balance:      vault.Balance,
+			LPValue:      vault.LPValue,
 			RegisteredAt: vault.Model.CreatedAt.UTC().Unix(),
 		}
 		vaultsResp.Vaults = append(vaultsResp.Vaults, vaultResp)
