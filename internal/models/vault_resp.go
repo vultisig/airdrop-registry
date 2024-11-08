@@ -11,6 +11,7 @@ type VaultResponse struct {
 	JoinAirdrop    bool         `json:"join_airdrop"`
 	Rank           int64        `json:"rank"`
 	Balance        int64        `json:"balance"`
+	LPValue        int64        `json:"lp_value"`
 	Coins          []ChainCoins `json:"chains"`
 	RegisteredAt   int64        `json:"registered_at"`
 }

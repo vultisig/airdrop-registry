@@ -48,6 +48,25 @@ func (s *Storage) IncreaseVaultTotalPoints(id uint, newPoints int64) error {
 	}
 	return nil
 }
+
+func (s *Storage) UpdateLPValue(id uint, lpValue int64) error {
+	qry := `UPDATE vaults SET lp_value = ?  WHERE id = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if err := s.db.WithContext(ctx).Exec(qry, lpValue, id).Error; err != nil {
+		return fmt.Errorf("failed to update vault: %w", err)
+	}
+	return nil
+}
+
+func (s *Storage) GetLPValue(id uint) (int64, error) {
+	var lpValue int64
+	if err := s.db.Model(&models.Vault{}).Where("id = ?", id).Select("lp_value").Scan(&lpValue).Error; err != nil {
+		return 0, fmt.Errorf("failed to get lp value: %w", err)
+	}
+	return lpValue, nil
+}
+
 func (s *Storage) DeleteVault(ecdsa, eddsa string) error {
 	ecdsa = strings.ToLower(ecdsa)
 	eddsa = strings.ToLower(eddsa)
