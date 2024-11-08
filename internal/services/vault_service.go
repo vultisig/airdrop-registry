@@ -119,3 +119,12 @@ func (s *Storage) GetLeaderVaultTotalBalance() (int64, error) {
 	}
 	return totalBalance, nil
 }
+
+func (s *Storage) GetLeaderVaultTotalLP() (int64, error) {
+	//return sum of balance of all leader vaults
+	var totalLP int64
+	if err := s.db.Model(&models.Vault{}).Select("sum(lp_value)").Row().Scan(&totalLP); err != nil {
+		return 0, fmt.Errorf("failed to get leader vault total lp: %w", err)
+	}
+	return totalLP, nil
+}
