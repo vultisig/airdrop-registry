@@ -300,6 +300,7 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 		Vaults:          []models.VaultResponse{},
 		TotalVaultCount: 0,
 		TotalBalance:    0,
+		TotalLP:         0,
 	}
 	vaultsResp.TotalVaultCount, err = a.s.GetLeaderVaultCount()
 	if err != nil {
@@ -308,6 +309,12 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 		return
 	}
 	vaultsResp.TotalBalance, err = a.s.GetLeaderVaultTotalBalance()
+	if err != nil {
+		a.logger.Error(err)
+		c.Error(errFailedToGetVault)
+		return
+	}
+	vaultsResp.TotalLP, err = a.s.GetLeaderVaultTotalLP()
 	if err != nil {
 		a.logger.Error(err)
 		c.Error(errFailedToGetVault)
