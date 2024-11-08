@@ -287,38 +287,56 @@ func (p *PointWorker) taskWorker(idx int, workerChan <-chan models.CoinDBModel, 
 }
 
 func (p *PointWorker) updatePosition(vaultAddress models.VaultAddress, multiplier int64) error {
-	backoffRetry := utils.NewBackoffRetry(5)
-	address := strings.Join(vaultAddress.GetAllAddress(), ",")
-	p.logger.Infof("start to update position for vault: %d,  address: %s ", vaultAddress.GetVaultID(), address)
-	tcmayalp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetLiquidityPosition, address)
+	newlp, err := p.fetchPosition(vaultAddress)
 	if err != nil {
-		return fmt.Errorf("failed to get tc/maya liquidity position for vault:%d : %w", vaultAddress.GetVaultID(), err)
+		p.logger.Errorf("failed to fetch position for vault id %d , using old position: %v", vaultAddress.GetVaultID(), err)
+		oldLp, err := p.storage.GetLPValue(vaultAddress.GetVaultID())
+		if err != nil {
+			return fmt.Errorf("failed to get vault: %w", err)
+		}
+		newlp = oldLp
+	} else {
+		if err := p.storage.UpdateLPValue(vaultAddress.GetVaultID(), newlp); err != nil {
+			p.logger.Errorf("failed to update lp value: %v", err)
+		}
 	}
-	tgtPrice, err := p.priceResolver.GetCoinGeckoPrice("thorwallet", "usd")
-	if err != nil {
-		return fmt.Errorf("failed to get tgt price: %w", err)
-	}
-	p.lpResolver.SetTGTPrice(tgtPrice)
-	tgtlp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetTGTStakePosition, vaultAddress.GetEVMAddress())
-	if err != nil {
-		return fmt.Errorf("failed to get tgt stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
-	}
-	wewelp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetWeWeLPPosition, vaultAddress.GetEVMAddress())
-	if err != nil {
-		return fmt.Errorf("failed to get wewel liquidity position for vault:%d : %w", vaultAddress.GetVaultID(), err)
-	}
-	saver, err := backoffRetry.RetryWithBackoff(p.saverResolver.GetSaverPosition, address)
-	if err != nil {
-		return fmt.Errorf("failed to get saver position for vault:%d : %w", vaultAddress.GetVaultID(), err)
-	}
-	newPoints := int64((tcmayalp + tgtlp + wewelp + saver) * float64(multiplier))
-	if newPoints == 0 {
+	newPoints := int64(newlp * multiplier)
+	if newlp == 0 {
 		return nil
 	}
 	if err := p.storage.IncreaseVaultTotalPoints(vaultAddress.GetVaultID(), newPoints); err != nil {
 		return fmt.Errorf("failed to increase vault total points: %w", err)
 	}
 	return nil
+}
+
+func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, error) {
+	backoffRetry := utils.NewBackoffRetry(5)
+	address := strings.Join(vaultAddress.GetAllAddress(), ",")
+	p.logger.Infof("start to update position for vault: %d,  address: %s ", vaultAddress.GetVaultID(), address)
+	tcmayalp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetLiquidityPosition, address)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get tc/maya liquidity position for vault:%d : %w", vaultAddress.GetVaultID(), err)
+	}
+	tgtPrice, err := p.priceResolver.GetCoinGeckoPrice("thorwallet", "usd")
+	if err != nil {
+		return 0, fmt.Errorf("failed to get tgt price: %w", err)
+	}
+	p.lpResolver.SetTGTPrice(tgtPrice)
+	tgtlp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetTGTStakePosition, vaultAddress.GetEVMAddress())
+	if err != nil {
+		return 0, fmt.Errorf("failed to get tgt stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
+	}
+	wewelp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetWeWeLPPosition, vaultAddress.GetEVMAddress())
+	if err != nil {
+		return 0, fmt.Errorf("failed to get wewel liquidity position for vault:%d : %w", vaultAddress.GetVaultID(), err)
+	}
+	saver, err := backoffRetry.RetryWithBackoff(p.saverResolver.GetSaverPosition, address)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get saver position for vault:%d : %w", vaultAddress.GetVaultID(), err)
+	}
+	newLP := tcmayalp + tgtlp + wewelp + saver
+	return int64(newLP), nil
 }
 
 func (p *PointWorker) updateBalance(coin models.CoinDBModel, multiplier int64) error {

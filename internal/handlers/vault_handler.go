@@ -72,6 +72,7 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		JoinAirdrop:    vault.JoinAirdrop,
 		Rank:           vault.Rank,
 		Balance:        vault.Balance,
+		LPValue:        vault.LPValue,
 		RegisteredAt:   vault.Model.CreatedAt.UTC().Unix(),
 		Coins:          []models.ChainCoins{},
 	}
