@@ -33,6 +33,7 @@ const (
 	Polkadot
 	Zksync
 	Dydx
+	Ton
 )
 
 var chainToString = map[Chain]string{
@@ -59,6 +60,7 @@ var chainToString = map[Chain]string{
 	Polkadot:    "Polkadot",
 	Zksync:      "Zksync",
 	Dydx:        "Dydx",
+	Ton:         "TON",
 }
 var EVMChains = []Chain{
 	Ethereum,
@@ -97,6 +99,7 @@ var chainDerivePath = map[Chain]string{
 	Solana:      "",
 	Sui:         "",
 	Polkadot:    "",
+	Ton:         "",
 }
 
 func (c Chain) String() string {
@@ -153,7 +156,7 @@ func (c *Chain) GetDerivePath() string {
 }
 
 func (c *Chain) IsEdDSA() bool {
-	if *c == Solana || *c == Sui || *c == Polkadot {
+	if *c == Solana || *c == Sui || *c == Polkadot || *c == Ton {
 		return true
 	}
 	return false

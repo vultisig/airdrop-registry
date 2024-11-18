@@ -70,7 +70,9 @@ func (v *Vault) GetAddress(chain common.Chain) (string, error) {
 	case common.Polkadot:
 		return address.GetDotAddress(v.EDDSA)
 	case common.Sui:
-		return "", nil
+		return address.GetSuiAddress(v.EDDSA)
+	case common.Ton:
+		return address.GetTonAddress(v.EDDSA)
 	default:
 		return "", fmt.Errorf("unsupported chain %s", chain)
 	}

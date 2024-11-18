@@ -25,6 +25,7 @@ type BalanceResolver struct {
 	thorchainBondProviders *sync.Map
 	thorchainRuneProviders *sync.Map
 	thornodeBaseAddress    string
+	tonBalanceBaseAddress  string
 }
 
 func NewBalanceResolver() (*BalanceResolver, error) {
@@ -33,6 +34,7 @@ func NewBalanceResolver() (*BalanceResolver, error) {
 		thorchainBondProviders: &sync.Map{},
 		thorchainRuneProviders: &sync.Map{},
 		thornodeBaseAddress:    "https://thornode.ninerealms.com",
+		tonBalanceBaseAddress:  "https://api.vultisig.com/ton/v3/addressInformation",
 	}, nil
 }
 
@@ -101,6 +103,8 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 		return b.FetchPolkadotBalanceOfAddress(coin.Address)
 	case common.Sui:
 		return b.FetchSuiBalanceOfAddress(coin.Address)
+	case common.Ton:
+		return b.FetchTonBalanceOfAddress(coin.Address)
 	default:
 		return 0, fmt.Errorf("chain: %s doesn't support", coin.Chain)
 	}
