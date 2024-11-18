@@ -3,6 +3,7 @@ package balance
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -23,6 +24,8 @@ type BalanceResolver struct {
 	logger                 *logrus.Logger
 	thorchainBondProviders *sync.Map
 	TonBalanceBaseAddress  string
+	thorchainRuneProviders *sync.Map
+	thornodeBaseAddress    string
 }
 
 func NewBalanceResolver() (*BalanceResolver, error) {
@@ -30,6 +33,8 @@ func NewBalanceResolver() (*BalanceResolver, error) {
 		logger:                 logrus.WithField("module", "balance_resolver").Logger,
 		thorchainBondProviders: &sync.Map{},
 		TonBalanceBaseAddress:  "https://api.vultisig.com/ton/v3/addressInformation",
+		thorchainRuneProviders: &sync.Map{},
+		thornodeBaseAddress:    "https://thornode.ninerealms.com",
 	}, nil
 }
 
@@ -69,7 +74,11 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 	case common.THORChain:
 		return b.FetchThorchainBalanceOfAddress(coin.Address)
 	case common.MayaChain:
-		return b.FetchMayachainBalanceOfAddress(coin.Address)
+		if strings.EqualFold(coin.Ticker, "maya") {
+			return b.FetchMayachainMayaBalanceOfAddress(coin.Address)
+		} else if strings.EqualFold(coin.Ticker, "cacao") {
+			return b.FetchMayachainCacoBalanceOfAddress(coin.Address)
+		}
 	case common.GaiaChain:
 		return b.FetchCosmosBalanceOfAddress(coin.Address)
 	case common.Dydx:
@@ -86,7 +95,10 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 		}
 		return totalBalance, nil
 	case common.Solana:
-		return b.FetchSolanaBalanceOfAddress(coin.Address)
+		//ignore none native coins (spl tokens)
+		if coin.ContractAddress == "" {
+			return b.FetchSolanaBalanceOfAddress(coin.Address)
+		}
 	case common.Polkadot:
 		return b.FetchPolkadotBalanceOfAddress(coin.Address)
 	case common.Sui:
@@ -96,4 +108,5 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 	default:
 		return 0, fmt.Errorf("chain: %s doesn't support", coin.Chain)
 	}
+	return 0, nil
 }

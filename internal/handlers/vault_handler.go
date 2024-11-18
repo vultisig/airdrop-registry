@@ -72,6 +72,7 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		JoinAirdrop:    vault.JoinAirdrop,
 		Rank:           vault.Rank,
 		Balance:        vault.Balance,
+		LPValue:        vault.LPValue,
 		RegisteredAt:   vault.Model.CreatedAt.UTC().Unix(),
 		Coins:          []models.ChainCoins{},
 	}
@@ -298,8 +299,22 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 	vaultsResp := models.VaultsResponse{
 		Vaults:          []models.VaultResponse{},
 		TotalVaultCount: 0,
+		TotalBalance:    0,
+		TotalLP:         0,
 	}
 	vaultsResp.TotalVaultCount, err = a.s.GetLeaderVaultCount()
+	if err != nil {
+		a.logger.Error(err)
+		c.Error(errFailedToGetVault)
+		return
+	}
+	vaultsResp.TotalBalance, err = a.s.GetLeaderVaultTotalBalance()
+	if err != nil {
+		a.logger.Error(err)
+		c.Error(errFailedToGetVault)
+		return
+	}
+	vaultsResp.TotalLP, err = a.s.GetLeaderVaultTotalLP()
 	if err != nil {
 		a.logger.Error(err)
 		c.Error(errFailedToGetVault)
@@ -318,6 +333,7 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 			TotalPoints:  vault.TotalPoints,
 			Rank:         vault.Rank,
 			Balance:      vault.Balance,
+			LPValue:      vault.LPValue,
 			RegisteredAt: vault.Model.CreatedAt.UTC().Unix(),
 		}
 		vaultsResp.Vaults = append(vaultsResp.Vaults, vaultResp)

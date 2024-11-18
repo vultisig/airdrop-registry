@@ -13,11 +13,20 @@ func (b *BalanceResolver) FetchThorchainBalanceOfAddress(address string) (float6
 	if address == "" {
 		return 0, fmt.Errorf("address cannot be empty")
 	}
-	url := fmt.Sprintf("https://thornode.ninerealms.com/cosmos/bank/v1beta1/balances/%s", address)
+	url := fmt.Sprintf("%s/cosmos/bank/v1beta1/balances/%s", b.thornodeBaseAddress, address)
 	runeBalance, err := b.fetchSpecificCosmosBalance(url, "rune", 8)
 	if err != nil {
 		return 0, fmt.Errorf("error fetching thorchain balance: %w", err)
 	}
+	// consider thorchain pooled rune
+	pooledRune, ok := b.thorchainRuneProviders.Load(address)
+	if ok {
+		b.logger.Infof("address: %s, pooled rune: %v", address, pooledRune)
+		if _, ok := pooledRune.(int64); ok {
+			runeBalance += (float64)(pooledRune.(int64)) / math.Pow10(8)
+		}
+	}
+
 	// consider thorchain bond
 	bondValue, ok := b.thorchainBondProviders.Load(address)
 	if !ok {
@@ -59,9 +68,27 @@ func (b *BalanceResolver) GetTHORChainBondProviders() error {
 	if len(nodes) == 0 {
 		return nil
 	}
+	// clear all the existing bond providers
+	b.thorchainBondProviders.Range(func(k, v interface{}) bool {
+		b.thorchainBondProviders.Delete(k)
+		return true
+	})
 	for _, node := range nodes {
 		for _, item := range node.BondProviders.Providers {
-			b.thorchainBondProviders.Store(item.BondAddress, item.Bond)
+			bond := 0.0
+			existing, ok := b.thorchainBondProviders.Load(item.BondAddress)
+			if ok {
+				bond, err = strconv.ParseFloat(existing.(string), 64)
+				if err != nil {
+					b.logger.Errorf("failed to parse bond value: %v", err)
+				}
+			}
+			newBond, err := strconv.ParseFloat(item.Bond, 64)
+			if err != nil {
+				b.logger.Errorf("failed to parse bond value: %v", err)
+				continue
+			}
+			b.thorchainBondProviders.Store(item.BondAddress, strconv.FormatFloat(bond+newBond, 'f', -1, 64))
 		}
 	}
 
@@ -71,14 +98,59 @@ func (b *BalanceResolver) GetTHORChainBondProviders() error {
 	})
 	return nil
 }
+
+type THORNodeRuneProviderResponse struct {
+	RuneAddress string `json:"rune_address"`
+	Value       int64  `json:"value,string"`
+}
+
+func (b *BalanceResolver) GetTHORChainRuneProviders() error {
+	url := fmt.Sprintf("%s/thorchain/rune_providers", b.thornodeBaseAddress)
+	resp, err := http.Get(url)
+	if err != nil {
+		return fmt.Errorf("error fetching bond providers from %s: %w", url, err)
+	}
+
+	defer b.closer(resp.Body)
+	var runeProviders []THORNodeRuneProviderResponse
+	if err := json.NewDecoder(resp.Body).Decode(&runeProviders); err != nil {
+		return fmt.Errorf("error unmarshalling response: %w", err)
+	}
+	//clear all the existing rune providers
+	b.thorchainRuneProviders.Range(func(k, v interface{}) bool {
+		b.thorchainRuneProviders.Delete(k)
+		return true
+	})
+	if len(runeProviders) == 0 {
+		return nil
+	}
+	for _, provider := range runeProviders {
+		//discard rune provider with 0 value
+		if provider.Value > 0 {
+			b.thorchainRuneProviders.Store(provider.RuneAddress, provider.Value)
+		}
+	}
+
+	b.thorchainRuneProviders.Range(func(k, v interface{}) bool {
+		b.logger.Infof("rune provider: %s, value: %d", k, v)
+		return true
+	})
+	return nil
+}
+
 func (b *BalanceResolver) GetLP(address string) (float64, error) {
 	return 0.0, nil
 }
 
-func (b *BalanceResolver) FetchMayachainBalanceOfAddress(address string) (float64, error) {
+func (b *BalanceResolver) FetchMayachainCacoBalanceOfAddress(address string) (float64, error) {
 	url := fmt.Sprintf("https://mayanode.mayachain.info/cosmos/bank/v1beta1/balances/%s", address)
 	return b.fetchSpecificCosmosBalance(url, "cacao", 10)
 }
+func (b *BalanceResolver) FetchMayachainMayaBalanceOfAddress(address string) (float64, error) {
+	url := fmt.Sprintf("https://mayanode.mayachain.info/cosmos/bank/v1beta1/balances/%s", address)
+	return b.fetchSpecificCosmosBalance(url, "maya", 4)
+}
+
 func (b *BalanceResolver) FetchCosmosBalanceOfAddress(address string) (float64, error) {
 	url := fmt.Sprintf("https://cosmos-rest.publicnode.com/cosmos/bank/v1beta1/balances/%s", address)
 	return b.fetchSpecificCosmosBalance(url, "uatom", 6)

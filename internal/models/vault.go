@@ -26,6 +26,7 @@ type Vault struct {
 	JoinAirdrop  bool    `json:"join_airdrop"`                         // join airdrop or not
 	Rank         int64   `json:"rank"`                                 // rank of the vault
 	Balance      int64   `gorm:"type:bigint;default:0" json:"balance"` // latest balance of the vault
+	LPValue      int64   `gorm:"type:bigint;default:0" json:"lp_value"`
 }
 
 func (*Vault) TableName() string {
