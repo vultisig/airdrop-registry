@@ -22,12 +22,14 @@ const (
 type BalanceResolver struct {
 	logger                 *logrus.Logger
 	thorchainBondProviders *sync.Map
+	TonBalanceBaseAddress  string
 }
 
 func NewBalanceResolver() (*BalanceResolver, error) {
 	return &BalanceResolver{
 		logger:                 logrus.WithField("module", "balance_resolver").Logger,
 		thorchainBondProviders: &sync.Map{},
+		TonBalanceBaseAddress:  "https://api.vultisig.com/ton/v3/addressInformation",
 	}, nil
 }
 
@@ -89,6 +91,8 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 		return b.FetchPolkadotBalanceOfAddress(coin.Address)
 	case common.Sui:
 		return b.FetchSuiBalanceOfAddress(coin.Address)
+	case common.Ton:
+		return b.FetchTonBalanceOfAddress(coin.Address)
 	default:
 		return 0, fmt.Errorf("chain: %s doesn't support", coin.Chain)
 	}

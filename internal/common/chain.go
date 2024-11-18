@@ -87,7 +87,7 @@ var chainDerivePath = map[Chain]string{
 	Solana:      "",
 	Sui:         "",
 	Polkadot:    "",
-	Ton:         "m/44'/607'/0'", //why some are empty?
+	Ton:         "",
 }
 
 func (c Chain) String() string {
