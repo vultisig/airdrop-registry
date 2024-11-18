@@ -23,18 +23,18 @@ const (
 type BalanceResolver struct {
 	logger                 *logrus.Logger
 	thorchainBondProviders *sync.Map
-	TonBalanceBaseAddress  string
 	thorchainRuneProviders *sync.Map
 	thornodeBaseAddress    string
+	tonBalanceBaseAddress  string
 }
 
 func NewBalanceResolver() (*BalanceResolver, error) {
 	return &BalanceResolver{
 		logger:                 logrus.WithField("module", "balance_resolver").Logger,
 		thorchainBondProviders: &sync.Map{},
-		TonBalanceBaseAddress:  "https://api.vultisig.com/ton/v3/addressInformation",
 		thorchainRuneProviders: &sync.Map{},
 		thornodeBaseAddress:    "https://thornode.ninerealms.com",
+		tonBalanceBaseAddress:  "https://api.vultisig.com/ton/v3/addressInformation",
 	}, nil
 }
 

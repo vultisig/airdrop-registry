@@ -30,7 +30,7 @@ func TestFetchTonBalanceOfAddress(t *testing.T) {
 	// Create a LiquidityPositionResolver instance
 	balanceResolver := &BalanceResolver{
 		logger:                logrus.WithField("module", "balance_resolver_test").Logger,
-		TonBalanceBaseAddress: mockServer.URL,
+		tonBalanceBaseAddress: mockServer.URL,
 	}
 	b, err := balanceResolver.FetchTonBalanceOfAddress("UQBM2SHV1AuhDNMB4E69SMtzqstKG2J_ZXwqpdgmAuulrUom")
 	assert.NoError(t, err)

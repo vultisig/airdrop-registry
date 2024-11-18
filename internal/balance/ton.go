@@ -11,7 +11,7 @@ type tonBalanceResult struct {
 }
 
 func (b *BalanceResolver) FetchTonBalanceOfAddress(address string) (float64, error) {
-	url := fmt.Sprintf("%s?address=%s&use_v2=false", b.TonBalanceBaseAddress, address)
+	url := fmt.Sprintf("%s?address=%s&use_v2=false", b.tonBalanceBaseAddress, address)
 	resp, err := http.Get(url)
 	if err != nil {
 		return 0, fmt.Errorf("error fetching balance of address %s on TON: %w", address, err)
