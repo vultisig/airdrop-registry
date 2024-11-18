@@ -25,11 +25,8 @@ func GetTonAddress(hexPublicKey string) (string, error) {
 	// Create a v4R2 wallet
 	addressInstance, err := wallet.AddressFromPubKey(pubKey, wallet.V4R2, 698983191)
 	if err != nil {
-		fmt.Printf("Failed to create wallet: %v\n", err)
 		return "", fmt.Errorf("failed to create wallet: %w", err)
 	}
-
 	addressInstance.SetBounce(false)
-
 	return addressInstance.String(), nil
 }
