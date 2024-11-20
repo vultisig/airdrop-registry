@@ -151,7 +151,7 @@ func (p *PointWorker) startJob(job *models.Job) {
 	go p.taskProvider(job, workChan, positionWorkerChan)
 
 	// We have 2 type of concurrent workers, one for updating balance and one for updating position
-	for i := 0; i < int(p.cfg.Worker.Concurrency); i++ {
+	for i := 0; i < 2; i++ {
 		p.wg.Add(1)
 		idx := i
 		go p.activePositionWorker(idx, positionWorkerChan, *job)
@@ -296,6 +296,7 @@ func (p *PointWorker) updatePosition(vaultAddress models.VaultAddress, multiplie
 		}
 		newlp = oldLp
 	} else {
+		p.logger.Infof("new lp value for vault %d is %d", vaultAddress.GetVaultID(), newlp)
 		if err := p.storage.UpdateLPValue(vaultAddress.GetVaultID(), newlp); err != nil {
 			p.logger.Errorf("failed to update lp value: %v", err)
 		}
@@ -318,6 +319,7 @@ func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, er
 	if err != nil {
 		return 0, fmt.Errorf("failed to get tc/maya liquidity position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
+	p.logger.Infof("tc/maya liquidity position for vault %d is %f", vaultAddress.GetVaultID(), tcmayalp)
 	tgtPrice, err := p.priceResolver.GetCoinGeckoPrice("thorwallet", "usd")
 	if err != nil {
 		return 0, fmt.Errorf("failed to get tgt price: %w", err)
@@ -327,14 +329,17 @@ func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, er
 	if err != nil {
 		return 0, fmt.Errorf("failed to get tgt stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
+	p.logger.Infof("tgt stake position for vault %d is %f", vaultAddress.GetVaultID(), tgtlp)
 	wewelp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetWeWeLPPosition, vaultAddress.GetEVMAddress())
 	if err != nil {
 		return 0, fmt.Errorf("failed to get wewel liquidity position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
+	p.logger.Infof("wewel liquidity position for vault %d is %f", vaultAddress.GetVaultID(), wewelp)
 	saver, err := backoffRetry.RetryWithBackoff(p.saverResolver.GetSaverPosition, address)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get saver position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
+	p.logger.Infof("saver position for vault %d is %f", vaultAddress.GetVaultID(), saver)
 	newLP := tcmayalp + tgtlp + wewelp + saver
 	return int64(newLP), nil
 }

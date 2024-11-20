@@ -76,17 +76,20 @@ func (w *weweLpResolver) GetLiquidityPosition(address string) (float64, error) {
 		w.logger.Errorf("Failed to fetch total pool balance: %v", err)
 		return 0, err
 	}
-
+	w.logger.Infof("wewe total pool balance: %v", wewetotalPoolBalance)
+	w.logger.Infof("usdc total pool usdc: %v", usdcTotalPoolBalance)
 	totalSupply, err := w.fetchTotalSupply(client)
 	if err != nil {
 		w.logger.Errorf("Failed to fetch total supply and balance: %v", err)
 		return 0, err
 	}
+	w.logger.Infof("total supply: %v", totalSupply)
 	share, err := w.fetchPoolShare(client, userAddress)
 	if err != nil {
 		w.logger.Errorf("Failed to fetch balance: %v", err)
 		return 0, err
 	}
+	w.logger.Infof("user share: %v", share)
 
 	userWEWEAmount := new(big.Int).Mul(share, wewetotalPoolBalance)
 	userWEWEAmount.Div(userWEWEAmount, totalSupply)
@@ -146,7 +149,7 @@ func (w *weweLpResolver) fetchWEWEPrice(client *ethclient.Client) (float64, erro
 
 	result, err := client.CallContract(context.Background(), msg, nil)
 	if err != nil {
-		return 0, fmt.Errorf("failed to call contract: %v", err)
+		return 0, fmt.Errorf("failed to call contract get price: %v", err)
 	}
 
 	var slot0 Slot0
@@ -187,7 +190,7 @@ func (w *weweLpResolver) fetchPoolInfo(client EVMClient) (*big.Int, *big.Int, er
 
 	result, err := client.CallContract(context.Background(), msgAux, nil)
 	if err != nil {
-		w.logger.Errorf("Failed to call contract: %v", err)
+		w.logger.Errorf("Failed to call contract get pool info: %v", err)
 		return nil, nil, err
 	}
 
@@ -232,7 +235,7 @@ func (w *weweLpResolver) fetchTotalSupply(client EVMClient) (*big.Int, error) {
 
 	result, err := client.CallContract(context.Background(), msg, nil)
 	if err != nil {
-		w.logger.Errorf("Failed to call contract: %v", err)
+		w.logger.Errorf("Failed to call contract get total supply: %v", err)
 		return nil, err
 	}
 	var totalSupply *big.Int
@@ -264,7 +267,7 @@ func (w *weweLpResolver) fetchPoolShare(client EVMClient, userAddress common.Add
 
 	resultBalance, err := client.CallContract(context.Background(), msgBalance, nil)
 	if err != nil {
-		w.logger.Errorf("Failed to call contract: %v", err)
+		w.logger.Errorf("Failed to call contract get pool share: %v", err)
 		return nil, err
 	}
 	var balance *big.Int

@@ -3,6 +3,7 @@ package liquidity
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 
@@ -47,11 +48,17 @@ func (l *LiquidityPositionResolver) GetLiquidityPosition(address string) (float6
 		return 0, fmt.Errorf("error fetching liquidity position from %s: %s", url, resp.Status)
 	}
 	var positions map[string][]poolPositionResponse
-	if err := json.NewDecoder(resp.Body).Decode(&positions); err != nil {
+	buf, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, fmt.Errorf("error reading liquidity position response: %e", err)
+	}
+	l.logger.Infof("response(%s) : %s", url, string(buf))
+	if err := json.Unmarshal(buf, &positions); err != nil {
 		return 0, fmt.Errorf("error decoding liquidity position response: %e", err)
 	}
 	var totalLiquidity float64
 	if positions == nil {
+		l.logger.Errorf("no liquidity position found for address %s", address)
 		return 0, nil
 	}
 	for _, v := range positions {
