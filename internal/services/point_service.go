@@ -151,7 +151,7 @@ func (p *PointWorker) startJob(job *models.Job) {
 	go p.taskProvider(job, workChan, positionWorkerChan)
 
 	// We have 2 type of concurrent workers, one for updating balance and one for updating position
-	for i := 0; i < int(p.cfg.Worker.Concurrency); i++ {
+	for i := 0; i < 2; i++ {
 		p.wg.Add(1)
 		idx := i
 		go p.activePositionWorker(idx, positionWorkerChan, *job)
