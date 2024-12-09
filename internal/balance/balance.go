@@ -83,6 +83,10 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 		return b.FetchCosmosBalanceOfAddress(coin.Address)
 	case common.Dydx:
 		return b.FetchDydxBalanceOfAddress(coin.Address)
+	case common.Terra:
+		return b.FetchTerraBalanceOfAddress(coin.Address)
+	case common.TerraClassic:
+		return b.FetchTerraClassicBalanceOfAddress(coin.Address)
 	case common.Kujira:
 		var totalBalance float64
 		balanceKujira, errK := b.FetchKujiraBalanceOfAddress(coin.Address)
