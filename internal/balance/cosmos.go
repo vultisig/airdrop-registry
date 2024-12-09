@@ -171,6 +171,16 @@ func (b *BalanceResolver) FetchDydxBalanceOfAddress(address string) (float64, er
 	return b.fetchSpecificCosmosBalance(url, "adydx", 18)
 }
 
+func (b *BalanceResolver) FetchTerraBalanceOfAddress(address string) (float64, error) {
+	url := fmt.Sprintf("https://terra-lcd.publicnode.com/cosmos/bank/v1beta1/spendable_balances/%s", address)
+	return b.fetchSpecificCosmosBalance(url, "uluna", 6)
+}
+
+func (b *BalanceResolver) FetchTerraClassicBalanceOfAddress(address string) (float64, error) {
+	url := fmt.Sprintf("https://terra-classic-lcd.publicnode.com/cosmos/bank/v1beta1/spendable_balances/%s", address)
+	return b.fetchSpecificCosmosBalance(url, "uluna", 6)
+}
+
 type CosmosData struct {
 	Balances []struct {
 		Denom  string `json:"denom"`
