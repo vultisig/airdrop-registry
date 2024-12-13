@@ -86,7 +86,7 @@ func (a *Api) setNftAvatarHandler(c *gin.Context) {
 				c.Error(errFailedToGetCollection)
 				return
 			}
-			a.cachedData.Add(key, nftOwnerResponse, 5*time.Minute)
+			a.cachedData.Add(key, nftOwnerResponse, time.Minute)
 		}
 
 		owned := false
@@ -175,6 +175,6 @@ func (a *Api) getCollectionMinPriceHandler(c *gin.Context) {
 		return
 	}
 	//add to cache
-	a.cachedData.Add(collectionSlug, openseaResp.Listings[0].Price, 5*time.Minute)
+	a.cachedData.Add(collectionSlug, openseaResp.Listings[0].Price, time.Minute)
 	c.JSON(http.StatusOK, gin.H{"minPrice": openseaResp.Listings[0].Price.Current})
 }
