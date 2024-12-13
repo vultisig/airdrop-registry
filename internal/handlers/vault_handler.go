@@ -75,6 +75,7 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		LPValue:        vault.LPValue,
 		RegisteredAt:   vault.Model.CreatedAt.UTC().Unix(),
 		Coins:          []models.ChainCoins{},
+		AvatarURL:      vault.AvatarURL,
 	}
 	for _, coin := range coins {
 		found := false
@@ -133,6 +134,7 @@ func (a *Api) getVaultByUIDHandler(c *gin.Context) {
 		Rank:           vault.Rank,
 		RegisteredAt:   vault.Model.CreatedAt.UTC().Unix(),
 		Coins:          []models.ChainCoins{},
+		AvatarURL:      vault.AvatarURL,
 	}
 	for i, _ := range coins {
 		coin := coins[i]
@@ -145,6 +147,7 @@ func (a *Api) getVaultByUIDHandler(c *gin.Context) {
 				found = true
 			}
 		}
+
 		if !found {
 			vaultResp.Coins = append(vaultResp.Coins, models.ChainCoins{
 				Name:         coin.Chain,
@@ -327,14 +330,20 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 		return
 	}
 	for _, vault := range vaults {
+		length := 10
+		if len(vault.Uid) < 10 {
+			length = len(vault.Uid)
+		}
+		uid := vault.Uid[:length]
 		vaultResp := models.VaultResponse{
-			Name:         vault.Alias,
-			Alias:        vault.Alias,
+			Name:         uid,
+			Alias:        uid,
 			TotalPoints:  vault.TotalPoints,
 			Rank:         vault.Rank,
 			Balance:      vault.Balance,
 			LPValue:      vault.LPValue,
 			RegisteredAt: vault.Model.CreatedAt.UTC().Unix(),
+			AvatarURL:    vault.AvatarURL,
 		}
 		vaultsResp.Vaults = append(vaultsResp.Vaults, vaultResp)
 	}

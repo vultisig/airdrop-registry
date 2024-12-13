@@ -128,3 +128,11 @@ func (s *Storage) GetLeaderVaultTotalLP() (int64, error) {
 	}
 	return totalLP, nil
 }
+
+func (s *Storage) UpdateVaultAvatar(vault *models.Vault) error {
+	qry := `UPDATE vaults SET avatar_url = ?, avatar_collection_id = ?, avatar_item_id = ? WHERE id = ?`
+	if err := s.db.Exec(qry, vault.AvatarURL, vault.AvatarCollectionID, vault.AvatarItemID, vault.ID).Error; err != nil {
+		return fmt.Errorf("failed to update vault avatar: %w", err)
+	}
+	return nil
+}

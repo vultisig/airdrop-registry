@@ -14,6 +14,7 @@ type VaultResponse struct {
 	LPValue        int64        `json:"lp_value"`
 	Coins          []ChainCoins `json:"chains"`
 	RegisteredAt   int64        `json:"registered_at"`
+	AvatarURL      string       `json:"avatar_url"`
 }
 
 type VaultsResponse struct {

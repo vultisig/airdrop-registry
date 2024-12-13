@@ -12,6 +12,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	cache "github.com/patrickmn/go-cache"
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/models"
 	"github.com/vultisig/airdrop-registry/internal/services"
@@ -19,10 +20,12 @@ import (
 
 // Api is the main handler for the API
 type Api struct {
-	logger *logrus.Logger
-	cfg    *config.Config
-	s      *services.Storage
-	router *gin.Engine
+	logger        *logrus.Logger
+	cfg           *config.Config
+	s             *services.Storage
+	router        *gin.Engine
+	openseaAPIKey string
+	cachedData    *cache.Cache
 }
 
 // NewApi creates a new Api instance
@@ -34,10 +37,12 @@ func NewApi(cfg *config.Config, s *services.Storage) (*Api, error) {
 		return nil, fmt.Errorf("storage is nil")
 	}
 	return &Api{
-		cfg:    cfg,
-		s:      s,
-		router: gin.Default(),
-		logger: logrus.WithField("module", "api").Logger,
+		cfg:           cfg,
+		s:             s,
+		router:        gin.Default(),
+		logger:        logrus.WithField("module", "api").Logger,
+		openseaAPIKey: cfg.OpenSea.APIKey,
+		cachedData:    cache.New(5*time.Minute, 10*time.Minute),
 	}, nil
 }
 
@@ -83,6 +88,10 @@ func (a *Api) setupRouting() {
 
 	// leader board
 	rg.GET("/leaderboard/vaults", a.getVaultsByRankHandler)
+
+	// NFT-related endpoints
+	rg.GET("/nft/price/:collectionID", a.getCollectionMinPriceHandler)
+	rg.POST("/nft/avatar", a.setNftAvatarHandler)
 
 }
 
