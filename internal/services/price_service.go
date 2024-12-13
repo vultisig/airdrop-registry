@@ -154,7 +154,46 @@ func (p *PriceResolver) GetLiFiPrice(chain, contractAddress string) (float64, er
 	}
 	return price, nil
 }
-
+func (p *PriceResolver) GetMidgardCacaoPrices() (float64, error) {
+	if cachedPrice, ok := p.priceCache.Get("midgard_cacao"); ok {
+		return cachedPrice.(float64), nil
+	}
+	// fetch from https://midgard.mayachain.info/v2/debug/usd
+	resp, err := http.Get("https://midgard.mayachain.info/v2/debug/usd")
+	if err != nil {
+		p.logger.Error(err)
+		return 0, fmt.Errorf("fail to get price from Midgard,err: %w", err)
+	}
+	defer p.closer(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("error fetching Midgard price: %s", resp.Status)
+	}
+	/*
+			sample response:
+			ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7 - originalDepth: 11302361418928360 runeDepth: 1130236 assetDepth: 70335388460771 cacaoPriceUsd: 0.62
+		ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48 - originalDepth: 7207733475181527 runeDepth: 720773 assetDepth: 44619085750427 cacaoPriceUsd: 0.62
+		cacaoPriceUSD: 0.6223070193364945
+	*/
+	//parse the response
+	str, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, fmt.Errorf("error reading response: %w", err)
+	}
+	lines := strings.Split(string(str), "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "cacaoPriceUSD") {
+			priceStr := strings.Split(line, ":")[1]
+			priceStr = strings.TrimSpace(priceStr)
+			price, err := strconv.ParseFloat(priceStr, 64)
+			if err != nil {
+				return 0, fmt.Errorf("error parsing price: %w", err)
+			}
+			p.priceCache.Set("midgard_cacao", price, 4*time.Hour)
+			return price, nil
+		}
+	}
+	return 0, fmt.Errorf("price not found in response")
+}
 func (p *PriceResolver) GetAllTokenPrices(coinIds []models.CoinIdentity) (map[int]float64, error) {
 	strIds := p.resolveIds(coinIds)
 	url := CMC_Base_URL + "/v2/cryptocurrency/quotes/latest?id=" + strIds
