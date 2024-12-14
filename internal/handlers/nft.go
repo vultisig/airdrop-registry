@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/vultisig/airdrop-registry/internal/common"
 )
 
@@ -46,7 +47,7 @@ func (a *Api) setNftAvatarHandler(c *gin.Context) {
 	// check vault already exists , should we tell front-end that vault already registered?
 	v, err := a.s.GetVault(vault.PublicKeyECDSA, vault.PublicKeyEDDSA)
 	if err != nil {
-		a.logger.Error(err)
+		a.logger.Errorf("fail to get vault,err: %v", err)
 		_ = c.Error(errFailedToGetVault)
 		return
 	}
@@ -58,7 +59,7 @@ func (a *Api) setNftAvatarHandler(c *gin.Context) {
 		//setProfile(vault.Uid, vault.Url)
 		//check if user owns the nft
 		var nftOwnerResponse OpenSeaNFTResponse
-		key := fmt.Sprintln("%s-%s", vault.CollectionID, vault.ItemID)
+		key := fmt.Sprintf("%s-%d", vault.CollectionID, vault.ItemID)
 		//check cache
 		if cachedData, ok := a.cachedData.Get(key); ok {
 			if _, ok := cachedData.(OpenSeaNFTResponse); ok {
@@ -72,26 +73,33 @@ func (a *Api) setNftAvatarHandler(c *gin.Context) {
 			// add x-api-key header
 			req, err := http.NewRequest("GET", url, nil)
 			if err != nil {
-				c.Error(errFailedToGetCollection)
+				a.logger.Errorf("failed to create request: %v", err)
+				_ = c.Error(errFailedToGetCollection)
 				return
 			}
 			req.Header.Add("x-api-key", a.cfg.OpenSea.APIKey)
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
-				c.Error(errFailedToGetCollection)
+				a.logger.Errorf("failed to get collection: %v", err)
+				_ = c.Error(errFailedToGetCollection)
 				return
 			}
-			defer resp.Body.Close()
+
+			defer a.closer(resp.Body)
 			if err := json.NewDecoder(resp.Body).Decode(&nftOwnerResponse); err != nil {
-				c.Error(errFailedToGetCollection)
+				a.logger.Errorf("failed to decode response: %v", err)
+				_ = c.Error(errFailedToGetCollection)
 				return
 			}
-			a.cachedData.Add(key, nftOwnerResponse, time.Minute)
+			if err := a.cachedData.Add(key, nftOwnerResponse, time.Minute); err != nil {
+				a.logger.Errorf("fail to add collection to cache: %s", err)
+			}
 		}
 
 		owned := false
 		ethAddress, err := v.GetAddress(common.Ethereum)
 		if err != nil {
+			a.logger.Errorf("fail to get address: %v", err)
 			_ = c.Error(errFailedToGetAddress)
 			return
 		}
@@ -111,7 +119,8 @@ func (a *Api) setNftAvatarHandler(c *gin.Context) {
 		v.AvatarItemID = vault.ItemID
 		v.AvatarURL = vault.Url
 		if err := a.s.UpdateVaultAvatar(v); err != nil {
-			c.Error(err)
+			a.logger.Errorf("fail to update vault avatar: %v", err)
+			_ = c.Error(err)
 			return
 		}
 	} else {
@@ -136,11 +145,11 @@ type OpenSeaBestCollectionResponse struct {
 func (a *Api) getCollectionMinPriceHandler(c *gin.Context) {
 	collectionID := c.Param("collectionID")
 	if collectionID == "" {
-		c.Error(errInvalidRequest)
+		_ = c.Error(errInvalidRequest)
 		return
 	}
 	if !strings.EqualFold(collectionID, "0xa98b29a8f5a247802149c268ecf860b8308b7291") {
-		c.Error(errAddressNotMatch)
+		_ = c.Error(errAddressNotMatch)
 		return
 	}
 	collectionSlug := "thorguards"
@@ -155,26 +164,32 @@ func (a *Api) getCollectionMinPriceHandler(c *gin.Context) {
 	// add x-api-key header
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		c.Error(errFailedToGetCollection)
+		a.logger.Errorf("failed to create request: %v", err)
+		_ = c.Error(errFailedToGetCollection)
 		return
 	}
+	a.logger.Infof("api key: %s", a.cfg.OpenSea.APIKey)
 	req.Header.Add("x-api-key", a.cfg.OpenSea.APIKey)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		c.Error(errFailedToGetCollection)
+		a.logger.Errorf("failed to get collection: %v", err)
+		_ = c.Error(errFailedToGetCollection)
 		return
 	}
-	defer resp.Body.Close()
+	defer a.closer(resp.Body)
 	var openseaResp OpenSeaBestCollectionResponse
 	if err := json.NewDecoder(resp.Body).Decode(&openseaResp); err != nil {
-		c.Error(errFailedToGetCollection)
+		a.logger.Errorf("failed to decode response: %v", err)
+		_ = c.Error(errFailedToGetCollection)
 		return
 	}
 	if len(openseaResp.Listings) == 0 {
-		c.Error(errFailedToGetCollection)
+		_ = c.Error(errFailedToGetCollection)
 		return
 	}
 	//add to cache
-	a.cachedData.Add(collectionSlug, openseaResp.Listings[0].Price, time.Minute)
+	if err := a.cachedData.Add(collectionSlug, openseaResp.Listings[0].Price, time.Minute); err != nil {
+		a.logger.Errorf("fail to add collection to cache: %s", err)
+	}
 	c.JSON(http.StatusOK, gin.H{"minPrice": openseaResp.Listings[0].Price.Current})
 }

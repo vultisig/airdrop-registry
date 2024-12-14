@@ -6,22 +6,24 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/vultisig/airdrop-registry/internal/models"
 )
 
 func (a *Api) getVaultShareAppearanceHandler(c *gin.Context) {
 	uid := c.Param("uid")
 	if uid == "" {
-		c.Error(errInvalidRequest)
+		_ = c.Error(errInvalidRequest)
 		return
 	}
 	vault, err := a.s.GetVaultByUID(uid)
 	if err != nil {
-		c.Error(errFailedToGetVault)
+		a.logger.Errorf("fail to get vault,err: %v", err)
+		_ = c.Error(errFailedToGetVault)
 		return
 	}
 	if vault == nil {
-		c.Error(errVaultNotFound)
+		_ = c.Error(errVaultNotFound)
 		return
 	}
 	appearance := a.s.GetTheme(vault.ID)
@@ -38,7 +40,8 @@ const MaxLogoSize = 100 * 1024 // 100KB in bytes
 func (a *Api) updateVaultShareAppearanceHandler(c *gin.Context) {
 	var app models.SharedVaultRequest
 	if err := c.ShouldBindJSON(&app); err != nil {
-		c.Error(errInvalidRequest)
+		a.logger.Errorf("failed to bind request: %v", err)
+		_ = c.Error(errInvalidRequest)
 		return
 	}
 	base64Logo := app.Logo
@@ -49,24 +52,25 @@ func (a *Api) updateVaultShareAppearanceHandler(c *gin.Context) {
 	//Decode the base64 string
 	imageData, err := base64.StdEncoding.DecodeString(base64Logo)
 	if err != nil {
-		c.Error(errInvalidRequest)
+		a.logger.Errorf("failed to decode base64: %v", err)
+		_ = c.Error(errInvalidRequest)
 		return
 	}
 	// Check logo size
 	if len(imageData) > MaxLogoSize {
-		c.Error(errLogoTooLarge)
+		_ = c.Error(errLogoTooLarge)
 		return
 	}
 
 	// check vault already exists , should we tell front-end that vault already registered?
 	v, err := a.s.GetVault(app.PublicKeyECDSA, app.PublicKeyEDDSA)
 	if err != nil {
-		a.logger.Error(err)
-		c.Error(errFailedToGetVault)
+		a.logger.Errorf("fail to get vault,err: %v", err)
+		_ = c.Error(errFailedToGetVault)
 		return
 	}
 	if v == nil {
-		c.Error(errVaultNotFound)
+		_ = c.Error(errVaultNotFound)
 		return
 	}
 	if v.HexChainCode == app.HexChainCode && v.Uid == app.Uid {
@@ -76,12 +80,12 @@ func (a *Api) updateVaultShareAppearanceHandler(c *gin.Context) {
 			Logo:    app.Logo,
 		})
 		if err != nil {
-			a.logger.Error(err)
-			c.Error(errFailedToSetTheme)
+			a.logger.Errorf("failed to set theme: %v", err)
+			_ = c.Error(errFailedToSetTheme)
 			return
 		}
 	} else {
-		c.Error(errForbiddenAccess)
+		_ = c.Error(errForbiddenAccess)
 		return
 	}
 	c.Status(http.StatusOK)

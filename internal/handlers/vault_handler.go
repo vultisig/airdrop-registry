@@ -288,12 +288,12 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 	limitStr := c.DefaultQuery("limit", "10")
 	from, err := strconv.ParseInt(fromStr, 10, 64)
 	if err != nil {
-		c.Error(errInvalidRequest)
+		_ = c.Error(errInvalidRequest)
 		return
 	}
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil {
-		c.Error(errInvalidRequest)
+		_ = c.Error(errInvalidRequest)
 		return
 	}
 	if limit > MaxPageSize {
@@ -307,26 +307,26 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 	}
 	vaultsResp.TotalVaultCount, err = a.s.GetLeaderVaultCount()
 	if err != nil {
-		a.logger.Error(err)
-		c.Error(errFailedToGetVault)
+		a.logger.Errorf("failed to get leader vault count: %v", err)
+		_ = c.Error(errFailedToGetVault)
 		return
 	}
 	vaultsResp.TotalBalance, err = a.s.GetLeaderVaultTotalBalance()
 	if err != nil {
-		a.logger.Error(err)
-		c.Error(errFailedToGetVault)
+		a.logger.Errorf("failed to get leader vault total balance: %v", err)
+		_ = c.Error(errFailedToGetVault)
 		return
 	}
 	vaultsResp.TotalLP, err = a.s.GetLeaderVaultTotalLP()
 	if err != nil {
-		a.logger.Error(err)
-		c.Error(errFailedToGetVault)
+		a.logger.Errorf("failed to get leader vault total LP: %v", err)
+		_ = c.Error(errFailedToGetVault)
 		return
 	}
 	vaults, err := a.s.GetLeaderVaults(from, limit)
 	if err != nil {
-		a.logger.Error(err)
-		c.Error(errFailedToGetVault)
+		a.logger.Errorf("failed to get leader vaults: %v", err)
+		_ = c.Error(errFailedToGetVault)
 		return
 	}
 	for _, vault := range vaults {
