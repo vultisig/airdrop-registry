@@ -168,7 +168,6 @@ func (a *Api) getCollectionMinPriceHandler(c *gin.Context) {
 		_ = c.Error(errFailedToGetCollection)
 		return
 	}
-	a.logger.Infof("api key: %s", a.cfg.OpenSea.APIKey)
 	req.Header.Add("x-api-key", a.cfg.OpenSea.APIKey)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
