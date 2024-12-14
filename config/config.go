@@ -27,6 +27,9 @@ type Config struct {
 		// we will have 2x concurrency workers (for active position and balance)
 		Concurrency int64 `mapstructure:"concurrency"`
 	}
+	OpenSea struct {
+		APIKey string `mapstructure:"api_key"`
+	}
 }
 
 func LoadConfig() (*Config, error) {

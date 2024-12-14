@@ -400,7 +400,7 @@ func (p *PointWorker) updateCoinPrice() error {
 			continue
 		}
 	}
-	cacaoPrice, err := p.priceResolver.GetCoinGeckoPrice("cacao", "usd")
+	cacaoPrice, err := p.priceResolver.GetMidgardCacaoPrices()
 	if err != nil {
 		p.logger.Errorf("failed to get CACAO price: %v", err)
 	} else {

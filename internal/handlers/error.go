@@ -27,6 +27,7 @@ var (
 	errFailedToGetTheme        = errors.New("FAIL_TO_GET_THEME")
 	errFailedToSetTheme        = errors.New("FAIL_TO_SET_THEME")
 	errLogoTooLarge            = errors.New("LOGO_TOO_LARGE")
+	errFailedToGetCollection   = errors.New("FAIL_TO_GET_COLLECTION")
 )
 
 func ErrorHandler() gin.HandlerFunc {
@@ -60,6 +61,7 @@ func ErrorHandler() gin.HandlerFunc {
 				errors.Is(err, errFailedToDerivePublicKey),
 				errors.Is(err, errFailedToSetTheme),
 				errors.Is(err, errFailedToGetTheme):
+				errors.Is(err, errFailedToGetCollection)
 				statusCode = http.StatusInternalServerError
 			default:
 				statusCode = http.StatusInternalServerError
