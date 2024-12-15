@@ -26,6 +26,7 @@ type BalanceResolver struct {
 	thorchainRuneProviders *sync.Map
 	thornodeBaseAddress    string
 	tonBalanceBaseAddress  string
+	whitelistNFTCollection []models.NFTCollection
 }
 
 func NewBalanceResolver() (*BalanceResolver, error) {
@@ -35,6 +36,13 @@ func NewBalanceResolver() (*BalanceResolver, error) {
 		thorchainRuneProviders: &sync.Map{},
 		thornodeBaseAddress:    "https://thornode.ninerealms.com",
 		tonBalanceBaseAddress:  "https://api.vultisig.com/ton/v3/addressInformation",
+		whitelistNFTCollection: []models.NFTCollection{
+			{
+				Chain:             common.Ethereum,
+				CollectionAddress: "0xa98b29a8f5a247802149c268ecf860b8308b7291",
+				CollectionSlug:    "thorguards",
+			},
+		},
 	}, nil
 }
 
@@ -67,6 +75,11 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 		return balance, err
 	case common.Arbitrum, common.Ethereum, common.Zksync, common.Optimism, common.Polygon, common.BscChain, common.Avalanche, common.Base, common.Blast, common.CronosChain:
 		if coin.ContractAddress != "" {
+			for _, nft := range b.whitelistNFTCollection {
+				if strings.EqualFold(coin.ContractAddress, nft.CollectionAddress) {
+					return b.fetchERC721TokenBalance(coin.Chain, coin.ContractAddress, coin.Address)
+				}
+			}
 			return b.fetchERC20TokenBalance(coin.Chain, coin.ContractAddress, coin.Address, int64(coin.Decimals))
 		} else {
 			return b.FetchEvmBalanceOfAddress(coin.Chain, coin.Address)

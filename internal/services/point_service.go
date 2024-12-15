@@ -21,17 +21,18 @@ import (
 
 // PointWorker is a worker that processes points
 type PointWorker struct {
-	logger          *logrus.Logger
-	storage         *Storage
-	priceResolver   *PriceResolver
-	balanceResolver *balance.BalanceResolver
-	lpResolver      *liquidity.LiquidityPositionResolver
-	saverResolver   *liquidity.SaverPositionResolver
-	startCoinID     int64
-	wg              *sync.WaitGroup
-	stopChan        chan struct{}
-	cfg             *config.Config
-	isJobInProgress bool
+	logger                 *logrus.Logger
+	storage                *Storage
+	priceResolver          *PriceResolver
+	balanceResolver        *balance.BalanceResolver
+	lpResolver             *liquidity.LiquidityPositionResolver
+	saverResolver          *liquidity.SaverPositionResolver
+	startCoinID            int64
+	wg                     *sync.WaitGroup
+	stopChan               chan struct{}
+	cfg                    *config.Config
+	isJobInProgress        bool
+	whitelistNFTCollection []models.NFTCollection
 }
 
 func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceResolver, balanceResolver *balance.BalanceResolver) (*PointWorker, error) {
@@ -54,6 +55,13 @@ func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceRe
 		stopChan:        make(chan struct{}),
 		wg:              &sync.WaitGroup{},
 		cfg:             cfg,
+		whitelistNFTCollection: []models.NFTCollection{
+			{
+				Chain:             common.Ethereum,
+				CollectionAddress: "0xa98b29a8f5a247802149c268ecf860b8308b7291",
+				CollectionSlug:    "thorguards",
+			},
+		},
 	}, nil
 }
 
@@ -264,6 +272,9 @@ func (p *PointWorker) activePositionWorker(idx int, workerChan <-chan models.Vau
 			if err := p.updatePosition(v, job.Multiplier); err != nil {
 				p.logger.Errorf("failed to update position: %v", err)
 			}
+			if err := p.updateNFTBalance(v, job.Multiplier); err != nil {
+				p.logger.Errorf("failed to update nft balance: %v", err)
+			}
 		}
 	}
 }
@@ -311,6 +322,31 @@ func (p *PointWorker) updatePosition(vaultAddress models.VaultAddress, multiplie
 	return nil
 }
 
+func (p *PointWorker) updateNFTBalance(vaultAddress models.VaultAddress, multiplier int64) error {
+	var nftValue int64
+	nftValue, err := p.fetchNFTValue(vaultAddress)
+	if err != nil {
+		p.logger.Errorf("failed to fetch nft value for vault id %d , using old nft value: %v", vaultAddress.GetVaultID(), err)
+		nftValue, err = p.storage.GetNFTValue(vaultAddress.GetVaultID())
+		if err != nil {
+			return fmt.Errorf("failed to get vault: %w", err)
+		}
+	} else {
+		p.logger.Infof("new nft value for vault %d is %d", vaultAddress.GetVaultID(), nftValue)
+		if err := p.storage.UpdateNFTValue(vaultAddress.GetVaultID(), nftValue); err != nil {
+			p.logger.Errorf("failed to update nft value: %v", err)
+		}
+	}
+	newPoints := int64(nftValue * multiplier)
+	if newPoints == 0 {
+		return nil
+	}
+	if err := p.storage.IncreaseVaultTotalPoints(vaultAddress.GetVaultID(), newPoints); err != nil {
+		return fmt.Errorf("failed to increase vault total points: %w", err)
+	}
+	return nil
+}
+
 func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, error) {
 	backoffRetry := utils.NewBackoffRetry(5)
 	address := strings.Join(vaultAddress.GetAllAddress(), ",")
@@ -343,7 +379,30 @@ func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, er
 	newLP := tcmayalp + tgtlp + wewelp + saver
 	return int64(newLP), nil
 }
-
+func (p *PointWorker) fetchNFTValue(vault models.VaultAddress) (int64, error) {
+	sum := float64(0)
+	for _, nft := range p.whitelistNFTCollection {
+		address := vault.GetAddress(nft.Chain)
+		if address != "" {
+			balance, err := p.balanceResolver.GetBalanceWithRetry(models.CoinDBModel{CoinBase: models.CoinBase{
+				Chain:           nft.Chain,
+				Address:         address,
+				ContractAddress: nft.CollectionAddress,
+				Decimals:        0,
+				IsNative:        false,
+			}})
+			if err != nil {
+				return 0, fmt.Errorf("failed to get balance for address:%s : %v", address, err)
+			}
+			price, err := p.priceResolver.GetOpenSeaCollectionMinPrice(nft.CollectionSlug)
+			if err != nil {
+				return 0, fmt.Errorf("failed to get price for collection:%s : %v", nft.CollectionSlug, err)
+			}
+			sum += balance * price
+		}
+	}
+	return int64(sum), nil
+}
 func (p *PointWorker) updateBalance(coin models.CoinDBModel, multiplier int64) error {
 	p.logger.Infof("start to update balance for chain: %s, ticker: %s, address: %s ", coin.Chain, coin.Ticker, coin.Address)
 	coinBalance, err := p.balanceResolver.GetBalanceWithRetry(coin)

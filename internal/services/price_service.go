@@ -23,6 +23,7 @@ type PriceResolver struct {
 	lifiBaseAddress      string
 	coingeckoBaseAddress string
 	priceCache           cache.Cache
+	OpenSeaAPIKey        string
 }
 
 func NewPriceResolver() (*PriceResolver, error) {
@@ -228,4 +229,64 @@ func (p *PriceResolver) GetAllTokenPrices(coinIds []models.CoinIdentity) (map[in
 		priceMap[item.ID] = item.Quote.USD.Price
 	}
 	return priceMap, nil
+}
+
+type OpenSeaBestCollectionResponse struct {
+	Listings []struct {
+		Price struct {
+			Current struct {
+				Currency string `json:"currency"`
+				Decimals int    `json:"decimals"`
+				Value    int    `json:"value,string"`
+			} `json:"current"`
+		} `json:"price"`
+	} `json:"listings"`
+}
+
+func (p *PriceResolver) GetOpenSeaCollectionMinPrice(collectionSlug string) (float64, error) {
+	key := fmt.Sprintf("opensea_%s", collectionSlug)
+	//check cache first
+	if cached, ok := p.priceCache.Get(key); ok {
+		if price, ok := cached.(float64); ok {
+			return price, nil
+		}
+	}
+
+	url := fmt.Sprintf("https://api.opensea.io/api/v2/listings/collection/%s/best", collectionSlug)
+	// add x-api-key header
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get collection from OpenSea,err: %w", err)
+	}
+	req.Header.Add("x-api-key", p.OpenSeaAPIKey)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get collection from OpenSea,err: %w", err)
+	}
+	defer p.closer(resp.Body)
+	var openseaResp OpenSeaBestCollectionResponse
+	if err := json.NewDecoder(resp.Body).Decode(&openseaResp); err != nil {
+		return 0, fmt.Errorf("failed to decode response from OpenSea,err: %w", err)
+	}
+	if len(openseaResp.Listings) == 0 {
+		return 0, fmt.Errorf("no listing found in response")
+	}
+	if !strings.EqualFold(openseaResp.Listings[0].Price.Current.Currency, "ETH") {
+		return 0, fmt.Errorf("currency not ETH")
+	}
+	pricePerEth := float64(openseaResp.Listings[0].Price.Current.Value) / 1e18
+	priceMap, err := p.GetAllTokenPrices([]models.CoinIdentity{
+		models.CoinIdentity{
+			CMCId: 1027,
+		},
+	})
+	if err != nil {
+		return 0, fmt.Errorf("fail to resolve ids,err: %w", err)
+	}
+	if price, ok := priceMap[1027]; ok {
+		//add to cache
+		p.priceCache.Add(key, price*pricePerEth, 3*time.Hour)
+		return price * pricePerEth, nil
+	}
+	return 0, fmt.Errorf("ETH price not found in response")
 }
