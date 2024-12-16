@@ -45,13 +45,13 @@ func NewBalanceResolver() (*BalanceResolver, error) {
 			},
 		},
 		whiteListSPLToken: map[string]string{
-			"DEf93bSt8dx58gDFCcz4CwbjYZzjwaRBYAciJYLfdCA9":"KWEEN",
-			"rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof":"RENDER",
-			"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v":"USDC",
-			"Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB":"USDT",
-			"JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN":"JUP",
-			"FgWto1nfArQTpg3o74sYkti753caPfHNXHG8CkedDpMg":"DORITO"
-		}
+			"DEf93bSt8dx58gDFCcz4CwbjYZzjwaRBYAciJYLfdCA9": "KWEEN",
+			"rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof":  "RENDER",
+			"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": "USDC",
+			"Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB": "USDT",
+			"JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN":  "JUP",
+			"FgWto1nfArQTpg3o74sYkti753caPfHNXHG8CkedDpMg": "DORITO",
+		},
 	}, nil
 }
 
