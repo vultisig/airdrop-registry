@@ -27,6 +27,7 @@ type BalanceResolver struct {
 	thornodeBaseAddress    string
 	tonBalanceBaseAddress  string
 	whitelistNFTCollection []models.NFTCollection
+	whiteListSPLToken      map[string]string
 }
 
 func NewBalanceResolver() (*BalanceResolver, error) {
@@ -43,6 +44,14 @@ func NewBalanceResolver() (*BalanceResolver, error) {
 				CollectionSlug:    "thorguards",
 			},
 		},
+		whiteListSPLToken: map[string]string{
+			"DEf93bSt8dx58gDFCcz4CwbjYZzjwaRBYAciJYLfdCA9":"KWEEN",
+			"rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof":"RENDER",
+			"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v":"USDC",
+			"Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB":"USDT",
+			"JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN":"JUP",
+			"FgWto1nfArQTpg3o74sYkti753caPfHNXHG8CkedDpMg":"DORITO"
+		}
 	}, nil
 }
 
@@ -115,6 +124,13 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 		//ignore none native coins (spl tokens)
 		if coin.ContractAddress == "" {
 			return b.FetchSolanaBalanceOfAddress(coin.Address)
+		} else {
+			for _, token := range b.whiteListSPLToken {
+				if strings.EqualFold(coin.ContractAddress, token) {
+					return b.FetchSPLBalanceOfAddress(coin.Address, coin.ContractAddress)
+				}
+			}
+			return 0, nil
 		}
 	case common.Polkadot:
 		return b.FetchPolkadotBalanceOfAddress(coin.Address)
