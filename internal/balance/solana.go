@@ -59,7 +59,7 @@ func (b *BalanceResolver) FetchSolanaBalanceOfAddress(address string) (float64, 
 	if err != nil {
 		return 0, fmt.Errorf("error marshalling RPC request: %w", err)
 	}
-	response, err := http.Post("https://api.mainnet-beta.solana.com", "application/json", bytes.NewBuffer(reqBody))
+	response, err := http.Post("https://api.vultisig.com/solana/", "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
 		return 0, fmt.Errorf("error fetching balance of address %s on Solana: %w", address, err)
 	}
@@ -101,7 +101,7 @@ func (b *BalanceResolver) FetchSPLBalanceOfAddress(vaultAddress, contractAdderss
 	if err != nil {
 		return 0, fmt.Errorf("error marshalling RPC request: %w", err)
 	}
-	response, err := http.Post("https://api.mainnet-beta.solana.com", "application/json", bytes.NewBuffer(reqBody))
+	response, err := http.Post("https://api.vultisig.com/solana/", "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
 		return 0, fmt.Errorf("error fetching spl balance  %s of address %s on Solana: %w", contractAdderss, vaultAddress, err)
 	}
