@@ -467,6 +467,14 @@ func (p *PointWorker) updateCoinPrice() error {
 			p.logger.Errorf("failed to update CACAO price: %v", err)
 		}
 	}
+	kweenPrice, err := p.priceResolver.GetCoinGeckoPrice("kween", "usd")
+	if err != nil {
+		p.logger.Errorf("failed to get KWEEN price: %v", err)
+	} else {
+		if err := p.storage.UpdateCoinPrice(common.Solana, "KWEEN", kweenPrice); err != nil {
+			p.logger.Errorf("failed to update KWEEN price: %v", err)
+		}
+	}
 
 	vthorPrice, err := p.priceResolver.GetLiFiPrice("eth", "0x815C23eCA83261b6Ec689b60Cc4a58b54BC24D8D")
 	if err != nil {
