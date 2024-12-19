@@ -79,6 +79,8 @@ func (v *Vault) GetAddress(chain common.Chain) (string, error) {
 		return address.GetSuiAddress(v.EDDSA)
 	case common.Ton:
 		return address.GetTonAddress(v.EDDSA)
+	case common.XRP:
+		return address.GetXRPAddress(childPublicKey)
 	default:
 		return "", fmt.Errorf("unsupported chain %s", chain)
 	}

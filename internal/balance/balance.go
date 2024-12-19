@@ -26,6 +26,7 @@ type BalanceResolver struct {
 	thorchainRuneProviders *sync.Map
 	thornodeBaseAddress    string
 	tonBalanceBaseAddress  string
+	xrpBalanceBaseAddress  string
 	whitelistNFTCollection []models.NFTCollection
 	whiteListSPLToken      map[string]string
 }
@@ -37,6 +38,7 @@ func NewBalanceResolver() (*BalanceResolver, error) {
 		thorchainRuneProviders: &sync.Map{},
 		thornodeBaseAddress:    "https://thornode.ninerealms.com",
 		tonBalanceBaseAddress:  "https://api.vultisig.com/ton/v3/addressInformation",
+		xrpBalanceBaseAddress:  "https://xrplcluster.com",
 		whitelistNFTCollection: []models.NFTCollection{
 			{
 				Chain:             common.Ethereum,
@@ -138,6 +140,8 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 		return b.FetchSuiBalanceOfAddress(coin.Address)
 	case common.Ton:
 		return b.FetchTonBalanceOfAddress(coin.Address)
+	case common.XRP:
+		return b.FetchXRPBalanceOfAddress(coin.Address)
 	default:
 		return 0, fmt.Errorf("chain: %s doesn't support", coin.Chain)
 	}
