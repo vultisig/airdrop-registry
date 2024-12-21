@@ -4,15 +4,17 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
+	"github.com/cosmos/btcutil/base58"
 	"golang.org/x/crypto/ripemd160"
 )
 
 // Base58 alphabet used by XRP
-const alphabet = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz"
+const xrpAlphabet = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz"
 
-// AccountID prefix for XRP addresses
-var accountIDPrefix = []byte{0x00}
+// cosmos/btcutil/base58 alphabet
+const base58Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
 func GetXRPAddress(hexPublicKey string) (string, error) {
 	publicKey, err := hex.DecodeString(hexPublicKey)
@@ -40,34 +42,14 @@ func GetXRPAddress(hexPublicKey string) (string, error) {
 	checksum := hash[:4]
 
 	finalHash := append(versionHash, checksum...)
-	return base58Encode(finalHash), nil
-}
-
-func base58Encode(input []byte) string {
-	// Count leading zeros
-	zeros := 0
-	for zeros < len(input) && input[zeros] == 0 {
-		zeros++
-	}
-	result := make([]byte, len(input)*2)
-	resultLen := 0
-	for _, b := range input {
-		carry := int(b)
-		for j := 0; j < resultLen || carry != 0; j++ {
-			if j > resultLen-1 {
-				resultLen++
-			}
-			carry += int(result[j]) * 256
-			result[j] = byte(carry % 58)
-			carry /= 58
+	base58Addr := base58.Encode([]byte(finalHash))
+	result := ""
+	for _, b := range base58Addr {
+		index := strings.Index(base58Alphabet, string(b))
+		if index == -1 || index >= len(xrpAlphabet) {
+			return "", fmt.Errorf("invalid base58 character: %s", string(b))
 		}
+		result += string(xrpAlphabet[index])
 	}
-	encoded := make([]byte, zeros+resultLen)
-	for i := 0; i < zeros; i++ {
-		encoded[i] = alphabet[0]
-	}
-	for i := 0; i < resultLen; i++ {
-		encoded[zeros+resultLen-1-i] = alphabet[result[i]]
-	}
-	return string(encoded)
+	return result, nil
 }
