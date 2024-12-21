@@ -3,6 +3,7 @@ package balance
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,12 +23,37 @@ const (
 type BalanceResolver struct {
 	logger                 *logrus.Logger
 	thorchainBondProviders *sync.Map
+	thorchainRuneProviders *sync.Map
+	thornodeBaseAddress    string
+	tonBalanceBaseAddress  string
+	xrpBalanceBaseAddress  string
+	whitelistNFTCollection []models.NFTCollection
+	whiteListSPLToken      map[string]string
 }
 
 func NewBalanceResolver() (*BalanceResolver, error) {
 	return &BalanceResolver{
 		logger:                 logrus.WithField("module", "balance_resolver").Logger,
 		thorchainBondProviders: &sync.Map{},
+		thorchainRuneProviders: &sync.Map{},
+		thornodeBaseAddress:    "https://thornode.ninerealms.com",
+		tonBalanceBaseAddress:  "https://api.vultisig.com/ton/v3/addressInformation",
+		xrpBalanceBaseAddress:  "https://xrplcluster.com",
+		whitelistNFTCollection: []models.NFTCollection{
+			{
+				Chain:             common.Ethereum,
+				CollectionAddress: "0xa98b29a8f5a247802149c268ecf860b8308b7291",
+				CollectionSlug:    "thorguards",
+			},
+		},
+		whiteListSPLToken: map[string]string{
+			"DEf93bSt8dx58gDFCcz4CwbjYZzjwaRBYAciJYLfdCA9": "KWEEN",
+			"rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof":  "RENDER",
+			"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": "USDC",
+			"Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB": "USDT",
+			"JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN":  "JUP",
+			"FgWto1nfArQTpg3o74sYkti753caPfHNXHG8CkedDpMg": "DORITO",
+		},
 	}, nil
 }
 
@@ -60,6 +86,11 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 		return balance, err
 	case common.Arbitrum, common.Ethereum, common.Zksync, common.Optimism, common.Polygon, common.BscChain, common.Avalanche, common.Base, common.Blast, common.CronosChain:
 		if coin.ContractAddress != "" {
+			for _, nft := range b.whitelistNFTCollection {
+				if strings.EqualFold(coin.ContractAddress, nft.CollectionAddress) {
+					return b.fetchERC721TokenBalance(coin.Chain, coin.ContractAddress, coin.Address)
+				}
+			}
 			return b.fetchERC20TokenBalance(coin.Chain, coin.ContractAddress, coin.Address, int64(coin.Decimals))
 		} else {
 			return b.FetchEvmBalanceOfAddress(coin.Chain, coin.Address)
@@ -67,20 +98,52 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 	case common.THORChain:
 		return b.FetchThorchainBalanceOfAddress(coin.Address)
 	case common.MayaChain:
-		return b.FetchMayachainBalanceOfAddress(coin.Address)
+		if strings.EqualFold(coin.Ticker, "maya") {
+			return b.FetchMayachainMayaBalanceOfAddress(coin.Address)
+		} else if strings.EqualFold(coin.Ticker, "cacao") {
+			return b.FetchMayachainCacoBalanceOfAddress(coin.Address)
+		}
 	case common.GaiaChain:
 		return b.FetchCosmosBalanceOfAddress(coin.Address)
 	case common.Dydx:
 		return b.FetchDydxBalanceOfAddress(coin.Address)
+	case common.Terra:
+		return b.FetchTerraBalanceOfAddress(coin.Address)
+	case common.TerraClassic:
+		return b.FetchTerraClassicBalanceOfAddress(coin.Address)
 	case common.Kujira:
-		return b.FetchKujiraBalanceOfAddress(coin.Address)
+		var totalBalance float64
+		balanceKujira, errK := b.FetchKujiraBalanceOfAddress(coin.Address)
+		if errK == nil {
+			totalBalance += balanceKujira
+		}
+		balanceRkujira, errR := b.FetchRkujiraBalanceOfAddress(coin.Address)
+		if errR == nil {
+			totalBalance += balanceRkujira
+		}
+		return totalBalance, nil
 	case common.Solana:
-		return b.FetchSolanaBalanceOfAddress(coin.Address)
+		//ignore none native coins (spl tokens)
+		if coin.ContractAddress == "" {
+			return b.FetchSolanaBalanceOfAddress(coin.Address)
+		} else {
+			for _, token := range b.whiteListSPLToken {
+				if strings.EqualFold(coin.ContractAddress, token) {
+					return b.FetchSPLBalanceOfAddress(coin.Address, coin.ContractAddress)
+				}
+			}
+			return 0, nil
+		}
 	case common.Polkadot:
 		return b.FetchPolkadotBalanceOfAddress(coin.Address)
 	case common.Sui:
 		return b.FetchSuiBalanceOfAddress(coin.Address)
+	case common.Ton:
+		return b.FetchTonBalanceOfAddress(coin.Address)
+	case common.XRP:
+		return b.FetchXRPBalanceOfAddress(coin.Address)
 	default:
 		return 0, fmt.Errorf("chain: %s doesn't support", coin.Chain)
 	}
+	return 0, nil
 }

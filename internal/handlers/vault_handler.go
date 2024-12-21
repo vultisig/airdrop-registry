@@ -72,8 +72,10 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		JoinAirdrop:    vault.JoinAirdrop,
 		Rank:           vault.Rank,
 		Balance:        vault.Balance,
+		LPValue:        vault.LPValue,
 		RegisteredAt:   vault.Model.CreatedAt.UTC().Unix(),
 		Coins:          []models.ChainCoins{},
+		AvatarURL:      vault.AvatarURL,
 	}
 	for _, coin := range coins {
 		found := false
@@ -132,6 +134,7 @@ func (a *Api) getVaultByUIDHandler(c *gin.Context) {
 		Rank:           vault.Rank,
 		RegisteredAt:   vault.Model.CreatedAt.UTC().Unix(),
 		Coins:          []models.ChainCoins{},
+		AvatarURL:      vault.AvatarURL,
 	}
 	for i, _ := range coins {
 		coin := coins[i]
@@ -144,6 +147,7 @@ func (a *Api) getVaultByUIDHandler(c *gin.Context) {
 				found = true
 			}
 		}
+
 		if !found {
 			vaultResp.Coins = append(vaultResp.Coins, models.ChainCoins{
 				Name:         coin.Chain,
@@ -284,12 +288,12 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 	limitStr := c.DefaultQuery("limit", "10")
 	from, err := strconv.ParseInt(fromStr, 10, 64)
 	if err != nil {
-		c.Error(errInvalidRequest)
+		_ = c.Error(errInvalidRequest)
 		return
 	}
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil {
-		c.Error(errInvalidRequest)
+		_ = c.Error(errInvalidRequest)
 		return
 	}
 	if limit > MaxPageSize {
@@ -298,27 +302,48 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 	vaultsResp := models.VaultsResponse{
 		Vaults:          []models.VaultResponse{},
 		TotalVaultCount: 0,
+		TotalBalance:    0,
+		TotalLP:         0,
 	}
 	vaultsResp.TotalVaultCount, err = a.s.GetLeaderVaultCount()
 	if err != nil {
-		a.logger.Error(err)
-		c.Error(errFailedToGetVault)
+		a.logger.Errorf("failed to get leader vault count: %v", err)
+		_ = c.Error(errFailedToGetVault)
+		return
+	}
+	vaultsResp.TotalBalance, err = a.s.GetLeaderVaultTotalBalance()
+	if err != nil {
+		a.logger.Errorf("failed to get leader vault total balance: %v", err)
+		_ = c.Error(errFailedToGetVault)
+		return
+	}
+	vaultsResp.TotalLP, err = a.s.GetLeaderVaultTotalLP()
+	if err != nil {
+		a.logger.Errorf("failed to get leader vault total LP: %v", err)
+		_ = c.Error(errFailedToGetVault)
 		return
 	}
 	vaults, err := a.s.GetLeaderVaults(from, limit)
 	if err != nil {
-		a.logger.Error(err)
-		c.Error(errFailedToGetVault)
+		a.logger.Errorf("failed to get leader vaults: %v", err)
+		_ = c.Error(errFailedToGetVault)
 		return
 	}
 	for _, vault := range vaults {
+		length := 10
+		if len(vault.Uid) < 10 {
+			length = len(vault.Uid)
+		}
+		uid := vault.Uid[:length]
 		vaultResp := models.VaultResponse{
-			Name:         vault.Alias,
-			Alias:        vault.Alias,
+			Name:         uid,
+			Alias:        uid,
 			TotalPoints:  vault.TotalPoints,
 			Rank:         vault.Rank,
 			Balance:      vault.Balance,
+			LPValue:      vault.LPValue,
 			RegisteredAt: vault.Model.CreatedAt.UTC().Unix(),
+			AvatarURL:    vault.AvatarURL,
 		}
 		vaultsResp.Vaults = append(vaultsResp.Vaults, vaultResp)
 	}

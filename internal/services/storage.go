@@ -78,10 +78,19 @@ func (s *Storage) UpdateVaultRanks() error {
 UPDATE vaults
     JOIN (
         SELECT id, RANK() OVER (ORDER BY total_points DESC) as vaultrank
-        FROM vaults
+        FROM vaults where vaults.join_airdrop = 1
     ) ranked_vaults ON vaults.id = ranked_vaults.id
-SET vaults.rank = ranked_vaults.vaultrank;
+SET vaults.rank = ranked_vaults.vaultrank ;
 `
 	return s.db.Exec(sql).Error
-
+}
+func (s *Storage) UpdateVaultBalance() error {
+	sql := `UPDATE vaults
+		JOIN (
+			SELECT vault_id, SUM(usd_value) AS total_balance
+			FROM coins
+			GROUP BY vault_id
+		) AS coin_sums ON vaults.id = coin_sums.vault_id
+		SET vaults.balance = coin_sums.total_balance;`
+	return s.db.Exec(sql).Error
 }

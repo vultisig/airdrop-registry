@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -9,6 +10,9 @@ import (
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/vultisig/mobile-tss-lib/tss"
+
+	"github.com/patrickmn/go-cache"
 
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/models"
@@ -19,10 +23,11 @@ import (
 
 // Api is the main handler for the API
 type Api struct {
-	logger *logrus.Logger
-	cfg    *config.Config
-	s      *services.Storage
-	router *gin.Engine
+	logger     *logrus.Logger
+	cfg        *config.Config
+	s          *services.Storage
+	router     *gin.Engine
+	cachedData *cache.Cache
 }
 
 // NewApi creates a new Api instance
@@ -34,10 +39,11 @@ func NewApi(cfg *config.Config, s *services.Storage) (*Api, error) {
 		return nil, fmt.Errorf("storage is nil")
 	}
 	return &Api{
-		cfg:    cfg,
-		s:      s,
-		router: gin.Default(),
-		logger: logrus.WithField("module", "api").Logger,
+		cfg:        cfg,
+		s:          s,
+		router:     gin.Default(),
+		logger:     logrus.WithField("module", "api").Logger,
+		cachedData: cache.New(5*time.Minute, 10*time.Minute),
 	}, nil
 }
 
@@ -87,6 +93,10 @@ func (a *Api) setupRouting() {
 	// openapi doc
 	rg.GET("/doc", openapi.HandleSwaggerUI)
 	rg.GET("/doc/openapi.yaml", openapi.HandleSpecYAML)
+	// NFT-related endpoints
+	rg.GET("/nft/price/:collectionID", a.getCollectionMinPriceHandler)
+	rg.POST("/nft/avatar", a.setNftAvatarHandler)
+
 }
 
 func (a *Api) Start() error {
@@ -97,15 +107,20 @@ func (a *Api) Start() error {
 func (a *Api) derivePublicKeyHandler(c *gin.Context) {
 	var req models.DerivePublicKeyRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		a.logger.Error(err)
-		c.Error(errInvalidRequest)
+		a.logger.Errorf("failed to bind request: %v", err)
+		_ = c.Error(errInvalidRequest)
 		return
 	}
 	result, err := tss.GetDerivedPubKey(req.PublicKeyECDSA, req.HexChainCode, req.DerivePath, false)
 	if err != nil {
-		a.logger.Error(err)
-		c.Error(errFailedToDerivePublicKey)
+		a.logger.Errorf("failed to derive public key: %v", err)
+		_ = c.Error(errFailedToDerivePublicKey)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"public_key": result})
+}
+func (a *Api) closer(closer io.Closer) {
+	if err := closer.Close(); err != nil {
+		a.logger.Error(err)
+	}
 }

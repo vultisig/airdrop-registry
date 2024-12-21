@@ -23,8 +23,12 @@ type Config struct {
 		Port     int    `mapstructure:"port"`
 	}
 	Worker struct {
-		StartID     int64 `mapstructure:"start_id"`
+		StartID int64 `mapstructure:"start_id"`
+		// we will have 2x concurrency workers (for active position and balance)
 		Concurrency int64 `mapstructure:"concurrency"`
+	}
+	OpenSea struct {
+		APIKey string `mapstructure:"api_key"`
 	}
 }
 
