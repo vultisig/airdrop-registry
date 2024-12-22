@@ -53,6 +53,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to derive public key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /vault:
     post:
@@ -85,6 +91,12 @@ paths:
                   summary: Vault already registered
                   value:
                     error: "Vault already registered"
+        '500':
+          description: Failed to register vault
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 
   /vault/{ecdsaPublicKey}/{eddsaPublicKey}:
@@ -117,6 +129,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to get vault or Failed to get coin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                failedToGetVault:
+                  summary: Failed to get vault
+                  value:
+                    error: "Failed to get vault"
+                failedToGetCoin:
+                  summary: Failed to get coin
+                  value:
+                    error: "Failed to get coin"
     delete:
       summary: Delete a vault
       description: Delete a vault identified by ECDSA and EDDSA public keys.
@@ -153,6 +180,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to get vault or to delete vault
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                failedToGetVault:
+                  summary: Failed to get vault
+                  value:
+                    error: "Failed to get vault"
+                failedToDeleteVault:
+                  summary: Failed to delete vault
+                  value:
+                    error: "Failed to delete vault"
+
 
   /vault/{ecdsaPublicKey}/{eddsaPublicKey}/alias:
     post:
@@ -199,6 +242,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to get vault or Failed to join registry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                failedToGetVault:
+                  summary: Failed to get vault
+                  value:
+                    error: "Failed to get vault"
+                failedToJoinRegistry:
+                  summary: Failed to join registry
+                  value:
+                    error: "Failed to join registry"
 
   /vault/shared/{uid}:
     get:
@@ -219,12 +277,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VaultResponseShared'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Vault not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to get vault or Failed to get coin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                failedToGetVault:
+                  summary: Failed to get vault
+                  value:
+                    error: "Failed to get vault"
+                failedToGetCoin:
+                  summary: Failed to get coin
+                  value:
+                    error: "Failed to get coin"
 
   /vault/join-airdrop:
     post:
@@ -260,6 +339,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to get vault or Failed to join registry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                failedToGetVault:
+                  summary: Failed to get vault
+                  value:
+                    error: "Failed to get vault"
+                failedToJoinRegistry:
+                  summary: Failed to join registry
+                  value:
+                    error: "Failed to join registry"
 
   /vault/exit-airdrop:
     post:
@@ -295,6 +389,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to get vault or Failed to exit registry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                failedToGetVault:
+                  summary: Failed to get vault
+                  value:
+                    error: "Failed to get vault"
+                failedToExitRegistry:
+                  summary: Failed to exit registry
+                  value:
+                    error: "Failed to exit registry"
 
   /coin/{ecdsaPublicKey}/{eddsaPublicKey}/{coinID}:
     delete:
@@ -333,11 +442,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Coin or Vault not found
+          description: Vault not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to get coin or Failed to delete coin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                failedToGetCoin:
+                  summary: Failed to get coin
+                  value:
+                    error: "Failed to get coin"
+                failedToDeleteCoin:
+                  summary: Failed to delete coin
+                  value:
+                    error: "Failed to delete coin"
 
   /coin/{ecdsaPublicKey}/{eddsaPublicKey}:
     post:
@@ -396,6 +520,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to get address or Failed to add coin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                failedToGetAddress:
+                  summary: Failed to get address
+                  value:
+                    error: "Failed to get address"
+                errFailedToAddCoin:
+                  summary: Failed to add coin
+                  value:
+                    error: "Failed to add coin"
     get:
       summary: Get coins
       description: Retrieve coins associated with a vault.
@@ -428,6 +567,98 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /vault/theme/{uid}:
+    get:
+      summary: Get vault theme
+      description: Retrieve the theme settings for a vault by UID.
+      tags:
+        - Vault
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Theme retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedVaultRequest'
+        '404':
+          description: Vault not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to get vault
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Update vault theme
+      description: Update the theme settings for a vault by UID.
+      tags:
+        - Vault
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Theme update data
+        required: true
+        content:
+          application/json:
+          schema:
+            $ref: '#/components/schemas/SharedVaultRequest'
+      responses:
+        '200':
+          description: Theme updated successfully
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Vault not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to get vault or Failed to set theme
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                failedToGetVault:
+                  summary: Failed to get vault
+                  value:
+                    error: "Failed to get vault"
+                failedToSetTheme:
+                  summary: Failed to set theme
+                  value:
+                    error: "Failed to set theme"
+     
   /leaderboard/vaults:
     get:
       summary: Get vaults by rank
@@ -437,13 +668,13 @@ paths:
       parameters:
         - name: from
           in: query
-          required: false
+          required: true
           schema:
             type: integer
           description: Starting rank (default 0)
         - name: limit
           in: query
-          required: false
+          required: true
           schema:
             type: integer
           description: Number of vaults to retrieve (default 10, max 100)
@@ -460,6 +691,104 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to get vault
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /nft/price/{collectionID}:
+    get:
+      summary: Get NFT price
+      description: Retrieve the price of an NFT by collection ID.
+      tags:
+      - NFT
+      parameters:
+      - name: collectionID
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: NFT price retrieved successfully
+          content:
+            application/json:
+              schema:  
+                  $ref: '#/components/schemas/MinPrice'   
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Collection not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to get collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse' 
+
+  /nft/avatar:
+    post:
+      summary: Upload avatar
+      description: Upload an avatar image for a vault.
+      tags:
+      - NFT
+      requestBody:
+        description: Avatar image file
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetNftProfileRequest'
+      responses:
+        '200':
+          description: Avatar uploaded successfully
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Vault not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to get vault or Failed to get collection or Failed to get address  
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                failedToGetVault:
+                  summary: Failed to get vault
+                  value:
+                    error: "Failed to get vault"
+                failedToGetCollection:
+                  summary: Failed to get collection
+                  value:
+                    error: "Failed to get collection"
+                failedToGetAddress:
+                  summary: Failed to get address
+                  value:
+                    error: "Failed to get address"
 
 components:
   schemas:
@@ -534,12 +863,17 @@ components:
           type: integer
         balance:
           type: integer
+        lp_value:
+          type: integer
         registered_at:
           type: integer
         chains:
           type: array
           items:
             $ref: '#/components/schemas/ChainCoins'
+        avatar_url:
+          type: string
+
 
     VaultResponseShared:
       type: object
@@ -564,7 +898,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ChainCoinsShared'
-
+        avatar_url:
+          type: string
+          
     ChainCoins:
       type: object
       properties:
@@ -667,6 +1003,44 @@ components:
           type: string
         registered_at:
           type: integer
+    
+    SharedVaultRequest:
+      type: object
+      properties:
+        theme:
+          type: string
+        logo:
+          type: string
+        uid:
+          type: string
+
+    SetNftProfileRequest:
+      type: object
+      properties:
+        uid:
+          type: string
+        public_key_ecdsa:
+          type: string
+        public_key_eddsa:
+          type: string
+        hex_chain_code:
+          type: string
+        collection_id:
+          type: string
+        item_id:
+          type: integer
+        url:
+          type: string
+      
+    MinPrice:
+      type: object
+      properties:
+        currency:
+          type: string 
+        decimals: 
+          type: integer 
+        value:    
+          type: string 
 
     ErrorResponse:
       type: object
