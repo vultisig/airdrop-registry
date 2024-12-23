@@ -127,8 +127,8 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 		if coin.ContractAddress == "" {
 			return b.FetchSolanaBalanceOfAddress(coin.Address)
 		} else {
-			for _, token := range b.whiteListSPLToken {
-				if strings.EqualFold(coin.ContractAddress, token) {
+			for addr, _ := range b.whiteListSPLToken {
+				if strings.EqualFold(coin.ContractAddress, addr) {
 					return b.FetchSPLBalanceOfAddress(coin.Address, coin.ContractAddress)
 				}
 			}
