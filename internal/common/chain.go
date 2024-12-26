@@ -37,6 +37,7 @@ const (
 	Terra
 	TerraClassic
 	XRP
+	Osmosis
 )
 
 var chainToString = map[Chain]string{
@@ -67,6 +68,7 @@ var chainToString = map[Chain]string{
 	Terra:        "Terra",
 	TerraClassic: "TerraClassic",
 	XRP:          "XRP",
+	Osmosis:      "Osmosis",
 }
 var EVMChains = []Chain{
 	Ethereum,
@@ -109,6 +111,7 @@ var chainDerivePath = map[Chain]string{
 	Polkadot:     "",
 	Ton:          "",
 	XRP:          "m/44'/144'/0'/0/0",
+	Osmosis:      "m/44'/118'/0'/0/0",
 }
 
 func (c Chain) String() string {
