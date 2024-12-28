@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -87,6 +88,7 @@ func TestGetLiquidityPosition(t *testing.T) {
 
 	// Create a LiquidityPositionResolver instance
 	liquidityPositionResolver := &LiquidityPositionResolver{
+		logger:            logrus.WithField("module", "liquidity_position_resolver").Logger,
 		thorwalletBaseURL: mockServer.URL,
 	}
 	addrs := []string{"thor21cfzgzg02cp7yjrkagzdrdp7dqh0xlsdhawwjc", "0x3d512341ca1ff1142caca57d75ead1179ba1dd3a"}
