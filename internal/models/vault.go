@@ -54,7 +54,7 @@ func (v *Vault) GetAddress(chain common.Chain) (string, error) {
 	case common.Kujira:
 		return address.GetBech32Address(childPublicKey, "kujira")
 	case common.Osmosis:
-		return address.GetBech32Address(childPublicKey, "osmosis")
+		return address.GetBech32Address(childPublicKey, "osmo")
 	case common.GaiaChain:
 		return address.GetBech32Address(childPublicKey, "cosmos")
 	case common.Dydx:
