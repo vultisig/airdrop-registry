@@ -26,7 +26,7 @@ func main() {
 			fmt.Println("fail to close storage db: ", err)
 		}
 	}()
-	priceResolver, err := services.NewPriceResolver()
+	priceResolver, err := services.NewPriceResolver(cfg)
 	if err != nil {
 		panic(err)
 	}

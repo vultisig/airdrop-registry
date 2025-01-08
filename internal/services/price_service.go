@@ -12,6 +12,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 
+	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/models"
 )
 
@@ -26,12 +27,13 @@ type PriceResolver struct {
 	OpenSeaAPIKey        string
 }
 
-func NewPriceResolver() (*PriceResolver, error) {
+func NewPriceResolver(cfg *config.Config) (*PriceResolver, error) {
 	pr := &PriceResolver{
 		logger:               logrus.WithField("module", "price_resolver").Logger,
 		lifiBaseAddress:      "https://li.quest",
 		coingeckoBaseAddress: "https://api.vultisig.com/coingeicko/api/v3/simple/price",
 		priceCache:           *cache.New(4*time.Hour, 5*time.Hour),
+		OpenSeaAPIKey:        cfg.OpenSea.APIKey,
 	}
 	result, err := pr.getCMCMap()
 	if err != nil {
