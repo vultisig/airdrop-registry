@@ -5,7 +5,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/patrickmn/go-cache"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -60,6 +63,8 @@ func TestCacaoPrice(t *testing.T) {
 
 	// Create a PriceResolver instance
 	priceResolver := &PriceResolver{
+		logger:               logrus.WithField("module", "price_resolver").Logger,
+		priceCache:           *cache.New(4*time.Minute, 5*time.Minute),
 		coingeckoBaseAddress: mockServer.URL,
 	}
 
@@ -68,6 +73,6 @@ func TestCacaoPrice(t *testing.T) {
 	assert.Equal(t, float64(0.5), price)
 
 	price, err = priceResolver.GetCoinGeckoPrice("CACAO", "USD")
-	assert.NoErrorf(t, err, "Failed to get CACAO price: %v", err)
+	assert.EqualError(t, err, "price not found in response")
 	assert.Equal(t, float64(0), price)
 }

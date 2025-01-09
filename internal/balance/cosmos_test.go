@@ -92,7 +92,7 @@ func TestGetTHORChainRuneProviders(t *testing.T) {
 
 	value, ok := balanceResolver.thorchainRuneProviders.Load("thor1cfzgzg02cp7yjrkagzdrdp7dqh0xlsdhawwjc")
 	assert.True(t, ok)
-	assert.Equal(t, float64(23719425771), value)
+	assert.Equal(t, int64(23719425771), value)
 
 }
 
