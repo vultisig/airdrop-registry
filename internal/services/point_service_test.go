@@ -5,13 +5,14 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/common"
 	"github.com/vultisig/airdrop-registry/internal/liquidity"
 	"github.com/vultisig/airdrop-registry/internal/models"
 )
 
 func TestPointService(t *testing.T) {
-	priceResolver, err := NewPriceResolver()
+	priceResolver, err := NewPriceResolver(&config.Config{})
 	if err != nil {
 		t.Errorf("Failed to create price resolver: %v", err)
 		t.FailNow()

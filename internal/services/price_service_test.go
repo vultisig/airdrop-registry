@@ -10,10 +10,11 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/vultisig/airdrop-registry/config"
 )
 
 func TestGetCMCMap(t *testing.T) {
-	pr, err := NewPriceResolver()
+	pr, err := NewPriceResolver(&config.Config{})
 	assert.Nil(t, err)
 	assert.NotNil(t, pr)
 }
