@@ -166,6 +166,11 @@ func (b *BalanceResolver) FetchRkujiraBalanceOfAddress(address string) (float64,
 	return b.fetchSpecificCosmosBalance(url, "factory/kujira1tsekaqv9vmem0zwskmf90gpf0twl6k57e8vdnq/urkuji", 6)
 }
 
+func (b *BalanceResolver) FetchOsmosisBalanceOfAddress(address string) (float64, error) {
+	url := fmt.Sprintf("https://osmosis-rest.publicnode.com/cosmos/bank/v1beta1/balances/%s", address)
+	return b.fetchSpecificCosmosBalance(url, "uosmo", 6)
+}
+
 func (b *BalanceResolver) FetchDydxBalanceOfAddress(address string) (float64, error) {
 	url := fmt.Sprintf("https://dydx-rest.publicnode.com/cosmos/bank/v1beta1/balances/%s", address)
 	return b.fetchSpecificCosmosBalance(url, "adydx", 18)

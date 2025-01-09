@@ -122,6 +122,8 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 			totalBalance += balanceRkujira
 		}
 		return totalBalance, nil
+	case common.Osmosis:
+		return b.FetchOsmosisBalanceOfAddress(coin.Address)
 	case common.Solana:
 		//ignore none native coins (spl tokens)
 		if coin.ContractAddress == "" {
