@@ -304,6 +304,7 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 		TotalVaultCount: 0,
 		TotalBalance:    0,
 		TotalLP:         0,
+		TotalNFT:        0,
 	}
 	vaultsResp.TotalVaultCount, err = a.s.GetLeaderVaultCount()
 	if err != nil {
@@ -320,6 +321,12 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 	vaultsResp.TotalLP, err = a.s.GetLeaderVaultTotalLP()
 	if err != nil {
 		a.logger.Errorf("failed to get leader vault total LP: %v", err)
+		_ = c.Error(errFailedToGetVault)
+		return
+	}
+	vaultsResp.TotalNFT, err = a.s.GetLeaderVaultTotalNFT()
+	if err != nil {
+		a.logger.Errorf("failed to get leader vault total NFT: %v", err)
 		_ = c.Error(errFailedToGetVault)
 		return
 	}

@@ -146,6 +146,15 @@ func (s *Storage) GetLeaderVaultTotalLP() (int64, error) {
 	return totalLP, nil
 }
 
+func (s *Storage) GetLeaderVaultTotalNFT() (int64, error) {
+	//return sum of balance of all leader vaults
+	var totalLP int64
+	if err := s.db.Model(&models.Vault{}).Select("sum(nft_value)").Row().Scan(&totalLP); err != nil {
+		return 0, fmt.Errorf("failed to get leader vault total lp: %w", err)
+	}
+	return totalLP, nil
+}
+
 func (s *Storage) UpdateVaultAvatar(vault *models.Vault) error {
 	qry := `UPDATE vaults SET avatar_url = ?, avatar_collection_id = ?, avatar_item_id = ? WHERE id = ?`
 	if err := s.db.Exec(qry, vault.AvatarURL, vault.AvatarCollectionID, vault.AvatarItemID, vault.ID).Error; err != nil {
