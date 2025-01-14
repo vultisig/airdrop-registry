@@ -12,6 +12,7 @@ type VaultResponse struct {
 	Rank           int64        `json:"rank"`
 	Balance        int64        `json:"balance"`
 	LPValue        int64        `json:"lp_value"`
+	NFTValue       int64        `json:"nft_value"`
 	Coins          []ChainCoins `json:"chains"`
 	RegisteredAt   int64        `json:"registered_at"`
 	AvatarURL      string       `json:"avatar_url"`
@@ -22,4 +23,5 @@ type VaultsResponse struct {
 	TotalVaultCount int64           `json:"total_vault_count"`
 	TotalBalance    int64           `json:"total_balance"`
 	TotalLP         int64           `json:"total_lp"`
+	TotalNFT        int64           `json:"total_nft"`
 }
