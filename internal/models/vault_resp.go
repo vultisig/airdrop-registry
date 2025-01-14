@@ -23,4 +23,5 @@ type VaultsResponse struct {
 	TotalVaultCount int64           `json:"total_vault_count"`
 	TotalBalance    int64           `json:"total_balance"`
 	TotalLP         int64           `json:"total_lp"`
+	TotalNFT        int64           `json:"total_nft"`
 }
