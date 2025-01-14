@@ -342,6 +342,7 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 			Rank:         vault.Rank,
 			Balance:      vault.Balance,
 			LPValue:      vault.LPValue,
+			NFTValue:     vault.NFTValue,
 			RegisteredAt: vault.Model.CreatedAt.UTC().Unix(),
 			AvatarURL:    vault.AvatarURL,
 		}
