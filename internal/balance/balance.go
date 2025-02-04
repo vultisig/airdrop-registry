@@ -118,7 +118,9 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 	case common.TerraClassic:
 		return b.FetchTerraClassicBalanceOfAddress(coin.Address)
 	case common.Noble:
-		return b.FetchNobleBalanceOfAddress(coin.Address)
+		if strings.EqualFold(coin.Ticker, "USDC") { //  We only support USDC on Noble for now
+			return b.FetchNobleBalanceOfAddress(coin.Address)
+		}
 	case common.Kujira:
 		var totalBalance float64
 		balanceKujira, errK := b.FetchKujiraBalanceOfAddress(coin.Address)
