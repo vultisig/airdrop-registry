@@ -59,6 +59,8 @@ func (v *Vault) GetAddress(chain common.Chain) (string, error) {
 		return address.GetBech32Address(childPublicKey, "cosmos")
 	case common.Dydx:
 		return address.GetBech32Address(childPublicKey, "dydx")
+	case common.Noble:
+		return address.GetBech32Address(childPublicKey, "noble")
 	case common.Terra, common.TerraClassic:
 		return address.GetBech32Address(childPublicKey, "terra")
 	case common.Solana:
@@ -83,6 +85,8 @@ func (v *Vault) GetAddress(chain common.Chain) (string, error) {
 		return address.GetTonAddress(v.EDDSA)
 	case common.XRP:
 		return address.GetXRPAddress(childPublicKey)
+	case common.Tron:
+		return address.GetTronAddress(childPublicKey)
 	default:
 		return "", fmt.Errorf("unsupported chain %s", chain)
 	}
