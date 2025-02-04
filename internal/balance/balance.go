@@ -26,9 +26,11 @@ type BalanceResolver struct {
 	thorchainRuneProviders *sync.Map
 	thornodeBaseAddress    string
 	tonBalanceBaseAddress  string
+	tronBalanceBaseAddress string
 	xrpBalanceBaseAddress  string
 	whitelistNFTCollection []models.NFTCollection
 	whiteListSPLToken      map[string]string
+	whiteListTRC20Token    map[string]int
 }
 
 func NewBalanceResolver() (*BalanceResolver, error) {
@@ -38,6 +40,7 @@ func NewBalanceResolver() (*BalanceResolver, error) {
 		thorchainRuneProviders: &sync.Map{},
 		thornodeBaseAddress:    "https://thornode.ninerealms.com",
 		tonBalanceBaseAddress:  "https://api.vultisig.com/ton/v3/addressInformation",
+		tronBalanceBaseAddress: "https://api.trongrid.io",
 		xrpBalanceBaseAddress:  "https://xrplcluster.com",
 		whitelistNFTCollection: []models.NFTCollection{
 			{
@@ -53,6 +56,9 @@ func NewBalanceResolver() (*BalanceResolver, error) {
 			"Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB": "USDT",
 			"JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN":  "JUP",
 			"FgWto1nfArQTpg3o74sYkti753caPfHNXHG8CkedDpMg": "DORITO",
+		},
+		whiteListTRC20Token: map[string]int{
+			"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t": 6, // USDT
 		},
 	}, nil
 }
@@ -111,6 +117,10 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 		return b.FetchTerraBalanceOfAddress(coin.Address)
 	case common.TerraClassic:
 		return b.FetchTerraClassicBalanceOfAddress(coin.Address)
+	case common.Noble:
+		if strings.EqualFold(coin.Ticker, "USDC") { //  We only support USDC on Noble for now
+			return b.FetchNobleBalanceOfAddress(coin.Address)
+		}
 	case common.Kujira:
 		var totalBalance float64
 		balanceKujira, errK := b.FetchKujiraBalanceOfAddress(coin.Address)
@@ -144,6 +154,17 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 		return b.FetchTonBalanceOfAddress(coin.Address)
 	case common.XRP:
 		return b.FetchXRPBalanceOfAddress(coin.Address)
+	case common.Tron:
+		if coin.ContractAddress == "" { // TRX token
+			return b.FetchTronBalanceOfAddress(coin.Address, "", 6)
+		} else {
+			for addr, decimal := range b.whiteListTRC20Token {
+				if coin.ContractAddress == addr {
+					return b.FetchTronBalanceOfAddress(coin.Address, coin.ContractAddress, decimal)
+				}
+			}
+			return 0, nil
+		}
 	default:
 		return 0, fmt.Errorf("chain: %s doesn't support", coin.Chain)
 	}

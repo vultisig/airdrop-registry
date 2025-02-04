@@ -186,6 +186,11 @@ func (b *BalanceResolver) FetchTerraClassicBalanceOfAddress(address string) (flo
 	return b.fetchSpecificCosmosBalance(url, "uluna", 6)
 }
 
+func (b *BalanceResolver) FetchNobleBalanceOfAddress(address string) (float64, error) {
+	url := fmt.Sprintf("https://noble-api.polkachu.com/cosmos/bank/v1beta1/balances/%s", address)
+	return b.fetchSpecificCosmosBalance(url, "uusdc", 6)
+}
+
 type CosmosData struct {
 	Balances []struct {
 		Denom  string `json:"denom"`

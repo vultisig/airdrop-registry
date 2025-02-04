@@ -58,6 +58,12 @@ func TestGetBech32Address(t *testing.T) {
 			hrp:   "osmo",
 			want:  "osmo13myywet4x5nyhyusp0hq5kyf6fzrlp59e8e2m5",
 		},
+		{
+			name:  "Noble",
+			chain: common.Noble,
+			hrp:   "noble",
+			want:  "noble13myywet4x5nyhyusp0hq5kyf6fzrlp59ellj4g",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -71,7 +77,7 @@ func TestGetBech32Address(t *testing.T) {
 				t.Error(err)
 				t.FailNow()
 			}
-			assert.Equal(t, got, tt.want)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
