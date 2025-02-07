@@ -79,6 +79,7 @@ func (a *Api) setupRouting() {
 	// Coins
 	rg.DELETE("/coin/:ecdsaPublicKey/:eddsaPublicKey/:coinID", a.deleteCoin)
 	rg.POST("/coin/:ecdsaPublicKey/:eddsaPublicKey", a.addCoin)
+	rg.POST("/coins/:ecdsaPublicKey/:eddsaPublicKey", a.addCoins)
 	rg.GET("/coin/:ecdsaPublicKey/:eddsaPublicKey", a.getCoin)
 
 	// Vault Share Appearance
