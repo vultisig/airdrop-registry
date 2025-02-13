@@ -13,6 +13,7 @@ import (
 type SaverPositionResolver struct {
 	logger            *logrus.Logger
 	thorwalletBaseURL string
+	midgardBaseURL    string
 	poolCache         *cache.Cache
 }
 
@@ -22,6 +23,7 @@ func NewSaverPositionResolver() *SaverPositionResolver {
 	return &SaverPositionResolver{
 		logger:            logrus.WithField("module", "saver_position_resolver").Logger,
 		thorwalletBaseURL: "https://api-v2-prod.thorwallet.org",
+		midgardBaseURL:    "https://midgard.ninerealms.com",
 		poolCache:         poolCache,
 	}
 }
@@ -53,7 +55,7 @@ func (l *SaverPositionResolver) fetchSaverPosition(address string) (saverRespons
 	if address == "" {
 		return saverResponse{}, fmt.Errorf("address cannot be empty")
 	}
-	url := fmt.Sprintf("%s/saver/positions?addresses=%s", l.thorwalletBaseURL, address)
+	url := fmt.Sprintf("%s/v2/saver/%s", l.midgardBaseURL, address)
 	resp, err := http.Get(url)
 	if err != nil {
 		l.logger.Errorf("error fetching saver position from %s: %e", url, err)
