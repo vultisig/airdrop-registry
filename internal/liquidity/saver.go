@@ -62,6 +62,10 @@ func (l *SaverPositionResolver) fetchSaverPosition(address string) (saverRespons
 		return saverResponse{}, fmt.Errorf("error fetching saver position from %s: %e", url, err)
 	}
 	defer resp.Body.Close()
+	// midgard returns 404 if the address has no saver position
+	if resp.StatusCode == http.StatusNotFound {
+		return saverResponse{}, nil
+	}
 	if resp.StatusCode != http.StatusOK {
 		l.logger.Errorf("error fetching saver position from %s: %s", url, resp.Status)
 		return saverResponse{}, fmt.Errorf("error fetching saver position from %s: %s", url, resp.Status)
