@@ -104,7 +104,11 @@ func TestGetTGTStakePosition(t *testing.T) {
 	// Create a mock HTTP server
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Create a mock response
-		response := map[string]interface{}{"stakedAmount": "170", "reward": "1.5"}
+		response := map[string]interface{}{
+			"jsonrpc": "2.0",
+			"id":      6826472344863318,
+			"result":  "0x00000000000000000000000000000000000000000000000ad78ebc5ac62000000000000000000000000000000000000000000000000000000000000000000000",
+		}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response)
 	}))
@@ -112,7 +116,7 @@ func TestGetTGTStakePosition(t *testing.T) {
 
 	// Create a PriceResolver instance
 	liquidityPositionResolver := &LiquidityPositionResolver{
-		thorwalletBaseURL: mockServer.URL,
+		arbitrumRPCURL: mockServer.URL,
 	}
 	liquidityPositionResolver.SetTGTPrice(0.5)
 
@@ -120,5 +124,5 @@ func TestGetTGTStakePosition(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get liquidity position: %e", err)
 	}
-	assert.Equal(t, 170*0.5+1.5, tgtlp)
+	assert.Equal(t, 200, tgtlp)
 }

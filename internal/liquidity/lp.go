@@ -1,9 +1,12 @@
 package liquidity
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
 	"sync"
 
@@ -13,6 +16,7 @@ import (
 type LiquidityPositionResolver struct {
 	logger            *logrus.Logger
 	thorwalletBaseURL string
+	arbitrumRPCURL    string
 	wewelpResolver    *weweLpResolver
 	tgtPrice          float64
 	mu                sync.RWMutex
@@ -22,6 +26,7 @@ func NewLiquidtyPositionResolver() *LiquidityPositionResolver {
 	return &LiquidityPositionResolver{
 		logger:            logrus.WithField("module", "liquidity_position_resolver").Logger,
 		thorwalletBaseURL: "https://api-v2-prod.thorwallet.org",
+		arbitrumRPCURL:    "https://arbitrum-one-rpc.publicnode.com",
 		wewelpResolver:    NewWeWeLpResolver(),
 	}
 }
@@ -74,27 +79,91 @@ type tgtLPPositionResponse struct {
 	Reward      float64 `json:"reward,string"`
 }
 
-func (l *LiquidityPositionResolver) GetTGTStakePosition(addresses string) (float64, error) {
-	if addresses == "" {
-		return 0, nil
+type RpcParams struct {
+	To   string `json:"to"`
+	Data string `json:"data"`
+}
+
+type RpcRequest struct {
+	Jsonrpc string        `json:"jsonrpc"`
+	Method  string        `json:"method"`
+	Params  []interface{} `json:"params"`
+	Id      int           `json:"id"`
+}
+
+type RpcResponse struct {
+	Jsonrpc string `json:"jsonrpc"`
+	Id      int    `json:"id"`
+	Result  string `json:"result"`
+}
+
+func (l *LiquidityPositionResolver) closer(closer io.Closer) {
+	if err := closer.Close(); err != nil {
+		l.logger.Error(err)
+	}
+}
+
+var ErrRateLimited = errors.New("rate limited")
+
+func (l *LiquidityPositionResolver) GetTGTStakePosition(address string) (float64, error) {
+	// Remove the '0x' prefix
+	address = address[2:]
+	// Create parameters array
+	from := fmt.Sprintf("0X%040s", "0")
+	data := fmt.Sprintf("0xf2801fe7%024s%s%024s%s", "", address, "", address)
+	TGTStakeContract := "0x6745c897ab1f4fda9f7700e8be6ea2ee03672759"
+	params := []interface{}{
+		map[string]interface{}{
+			"from": from,
+			"data": data,
+			"to":   TGTStakeContract,
+		},
+	}
+	// Create RPC request
+	rpcReq := RpcRequest{
+		Jsonrpc: "2.0",
+		Method:  "eth_call",
+		Params:  params,
+		Id:      1,
+	}
+	// Convert RPC request to JSON
+	reqBody, err := json.Marshal(rpcReq)
+	if err != nil {
+		return 0, fmt.Errorf("error marshalling RPC request: %w", err)
+	}
+	resp, err := http.Post(l.arbitrumRPCURL, "application/json", bytes.NewBuffer(reqBody))
+	if err != nil {
+		return 0, fmt.Errorf("error fetching from %s: %w", l.arbitrumRPCURL, err)
+	}
+	defer l.closer(resp.Body)
+	if resp.StatusCode == http.StatusTooManyRequests {
+		// rate limited, need to backoff and then retry
+		return 0, ErrRateLimited
 	}
 
-	url := fmt.Sprintf("%s/stake/%s", l.thorwalletBaseURL, addresses)
-	resp, err := http.Get(url)
-	if err != nil {
-		l.logger.Errorf("error fetching stake position from %s: %e", url, err)
-		return 0, fmt.Errorf("error fetching stake position from %s: %e", url, err)
-	}
-	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		l.logger.Errorf("error fetching stake position from %s: %s", url, resp.Status)
-		return 0, fmt.Errorf("error fetching stake position from %s: %s", url, resp.Status)
+		return 0, fmt.Errorf("error fetching user info of address %s on Arbitrum: %s", address, resp.Status)
 	}
-	var positions tgtLPPositionResponse
-	if err := json.NewDecoder(resp.Body).Decode(&positions); err != nil {
-		return 0, fmt.Errorf("error decoding stake position response: %e", err)
+
+	var rpcResp RpcResponse
+	if err := json.NewDecoder(resp.Body).Decode(&rpcResp); err != nil {
+		return 0, fmt.Errorf("error decoding response: %w", err)
 	}
-	return positions.StakeAmount*l.GetTGTPrice() + positions.Reward, nil
+	// Remove the '0x' prefix
+	result := rpcResp.Result[2:]
+	// Split the hex string into two 32-byte parts (64 hex characters each)
+	stakedAmount := result[:64]
+	reward := result[64:]
+
+	// Decode both parts into big integers (uint256)
+	TGTStakedInt := new(big.Int)
+	TGTRewardInt := new(big.Int) // Decode into big integers (uint256)
+	TGTStakedInt.SetString(stakedAmount, 16)
+	TGTStakedFloat, _ := new(big.Float).SetInt(TGTStakedInt).Float64()
+	TGTRewardInt.SetString(reward, 16)
+	TGTRewardFloat, _ := new(big.Float).SetInt(TGTRewardInt).Float64()
+
+	return (TGTStakedFloat / 1e18) + (TGTRewardFloat / 1e18), nil
 }
 
 func (l *LiquidityPositionResolver) SetTGTPrice(price float64) {
