@@ -58,6 +58,7 @@ func (b *BalanceResolver) fetchERC20TokenBalance(chain common.Chain, contractAdd
 			To:   contractAddress,
 			Data: data,
 		},
+		"latest",
 	}
 
 	// Create RPC request
