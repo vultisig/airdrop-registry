@@ -63,20 +63,21 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		return
 	}
 	vaultResp := models.VaultResponse{
-		UId:            vault.Uid,
-		Name:           vault.Name,
-		Alias:          vault.Alias,
-		PublicKeyECDSA: vault.ECDSA,
-		PublicKeyEDDSA: vault.EDDSA,
-		TotalPoints:    vault.TotalPoints,
-		JoinAirdrop:    vault.JoinAirdrop,
-		Rank:           vault.Rank,
-		Balance:        vault.Balance,
-		LPValue:        vault.LPValue,
-		NFTValue:       vault.NFTValue,
-		RegisteredAt:   vault.Model.CreatedAt.UTC().Unix(),
-		Coins:          []models.ChainCoins{},
-		AvatarURL:      vault.AvatarURL,
+		UId:                   vault.Uid,
+		Name:                  vault.Name,
+		Alias:                 vault.Alias,
+		PublicKeyECDSA:        vault.ECDSA,
+		PublicKeyEDDSA:        vault.EDDSA,
+		TotalPoints:           vault.TotalPoints,
+		JoinAirdrop:           vault.JoinAirdrop,
+		Rank:                  vault.Rank,
+		Balance:               vault.Balance,
+		LPValue:               vault.LPValue,
+		NFTValue:              vault.NFTValue,
+		RegisteredAt:          vault.Model.CreatedAt.UTC().Unix(),
+		Coins:                 []models.ChainCoins{},
+		AvatarURL:             vault.AvatarURL,
+		ShowNameInLeaderboard: vault.ShowNameInLeaderboard,
 	}
 	for _, coin := range coins {
 		found := false
@@ -274,6 +275,7 @@ func (a *Api) updateAliasHandler(c *gin.Context) {
 	}
 	if v.HexChainCode == vault.HexChainCode && v.Uid == vault.Uid {
 		v.Alias = vault.Name
+		v.ShowNameInLeaderboard = vault.ShowNameInLeaderboard
 		if err := a.s.UpdateVault(v); err != nil {
 			a.logger.Error(err)
 			_ = c.Error(errFailedToJoinRegistry)
@@ -340,14 +342,17 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 		return
 	}
 	for _, vault := range vaults {
-		length := 10
-		if len(vault.Uid) < 10 {
-			length = len(vault.Uid)
+		vaultName := vault.Alias
+		if !vault.ShowNameInLeaderboard {
+			length := 10
+			if len(vault.Uid) < 10 {
+				length = len(vault.Uid)
+			}
+			vaultName = vault.Uid[:length]
 		}
-		uid := vault.Uid[:length]
 		vaultResp := models.VaultResponse{
-			Name:         uid,
-			Alias:        uid,
+			Name:         vaultName,
+			Alias:        vaultName,
 			TotalPoints:  vault.TotalPoints,
 			Rank:         vault.Rank,
 			Balance:      vault.Balance,
