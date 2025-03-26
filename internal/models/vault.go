@@ -15,22 +15,23 @@ var ErrAlreadyExist = errors.New("already exist")
 
 type Vault struct {
 	gorm.Model
-	Name                  string  `gorm:"type:varchar(255)" json:"name" binding:"required"`
-	Alias                 string  `gorm:"type:varchar(255);" json:"alias" binding:"required"`
-	ECDSA                 string  `gorm:"type:varchar(255);uniqueIndex:ecdsa_eddsa_idx;not null" json:"ecdsa" binding:"required"`
-	EDDSA                 string  `gorm:"type:varchar(255);uniqueIndex:ecdsa_eddsa_idx;not null" json:"eddsa" binding:"required"`
-	HexChainCode          string  `gorm:"type:varchar(255)" json:"hex_chain_code" binding:"required"`
-	Uid                   string  `gorm:"type:varchar(255)" json:"uid" binding:"required"`
-	TotalPoints           float64 `json:"total_points"`                         // total point of the vault
-	JoinAirdrop           bool    `json:"join_airdrop"`                         // join airdrop or not
-	Rank                  int64   `json:"rank"`                                 // rank of the vault
-	Balance               int64   `gorm:"type:bigint;default:0" json:"balance"` // latest balance of the vault
-	LPValue               int64   `gorm:"type:bigint;default:0" json:"lp_value"`
-	NFTValue              int64   `gorm:"type:bigint;default:0" json:"nft_value"`
-	AvatarURL             string  `gorm:"type:varchar(255)" json:"avatar_url"`
-	AvatarCollectionID    string  `gorm:"type:varchar(255)" json:"avatar_collection_id"`
-	AvatarItemID          int64   `gorm:"type:bigint" json:"avatar_item_id"`
-	ShowNameInLeaderboard bool    `gorm:"type:boolean;default:false" json:"show_name_in_leaderboard"`
+	Name string `gorm:"type:varchar(255)" json:"name" binding:"required"`
+	// set default value for alias to name
+	Alias                  string  `gorm:"type:varchar(255);default:name" json:"alias" binding:"required"`
+	ECDSA                  string  `gorm:"type:varchar(255);uniqueIndex:ecdsa_eddsa_idx;not null" json:"ecdsa" binding:"required"`
+	EDDSA                  string  `gorm:"type:varchar(255);uniqueIndex:ecdsa_eddsa_idx;not null" json:"eddsa" binding:"required"`
+	HexChainCode           string  `gorm:"type:varchar(255)" json:"hex_chain_code" binding:"required"`
+	Uid                    string  `gorm:"type:varchar(255)" json:"uid" binding:"required"`
+	TotalPoints            float64 `json:"total_points"`                         // total point of the vault
+	JoinAirdrop            bool    `json:"join_airdrop"`                         // join airdrop or not
+	Rank                   int64   `json:"rank"`                                 // rank of the vault
+	Balance                int64   `gorm:"type:bigint;default:0" json:"balance"` // latest balance of the vault
+	LPValue                int64   `gorm:"type:bigint;default:0" json:"lp_value"`
+	NFTValue               int64   `gorm:"type:bigint;default:0" json:"nft_value"`
+	AvatarURL              string  `gorm:"type:varchar(255)" json:"avatar_url"`
+	AvatarCollectionID     string  `gorm:"type:varchar(255)" json:"avatar_collection_id"`
+	AvatarItemID           int64   `gorm:"type:bigint" json:"avatar_item_id"`
+	ShowVaultInLeaderboard bool    `gorm:"type:boolean" json:"show_vault_in_leaderboard"`
 }
 
 func (*Vault) TableName() string {

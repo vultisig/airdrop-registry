@@ -25,14 +25,15 @@ func (a *Api) registerVaultHandler(c *gin.Context) {
 		return
 	}
 	vaultModel := models.Vault{
-		Name:         vault.Name,
-		Alias:        vault.Name,
-		ECDSA:        vault.PublicKeyECDSA,
-		EDDSA:        vault.PublicKeyEDDSA,
-		Uid:          vault.Uid,
-		HexChainCode: vault.HexChainCode,
-		TotalPoints:  0,
-		JoinAirdrop:  false,
+		Name:                   vault.Name,
+		Alias:                  vault.Name,
+		ECDSA:                  vault.PublicKeyECDSA,
+		EDDSA:                  vault.PublicKeyEDDSA,
+		Uid:                    vault.Uid,
+		HexChainCode:           vault.HexChainCode,
+		TotalPoints:            0,
+		JoinAirdrop:            false,
+		ShowVaultInLeaderboard: false,
 	}
 
 	if err := a.s.RegisterVault(&vaultModel); err != nil {
@@ -63,21 +64,20 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		return
 	}
 	vaultResp := models.VaultResponse{
-		UId:                   vault.Uid,
-		Name:                  vault.Name,
-		Alias:                 vault.Alias,
-		PublicKeyECDSA:        vault.ECDSA,
-		PublicKeyEDDSA:        vault.EDDSA,
-		TotalPoints:           vault.TotalPoints,
-		JoinAirdrop:           vault.JoinAirdrop,
-		Rank:                  vault.Rank,
-		Balance:               vault.Balance,
-		LPValue:               vault.LPValue,
-		NFTValue:              vault.NFTValue,
-		RegisteredAt:          vault.Model.CreatedAt.UTC().Unix(),
-		Coins:                 []models.ChainCoins{},
-		AvatarURL:             vault.AvatarURL,
-		ShowNameInLeaderboard: vault.ShowNameInLeaderboard,
+		UId:            vault.Uid,
+		Name:           vault.Name,
+		Alias:          vault.Alias,
+		PublicKeyECDSA: vault.ECDSA,
+		PublicKeyEDDSA: vault.EDDSA,
+		TotalPoints:    vault.TotalPoints,
+		JoinAirdrop:    vault.JoinAirdrop,
+		Rank:           vault.Rank,
+		Balance:        vault.Balance,
+		LPValue:        vault.LPValue,
+		NFTValue:       vault.NFTValue,
+		RegisteredAt:   vault.Model.CreatedAt.UTC().Unix(),
+		Coins:          []models.ChainCoins{},
+		AvatarURL:      vault.AvatarURL,
 	}
 	for _, coin := range coins {
 		found := false
@@ -274,8 +274,10 @@ func (a *Api) updateAliasHandler(c *gin.Context) {
 		return
 	}
 	if v.HexChainCode == vault.HexChainCode && v.Uid == vault.Uid {
-		v.Alias = vault.Name
-		v.ShowNameInLeaderboard = vault.ShowNameInLeaderboard
+		v.Alias = vault.Uid
+		if v.ShowVaultInLeaderboard {
+			v.Alias = vault.Name
+		}
 		if err := a.s.UpdateVault(v); err != nil {
 			a.logger.Error(err)
 			_ = c.Error(errFailedToJoinRegistry)
@@ -342,17 +344,20 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 		return
 	}
 	for _, vault := range vaults {
-		vaultName := vault.Alias
-		if !vault.ShowNameInLeaderboard {
-			length := 10
-			if len(vault.Uid) < 10 {
-				length = len(vault.Uid)
-			}
-			vaultName = vault.Uid[:length]
+		length := 10
+		if len(vault.Uid) < 10 {
+			length = len(vault.Uid)
+		}
+		uid := vault.Uid[:length]
+		name := uid
+		alias := uid
+		if vault.ShowVaultInLeaderboard {
+			name = vault.Name
+			alias = vault.Alias
 		}
 		vaultResp := models.VaultResponse{
-			Name:         vaultName,
-			Alias:        vaultName,
+			Name:         name,
+			Alias:        alias,
 			TotalPoints:  vault.TotalPoints,
 			Rank:         vault.Rank,
 			Balance:      vault.Balance,
