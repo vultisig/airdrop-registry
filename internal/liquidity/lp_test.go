@@ -110,7 +110,9 @@ func TestGetTGTStakePosition(t *testing.T) {
 			"result":  "0x00000000000000000000000000000000000000000000000ad78ebc5ac62000000000000000000000000000000000000000000000000000000000000000000000",
 		}
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			t.Errorf("Failed to encode mock response: %v", err)
+		}
 	}))
 	defer mockServer.Close()
 
@@ -124,5 +126,5 @@ func TestGetTGTStakePosition(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get liquidity position: %e", err)
 	}
-	assert.Equal(t, 200, tgtlp)
+	assert.Equal(t, float64(200), tgtlp)
 }

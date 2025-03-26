@@ -8,6 +8,7 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -106,6 +107,9 @@ func (l *LiquidityPositionResolver) closer(closer io.Closer) {
 var ErrRateLimited = errors.New("rate limited")
 
 func (l *LiquidityPositionResolver) GetTGTStakePosition(address string) (float64, error) {
+	if len(address) < 2 || !strings.HasPrefix(address, "0x") {
+		return 0, fmt.Errorf("invalid address: must start with 0x, got: %s", address)
+	}
 	// Remove the '0x' prefix
 	address = address[2:]
 	// Create parameters array
@@ -151,6 +155,9 @@ func (l *LiquidityPositionResolver) GetTGTStakePosition(address string) (float64
 	}
 	// Remove the '0x' prefix
 	result := rpcResp.Result[2:]
+	if len(result) < 128 {
+		return 0, fmt.Errorf("unexpected RPC result length: %d", len(result))
+	}
 	// Split the hex string into two 32-byte parts (64 hex characters each)
 	stakedAmount := result[:64]
 	reward := result[64:]

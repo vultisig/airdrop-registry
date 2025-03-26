@@ -76,13 +76,15 @@ func TestOneInchEVMBaseService(t *testing.T) {
 		}
 		switch {
 		case strings.Contains(r.URL.Path, "/details/"):
+			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(details)
 		case strings.Contains(r.URL.Path, "/balance/"):
+			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(balance)
 		case strings.Contains(r.URL.Path, "info"):
+			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(cmcIdResponse)
 		}
-		w.WriteHeader(http.StatusOK)
 	}))
 	defer mockServer.Close()
 

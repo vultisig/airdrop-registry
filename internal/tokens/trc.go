@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -51,17 +52,17 @@ func (trc *trcDiscoveryService) discover(address string, chain common.Chain) ([]
 	if chain != common.Tron {
 		return nil, fmt.Errorf("chain does not support")
 	}
-
-	url := fmt.Sprintf("%s/v1/accounts/%s", trc.tronBaseURL, address)
-	resp, err := http.Get(url)
+	escaped := url.PathEscape(address)
+	accountURL := fmt.Sprintf("%s/v1/accounts/%s", trc.tronBaseURL, escaped)
+	resp, err := http.Get(accountURL)
 	if err != nil {
-		trc.logger.WithError(err).Errorf("failed to fetch account from %s", url)
+		trc.logger.WithError(err).Errorf("failed to fetch account from %s", accountURL)
 		return nil, fmt.Errorf("failed to get account: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		trc.logger.Errorf("unexpected status code: %d for %s", resp.StatusCode, url)
+		trc.logger.Errorf("unexpected status code: %d for %s", resp.StatusCode, accountURL)
 		return nil, fmt.Errorf("unexpecsted status code: %d", resp.StatusCode)
 	}
 
