@@ -74,14 +74,14 @@ func (c *CMCService) init() error {
 			logrus.Errorf("error fetching cmc id from %s: %e", url, err)
 			return nil
 		}
-		defer resp.Body.Close()
+		resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
 			logrus.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
-			return nil
+			return fmt.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
 		}
 		if err := json.NewDecoder(resp.Body).Decode(&cmcMainModel); err != nil {
 			logrus.Errorf("error decoding cmc id from %s: %e", url, err)
-			return nil
+			return fmt.Errorf("error decoding cmc id from %s: %e", url, err)
 		}
 		for _, v := range cmcMainModel.Data {
 			if v.Platform == nil {
