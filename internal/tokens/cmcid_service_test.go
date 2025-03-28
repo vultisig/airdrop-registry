@@ -14,18 +14,6 @@ import (
 )
 
 func TestCMCIDService_GetCMCID(t *testing.T) {
-	cmcNativeCoins = make(map[string]int)
-	cmcNativeCoins = map[string]int{
-		"3DPass":    28794,
-		"42-coin":   93,
-		"AB":        3871,
-		"ABBC Coin": 3437,
-		"Osmosisibc/D79E7D83AB399BFFF93433E54FAA480C191248FC556924A2A8351AE2638B3877": 22861,
-		"Rubix":    17972,
-		"Ethereum": 1027,
-		"Ethereum0xdac17f958d2ee523a2206206994597c13d831ec7": 825,
-		"BNB0xA697e272a73744b343528C3Bc4702F2565b2F422":      23095,
-	}
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := mainModel{
 			Data: []mainData{
@@ -47,6 +35,17 @@ func TestCMCIDService_GetCMCID(t *testing.T) {
 	cmcIDService := &CMCService{
 		baseURL:    mockServer.URL,
 		cachedData: cachedData,
+		nativeCoinIds: map[string]int{
+			"3DPass":    28794,
+			"42-coin":   93,
+			"AB":        3871,
+			"ABBC Coin": 3437,
+			"Osmosisibc/D79E7D83AB399BFFF93433E54FAA480C191248FC556924A2A8351AE2638B3877": 22861,
+			"Rubix":    17972,
+			"Ethereum": 1027,
+			"Ethereum0xdac17f958d2ee523a2206206994597c13d831ec7": 825,
+			"BNB0xA697e272a73744b343528C3Bc4702F2565b2F422":      23095,
+		},
 	}
 	cmcIDService.baseURL = mockServer.URL
 	type v int
