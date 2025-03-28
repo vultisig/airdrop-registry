@@ -1,0 +1,30 @@
+{
+    "jsonrpc": "2.0",
+    "result": {
+      "value": [
+        {
+          "account": {
+            "data": {
+              "parsed": {
+                "info": {
+                  "isNative": false,
+                  "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                  "owner": "CG4V2eoUXnwJSDsmr1fNdbR9r63XHLKD9gA2xpCRdRby",
+                  "state": "initialized",
+                  "tokenAmount": {
+                    "amount": "24389303",
+                    "decimals": 6,
+                    "uiAmount": 24.389303,
+                    "uiAmountString": "24.389303"
+                  }
+                },
+                "type": "account"
+              },
+              "program": "token"
+            }
+          }
+        }
+      ]
+    }
+  }
+  

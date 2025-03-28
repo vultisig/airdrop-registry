@@ -1,0 +1,41 @@
+{
+    "data": [
+      {
+        "id": 2396,
+        "rank": 10446,
+        "name": "WETH",
+        "symbol": "WETH",
+        "slug": "weth",
+        "is_active": 1,
+        "status": 1,
+        "first_historical_data": "2018-01-14T19:05:00.000Z",
+        "last_historical_data": "2025-03-15T14:55:00.000Z",
+        "platform": {
+          "id": 1,
+          "name": "Ethereum",
+          "symbol": "ETH",
+          "slug": "ethereum",
+          "token_address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+        }
+      },
+      {
+        "id": 31312,
+        "rank": 9245,
+        "name": "Popo",
+        "symbol": "POPO",
+        "slug": "pepe-popo",
+        "is_active": 1,
+        "status": 1,
+        "first_historical_data": "2024-05-20T02:10:00.000Z",
+        "last_historical_data": "2025-03-15T15:00:00.000Z",
+        "platform": {
+          "id": 1,
+          "name": "Ethereum",
+          "symbol": "ETH",
+          "slug": "ethereum",
+          "token_address": "0x195be8ee12aa1591902c4232b5b25017a9cbbdea"
+        }
+      }
+    ]
+  }
+  
