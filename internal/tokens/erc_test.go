@@ -19,9 +19,6 @@ var mock_balance string
 //go:embed erc_mock_details.json
 var mock_details string
 
-//go:embed erc_mock_cmcid_response.json
-var mock_cmcid_response string
-
 func TestErcDiscovery(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
@@ -29,8 +26,6 @@ func TestErcDiscovery(t *testing.T) {
 			w.Write([]byte(mock_balance))
 		case strings.Contains(r.URL.Path, "/details/"):
 			w.Write([]byte(mock_details))
-		case strings.Contains(r.URL.Path, "info"):
-			w.Write([]byte(mock_cmcid_response))
 		default:
 			http.Error(w, "Not Found", http.StatusNotFound)
 		}
