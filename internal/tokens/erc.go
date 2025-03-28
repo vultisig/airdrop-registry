@@ -28,16 +28,16 @@ type (
 type ercDiscoveryService struct {
 	logger         *logrus.Logger
 	baseAddress    string
-	cmcIDService   *CMCService
-	oneinchService *oneInchService
+	cmcService     *CMCService
+	oneInchService *oneInchService
 }
 
-func NewErcDiscoveryService(chain common.Chain, oneinchService *oneInchService, cmcIDService *CMCService) autoDiscoveryService {
+func NewERC20DiscoveryService(oneInchService *oneInchService, cmcService *CMCService) autoDiscoveryService {
 	return &ercDiscoveryService{
 		logger:         logrus.WithField("module", "oneInch_evm_base_service").Logger,
 		baseAddress:    "https://api.vultisig.com/1inch",
-		cmcIDService:   cmcIDService,
-		oneinchService: oneinchService,
+		cmcService:     cmcService,
+		oneInchService: oneInchService,
 	}
 }
 
@@ -100,13 +100,13 @@ func (o *ercDiscoveryService) discover(address string, chain common.Chain) ([]mo
 	}
 
 	for i, coin := range coins {
-		tokenDetails, err := o.oneinchService.GetTokenDetailsByContract(chain.String(), coin.ContractAddress)
+		tokenDetails, err := o.oneInchService.GetTokenDetailsByContract(chain.String(), coin.ContractAddress)
 		if err != nil {
 			o.logger.WithError(err).Error("Failed to fetch token details")
 			return nil, fmt.Errorf("failed to fetch token details: %w", err)
 		}
 
-		cmcId, err := o.cmcIDService.GetCMCIDByContract(chain.String(), coin.ContractAddress)
+		cmcId, err := o.cmcService.GetCMCIDByContract(chain.String(), coin.ContractAddress)
 		if err != nil {
 			o.logger.WithError(err).Error("Failed to fetch cmc id")
 			return nil, fmt.Errorf("failed to fetch cmc id: %w", err)

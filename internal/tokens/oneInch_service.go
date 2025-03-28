@@ -24,7 +24,7 @@ type tokensResponse struct {
 	Tokens map[string]token `json:"tokens"`
 }
 
-var chainIDs map[common.Chain]int = map[common.Chain]int{
+var chainIDs = map[common.Chain]int{
 	common.Ethereum:    1,
 	common.Avalanche:   43114,
 	common.Base:        8453,
@@ -38,7 +38,7 @@ var chainIDs map[common.Chain]int = map[common.Chain]int{
 
 type oneInchService struct {
 	logger         *logrus.Logger
-	oneinchBaseURL string
+	oneInchBaseURL string
 	cachedData     *cache.Cache
 	coinBase       []models.CoinBase
 }
@@ -46,7 +46,7 @@ type oneInchService struct {
 func NewOneInchService() *oneInchService {
 	return &oneInchService{
 		logger:         logrus.WithField("module", "oneinch_service").Logger,
-		oneinchBaseURL: "https://api.vultisig.com/1inch",
+		oneInchBaseURL: "https://api.vultisig.com/1inch",
 		cachedData:     cache.New(10*time.Hour, 10*time.Hour),
 		coinBase:       []models.CoinBase{},
 	}
@@ -61,7 +61,7 @@ func (o *oneInchService) Load1inchTokens(chain common.Chain) ([]models.Coin, err
 			return coins, nil
 		}
 	}
-	url := fmt.Sprintf("%s/swap/v6.0/%d/tokens", o.oneinchBaseURL, chainIDs[chain])
+	url := fmt.Sprintf("%s/swap/v6.0/%d/tokens", o.oneInchBaseURL, chainIDs[chain])
 	resp, err := http.Get(url)
 	if err != nil {
 		o.logger.Error(err)
@@ -101,7 +101,7 @@ func (o *oneInchService) GetTokenDetailsByContract(chain, contract string) (mode
 			return coin, nil
 		}
 	}
-	url := fmt.Sprintf("%s/token-details/v1.0/details/%s/%s", o.oneinchBaseURL, chain, contract)
+	url := fmt.Sprintf("%s/token-details/v1.0/details/%s/%s", o.oneInchBaseURL, chain, contract)
 	resp, err := http.Get(url)
 	if err != nil {
 		o.logger.WithFields(logrus.Fields{
