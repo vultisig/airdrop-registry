@@ -17,22 +17,22 @@ const (
 	discoveryRpcMethod = "getTokenAccountsByOwner"
 )
 
-type solanaDiscoveryService struct {
+type splDiscoveryService struct {
 	logger         *logrus.Logger
 	baseAddress    string
 	cmcService     *CMCService
 	oneInchService *oneInchService
 }
 
-func NewSolDiscoveryService(cmcService *CMCService) autoDiscoveryService {
-	return &solanaDiscoveryService{
+func NewSPLDiscoveryService(cmcService *CMCService) autoDiscoveryService {
+	return &splDiscoveryService{
 		logger:      logrus.WithField("module", "sol_discovery_service").Logger,
 		baseAddress: "https://api.vultisig.com/solana/",
 		cmcService:  cmcService,
 	}
 }
 
-func (s *solanaDiscoveryService) discover(address string, chain common.Chain) ([]models.CoinBase, error) {
+func (s *splDiscoveryService) discover(address string, chain common.Chain) ([]models.CoinBase, error) {
 	if address == "" {
 		return nil, fmt.Errorf("empty address provided")
 	}
@@ -45,7 +45,7 @@ func (s *solanaDiscoveryService) discover(address string, chain common.Chain) ([
 	return tokens, nil
 }
 
-func (s *solanaDiscoveryService) fetchTokenAccounts(address string) ([]models.CoinBase, error) {
+func (s *splDiscoveryService) fetchTokenAccounts(address string) ([]models.CoinBase, error) {
 
 	requestBody := map[string]any{
 		"jsonrpc": jsonRPCVersion,
