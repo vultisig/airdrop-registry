@@ -52,7 +52,7 @@ func NewOneInchService() *oneInchService {
 	}
 }
 
-func (o *oneInchService) Load1inchTokens(chain common.Chain) ([]models.Coin, error) {
+func (o *oneInchService) LoadOneInchTokens(chain common.Chain) ([]models.Coin, error) {
 	if _, ok := chainIDs[chain]; !ok {
 		return nil, fmt.Errorf("chain: %s is not supported", chain)
 	}

@@ -54,9 +54,10 @@ type CMCService struct {
 
 func NewCMCService() (*CMCService, error) {
 	cmcService := CMCService{
-		logger:     logrus.WithField("module", "cmc_id_service").Logger,
-		baseURL:    "https://api.vultisig.com/cmc/v1/cryptocurrency",
-		cachedData: cache.New(10*time.Hour, 1*time.Hour),
+		logger:        logrus.WithField("module", "cmc_id_service").Logger,
+		baseURL:       "https://api.vultisig.com/cmc/v1/cryptocurrency",
+		cachedData:    cache.New(10*time.Hour, 1*time.Hour),
+		nativeCoinIds: map[string]int{},
 	}
 	if err := cmcService.init(); err != nil {
 		return nil, err
