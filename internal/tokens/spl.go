@@ -18,10 +18,9 @@ const (
 )
 
 type splDiscoveryService struct {
-	logger         *logrus.Logger
-	baseAddress    string
-	cmcService     *CMCService
-	oneInchService *oneInchService
+	logger      *logrus.Logger
+	baseAddress string
+	cmcService  *CMCService
 }
 
 func NewSPLDiscoveryService(cmcService *CMCService) autoDiscoveryService {
