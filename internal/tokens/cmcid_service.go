@@ -72,7 +72,7 @@ func (c *CMCService) init() error {
 		resp, err := http.Get(url)
 		if err != nil {
 			logrus.Errorf("error fetching cmc id from %s: %e", url, err)
-			return nil
+			return err
 		}
 		if resp.StatusCode != http.StatusOK {
 			resp.Body.Close()
