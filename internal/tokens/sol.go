@@ -12,81 +12,45 @@ import (
 )
 
 const (
-	tokenProgramID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-	jsonRPCVersion = "2.0"
-	rpcMethod      = "getTokenAccountsByOwner"
+	tokenProgramID     = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+	jsonRPCVersion     = "2.0"
+	discoveryRpcMethod = "getTokenAccountsByOwner"
 )
 
-type (
-	jsonRpcResponse struct {
-		Jsonrpc string `json:"jsonrpc"`
-		Result  result `json:"result"`
-	}
-	result struct {
-		Value []accountEntry `json:"value"`
-	}
-	accountEntry struct {
-		Account account `json:"account"`
-		Pubkey  string  `json:"pubkey"`
-	}
-	account struct {
-		Data struct {
-			Parsed struct {
-				Info struct {
-					IsNative    bool        `json:"isNative"`
-					Mint        string      `json:"mint"`
-					Owner       string      `json:"owner"`
-					State       string      `json:"state"`
-					TokenAmount tokenAmount `json:"tokenAmount"`
-				} `json:"info"`
-				Type string `json:"type"`
-			} `json:"parsed"`
-			Program string `json:"program"`
-		} `json:"data"`
-		Owner     string `json:"owner"`
-		RentEpoch int64  `json:"rentEpoch"`
-	}
-	tokenAmount struct {
-		Amount         string  `json:"amount"`
-		Decimals       int     `json:"decimals"`
-		UIAmount       float64 `json:"uiAmount"`
-		UIAmountString string  `json:"uiAmountString"`
-	}
-)
-type solDiscoveryService struct {
+type solanaDiscoveryService struct {
 	logger         *logrus.Logger
 	baseAddress    string
-	cmcIDService   *CMCIDService
-	oneinchService *oneinchService
+	cmcService     *CMCIDService
+	oneInchService *oneinchService
 }
 
-func NewSolDiscoveryService(cmcIDService *CMCIDService) autoDiscoveryService {
-	return &solDiscoveryService{
-		logger:       logrus.WithField("module", "sol_discovery_service").Logger,
-		baseAddress:  "https://api.mainnet-beta.solana.com",
-		cmcIDService: cmcIDService,
+func NewSolDiscoveryService(cmcService *CMCIDService) autoDiscoveryService {
+	return &solanaDiscoveryService{
+		logger:      logrus.WithField("module", "sol_discovery_service").Logger,
+		baseAddress: "https://api.vultisig.com/solana/",
+		cmcService:  cmcService,
 	}
 }
 
-func (s *solDiscoveryService) discover(address string, chain common.Chain) ([]models.CoinBase, error) {
+func (s *solanaDiscoveryService) discover(address string, chain common.Chain) ([]models.CoinBase, error) {
 	if address == "" {
 		return nil, fmt.Errorf("empty address provided")
 	}
 
-	response, err := s.fetchTokenAccounts(address)
+	tokens, err := s.fetchTokenAccounts(address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch token accounts: %w", err)
 	}
 
-	return s.processTokenAccounts(response, address, chain)
+	return tokens, nil
 }
 
-func (s *solDiscoveryService) fetchTokenAccounts(address string) (*jsonRpcResponse, error) {
+func (s *solanaDiscoveryService) fetchTokenAccounts(address string) ([]models.CoinBase, error) {
 
 	requestBody := map[string]any{
 		"jsonrpc": jsonRPCVersion,
 		"id":      1,
-		"method":  rpcMethod,
+		"method":  discoveryRpcMethod,
 		"params": []any{
 			address,
 			map[string]string{
@@ -124,10 +88,6 @@ func (s *solDiscoveryService) fetchTokenAccounts(address string) (*jsonRpcRespon
 		return nil, err
 	}
 
-	return &response, nil
-}
-
-func (s *solDiscoveryService) processTokenAccounts(response *jsonRpcResponse, address string, chain common.Chain) ([]models.CoinBase, error) {
 	coins := make([]models.CoinBase, 0)
 	for _, entry := range response.Result.Value {
 		info := entry.Account.Data.Parsed.Info
@@ -135,7 +95,7 @@ func (s *solDiscoveryService) processTokenAccounts(response *jsonRpcResponse, ad
 			continue
 		}
 
-		cmcid, err := s.cmcIDService.GetCMCIDByContract("Solana", info.Mint)
+		cmcid, err := s.cmcService.GetCMCIDByContract("Solana", info.Mint)
 		if err != nil {
 			s.logger.WithError(err).WithField("contract", info.Mint).
 				Warn("failed to get CMCID for contract")
@@ -145,7 +105,7 @@ func (s *solDiscoveryService) processTokenAccounts(response *jsonRpcResponse, ad
 		coinBase := models.CoinBase{
 			Address:         address,
 			Balance:         info.TokenAmount.Amount,
-			Chain:           chain,
+			Chain:           common.Solana,
 			ContractAddress: info.Mint,
 			CMCId:           cmcid,
 		}
@@ -154,16 +114,39 @@ func (s *solDiscoveryService) processTokenAccounts(response *jsonRpcResponse, ad
 	return coins, nil
 }
 
-func (s *solDiscoveryService) search(coin models.CoinBase) (models.CoinBase, error) {
-	coins, err := s.discover(coin.Address, coin.Chain)
-	if err != nil {
-		return models.CoinBase{}, fmt.Errorf("failed to discover tokens: %w", err)
+type (
+	jsonRpcResponse struct {
+		Jsonrpc string `json:"jsonrpc"`
+		Result  result `json:"result"`
 	}
-
-	for _, c := range coins {
-		if c.ContractAddress == coin.ContractAddress {
-			return c, nil
-		}
+	result struct {
+		Value []accountEntry `json:"value"`
 	}
-	return models.CoinBase{}, fmt.Errorf("token not found")
-}
+	accountEntry struct {
+		Account account `json:"account"`
+		Pubkey  string  `json:"pubkey"`
+	}
+	account struct {
+		Data struct {
+			Parsed struct {
+				Info struct {
+					IsNative    bool        `json:"isNative"`
+					Mint        string      `json:"mint"`
+					Owner       string      `json:"owner"`
+					State       string      `json:"state"`
+					TokenAmount tokenAmount `json:"tokenAmount"`
+				} `json:"info"`
+				Type string `json:"type"`
+			} `json:"parsed"`
+			Program string `json:"program"`
+		} `json:"data"`
+		Owner     string `json:"owner"`
+		RentEpoch int64  `json:"rentEpoch"`
+	}
+	tokenAmount struct {
+		Amount         string  `json:"amount"`
+		Decimals       int     `json:"decimals"`
+		UIAmount       float64 `json:"uiAmount"`
+		UIAmountString string  `json:"uiAmountString"`
+	}
+)

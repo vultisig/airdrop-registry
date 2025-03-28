@@ -16,10 +16,10 @@ var sol_token_response string
 
 func TestSolDiscoveryService_processTokenAccounts(t *testing.T) {
 	// Setup
-	service := &solDiscoveryService{
+	service := &solanaDiscoveryService{
 		logger:         logrus.New(),
-		cmcIDService:   NewCMCIDService(),
-		oneinchService: NewOneinchService(),
+		cmcService:     NewCMCIDService(),
+		oneInchService: NewOneinchService(),
 	}
 
 	// Parse the embedded JSON response
