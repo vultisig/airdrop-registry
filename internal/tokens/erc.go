@@ -28,11 +28,11 @@ type (
 type ercDiscoveryService struct {
 	logger         *logrus.Logger
 	baseAddress    string
-	cmcIDService   *CMCIDService
+	cmcIDService   *CMCService
 	oneinchService *oneinchService
 }
 
-func NewErcDiscoveryService(chain common.Chain, oneinchService *oneinchService, cmcIDService *CMCIDService) autoDiscoveryService {
+func NewErcDiscoveryService(chain common.Chain, oneinchService *oneinchService, cmcIDService *CMCService) autoDiscoveryService {
 	return &ercDiscoveryService{
 		logger:         logrus.WithField("module", "oneInch_evm_base_service").Logger,
 		baseAddress:    "https://api.vultisig.com/1inch",

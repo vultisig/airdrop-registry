@@ -44,11 +44,11 @@ func TestCMCIDService_GetCMCID(t *testing.T) {
 	}))
 	defer mockServer.Close()
 	cachedData := cache.New(10*time.Hour, 1*time.Hour)
-	cmcIDService := &CMCIDService{
-		CMCBaseURL: mockServer.URL,
+	cmcIDService := &CMCService{
+		baseURL:    mockServer.URL,
 		cachedData: cachedData,
 	}
-	cmcIDService.CMCBaseURL = mockServer.URL
+	cmcIDService.baseURL = mockServer.URL
 	type v int
 	cmcIDService.cachedData.Set("Osmosisibc/D79E7D83AB399BFFF93433E54FAA480C191248FC556924A2A8351AE2638B3877", 228261, cache.DefaultExpiration)
 	type cmc struct {

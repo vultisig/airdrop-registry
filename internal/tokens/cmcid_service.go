@@ -45,6 +45,102 @@ var cmcChainMap map[common.Chain]string = map[common.Chain]string{
 	common.Tron:         "TRON",
 }
 
+type CMCService struct {
+	logger        *logrus.Logger
+	baseURL       string
+	cachedData    *cache.Cache
+	nativeCoinIds map[string]int
+}
+
+func NewCMCService() (*CMCService, error) {
+	cmcService := CMCService{
+		logger:     logrus.WithField("module", "cmc_id_service").Logger,
+		baseURL:    "https://api.vultisig.com/cmc/v1/cryptocurrency",
+		cachedData: cache.New(10*time.Hour, 1*time.Hour),
+	}
+	if err := cmcService.init(); err != nil {
+		return nil, err
+	}
+	return &cmcService, nil
+}
+func (c *CMCService) init() error {
+	var cmcMainModel mainModel
+	start, limit := 1, 5000
+	for {
+		url := fmt.Sprintf("%s/map?sort=cmc_rank&limit=%d&start=%d", c.baseURL, limit, start)
+		resp, err := http.Get(url)
+		if err != nil {
+			logrus.Errorf("error fetching cmc id from %s: %e", url, err)
+			return nil
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			logrus.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
+			return nil
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&cmcMainModel); err != nil {
+			logrus.Errorf("error decoding cmc id from %s: %e", url, err)
+			return nil
+		}
+		for _, v := range cmcMainModel.Data {
+			if v.Platform == nil {
+				c.nativeCoinIds[v.Name] = v.ID
+			} else {
+				c.cachedData.Set(c.getcacheKey(v.Platform.Name, v.Platform.TokenAddress), v.ID, cache.DefaultExpiration)
+			}
+		}
+		if len(cmcMainModel.Data) < limit {
+			break
+		}
+		start += limit
+	}
+	return nil
+}
+func (c *CMCService) GetCMCID(chain common.Chain, coin models.Coin) (int, error) {
+	if coin.ContractAddress == "" { // is native coin
+		if cmcID, ok := c.nativeCoinIds[cmcChainMap[chain]]; ok {
+			return cmcID, nil
+		} else {
+			return -1, fmt.Errorf("failed to get cmc id for native coin: %s", cmcChainMap[chain])
+		}
+	}
+	return c.GetCMCIDByContract(cmcChainMap[chain], coin.ContractAddress)
+}
+
+func (c *CMCService) GetCMCIDByContract(chain, contract string) (int, error) {
+	if cachedData, found := c.cachedData.Get(c.getcacheKey(chain, contract)); found {
+		if cmcID, ok := cachedData.(int); ok {
+			return cmcID, nil
+		}
+	}
+	url := fmt.Sprintf("%s/info?address=%s&skip_invalid=true&aux=status", c.baseURL, contract)
+	resp, err := http.Get(url)
+	if err != nil {
+		return -1, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return -1, fmt.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
+	}
+	var cmcContractModel contractModel
+	if err := json.NewDecoder(resp.Body).Decode(&cmcContractModel); err != nil {
+		return -1, err
+	}
+	for _, v := range cmcContractModel.Data {
+		for _, ca := range v.ContractAddresses {
+			if ca.ContractAddress == contract && ca.Platform.Coin.Name == chain {
+				c.cachedData.Set(c.getcacheKey(ca.Platform.Name, contract), v.ID, cache.DefaultExpiration)
+				return v.ID, nil
+			}
+		}
+	}
+	return -1, fmt.Errorf("failed to get cmc id for contract: %s", contract)
+}
+
+func (c *CMCService) getcacheKey(chain, contract string) string {
+	return fmt.Sprintf("%s_%s", chain, contract)
+}
+
 type contractCoin struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -78,94 +174,4 @@ type contractModel struct {
 }
 type mainModel struct {
 	Data []mainData `json:"data"`
-}
-
-type CMCIDService struct {
-	logger     *logrus.Logger
-	CMCBaseURL string
-	cachedData *cache.Cache
-}
-
-var cmcNativeCoins map[string]int
-
-func NewCMCIDService() *CMCIDService {
-	cmcNativeCoins = make(map[string]int)
-	cmcBaseURL := "https://api.vultisig.com/cmc/v1/cryptocurrency"
-	cachedData := cache.New(10*time.Hour, 1*time.Hour)
-	var cmcMainModel mainModel
-	start, limit := 1, 5000
-	for {
-		url := fmt.Sprintf("%s/map?sort=cmc_rank&limit=%d&start=%d", cmcBaseURL, limit, start)
-		resp, err := http.Get(url)
-		if err != nil {
-			logrus.Errorf("error fetching cmc id from %s: %e", url, err)
-			return nil
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			logrus.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
-			return nil
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&cmcMainModel); err != nil {
-			logrus.Errorf("error decoding cmc id from %s: %e", url, err)
-			return nil
-		}
-		for _, v := range cmcMainModel.Data {
-			key := v.Name
-			if v.Platform != nil {
-				key = v.Platform.Name + v.Platform.TokenAddress
-			}
-			cmcNativeCoins[key] = v.ID
-		}
-		if len(cmcMainModel.Data) < limit {
-			break
-		}
-		start += limit
-	}
-	return &CMCIDService{
-		logger:     logrus.WithField("module", "cmc_id_service").Logger,
-		CMCBaseURL: cmcBaseURL,
-		cachedData: cachedData,
-	}
-}
-
-func (c *CMCIDService) GetCMCID(chain common.Chain, coin models.Coin) (int, error) {
-	if coin.ContractAddress == "" {
-		if cmcID, ok := cmcNativeCoins[cmcChainMap[chain]]; ok {
-			return cmcID, nil
-		}
-	}
-	return c.GetCMCIDByContract(cmcChainMap[chain], coin.ContractAddress)
-}
-
-func (c *CMCIDService) GetCMCIDByContract(chain, contract string) (int, error) {
-	key := chain + contract
-	if cachedData, found := c.cachedData.Get(key); found {
-		if cmcID, ok := cachedData.(int); ok {
-			return cmcID, nil
-		}
-	}
-	url := fmt.Sprintf("%s/info?address=%s&skip_invalid=true&aux=status", c.CMCBaseURL, contract)
-	resp, err := http.Get(url)
-	if err != nil {
-		return -1, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return -1, fmt.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
-	}
-	var cmcContractModel contractModel
-	if err := json.NewDecoder(resp.Body).Decode(&cmcContractModel); err != nil {
-		return -1, err
-	}
-	for _, v := range cmcContractModel.Data {
-		for _, ca := range v.ContractAddresses {
-			if ca.ContractAddress == contract && ca.Platform.Coin.Name == chain {
-				key := ca.Platform.Coin.Name + contract
-				c.cachedData.Set(key, v.ID, cache.DefaultExpiration)
-				return v.ID, nil
-			}
-		}
-	}
-	return -1, fmt.Errorf("failed to get cmc id for contract: %s", contract)
 }

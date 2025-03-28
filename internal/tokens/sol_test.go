@@ -18,7 +18,7 @@ func TestSolDiscoveryService_processTokenAccounts(t *testing.T) {
 	// Setup
 	service := &solanaDiscoveryService{
 		logger:         logrus.New(),
-		cmcService:     NewCMCIDService(),
+		cmcService:     NewCMCService(),
 		oneInchService: NewOneinchService(),
 	}
 

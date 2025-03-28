@@ -53,11 +53,11 @@ func TestTrcAutoDiscovery(t *testing.T) {
 			defer server.Close()
 			// Create test server
 			trc := &trcDiscoveryService{
-				logger:       logrus.New(),
-				tronBaseURL:  server.URL,
-				cmcIDService: NewCMCIDService(),
+				logger:      logrus.New(),
+				tronBaseURL: server.URL,
+				cmcService:  NewCMCService(),
 			}
-			trc.cmcIDService.CMCBaseURL = "https://api.vultisig.com/cmc/v1/cryptocurrency"
+			trc.cmcService.baseURL = "https://api.vultisig.com/cmc/v1/cryptocurrency"
 
 			// Call method
 			coins, err := trc.discover("TS98H6jSx6uv1gG1vx6CJZMeYGkMZXgQ7K", common.Tron)
@@ -126,9 +126,9 @@ func TestFetchTokenData(t *testing.T) {
 			// Create service with test server URL
 			url := "https://api.trongrid.io"
 			td := &trcDiscoveryService{
-				logger:       logrus.New(),
-				tronBaseURL:  url,
-				cmcIDService: NewCMCIDService(),
+				logger:      logrus.New(),
+				tronBaseURL: url,
+				cmcService:  NewCMCService(),
 			}
 
 			// Call method

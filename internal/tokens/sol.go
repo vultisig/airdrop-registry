@@ -20,11 +20,11 @@ const (
 type solanaDiscoveryService struct {
 	logger         *logrus.Logger
 	baseAddress    string
-	cmcService     *CMCIDService
+	cmcService     *CMCService
 	oneInchService *oneinchService
 }
 
-func NewSolDiscoveryService(cmcService *CMCIDService) autoDiscoveryService {
+func NewSolDiscoveryService(cmcService *CMCService) autoDiscoveryService {
 	return &solanaDiscoveryService{
 		logger:      logrus.WithField("module", "sol_discovery_service").Logger,
 		baseAddress: "https://api.vultisig.com/solana/",

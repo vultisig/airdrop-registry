@@ -2,8 +2,6 @@ package tokens
 
 import (
 	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -11,35 +9,22 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mr-tron/base58"
 	"github.com/sirupsen/logrus"
 	"github.com/vultisig/airdrop-registry/internal/common"
 	"github.com/vultisig/airdrop-registry/internal/models"
 )
 
-type (
-	trcAccountResponse struct {
-		Data    []trcAccount `json:"data"`
-		Success bool         `json:"success"`
-	}
-
-	trcAccount struct {
-		Address string              `json:"address"`
-		Balance int64               `json:"balance"`
-		Trc20   []map[string]string `json:"trc20"`
-	}
-)
 type trcDiscoveryService struct {
-	logger       *logrus.Logger
-	tronBaseURL  string
-	cmcIDService *CMCIDService
+	logger      *logrus.Logger
+	tronBaseURL string
+	cmcService  *CMCService
 }
 
-func NewTrcDiscoveryService(chain common.Chain, cmcIDService *CMCIDService) autoDiscoveryService {
+func NewTRC20DiscoveryService(chain common.Chain, cmcService *CMCService) autoDiscoveryService {
 	return &trcDiscoveryService{
-		logger:       logrus.WithField("module", "trc_service").Logger,
-		tronBaseURL:  "https://api.trongrid.io",
-		cmcIDService: cmcIDService,
+		logger:      logrus.WithField("module", "trc_service").Logger,
+		tronBaseURL: "https://api.trongrid.io",
+		cmcService:  cmcService,
 	}
 }
 
@@ -156,7 +141,7 @@ func (trc *trcDiscoveryService) processToken(address, contract, balanceStr strin
 		return nil, nil
 	}
 
-	cmcid, err := trc.cmcIDService.GetCMCIDByContract("TRON", contract)
+	cmcid, err := trc.cmcService.GetCMCIDByContract("TRON", contract)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get CMCID: %w", err)
 	}
@@ -233,49 +218,15 @@ func (trc *trcDiscoveryService) fetchTokenData(address, contract, selector strin
 	return result, nil
 }
 
-func (trc *trcDiscoveryService) search(coin models.CoinBase) (models.CoinBase, error) {
-	coins, err := trc.discover(coin.Address, coin.Chain)
-	if err != nil {
-		return models.CoinBase{}, fmt.Errorf("failed to discover tokens: %w", err)
+type (
+	trcAccountResponse struct {
+		Data    []trcAccount `json:"data"`
+		Success bool         `json:"success"`
 	}
 
-	for _, c := range coins {
-		if c.ContractAddress == coin.ContractAddress {
-			return c, nil
-		}
+	trcAccount struct {
+		Address string              `json:"address"`
+		Balance int64               `json:"balance"`
+		Trc20   []map[string]string `json:"trc20"`
 	}
-	return models.CoinBase{}, fmt.Errorf("token not found")
-}
-
-func DecodeBase58ToHex(base58Address string) (string, error) {
-	rawBytes, err := base58.Decode(base58Address)
-	if err != nil {
-		return "", err
-	}
-
-	payload := rawBytes[:len(rawBytes)-4]
-	hexAddress := fmt.Sprintf("%X", payload)
-	return hexAddress, nil
-}
-
-func HexToBase58(hexAddress string) (string, error) {
-	rawBytes, err := hex.DecodeString(hexAddress)
-	if err != nil {
-		return "", err
-	}
-
-	hash1 := sha256.Sum256(rawBytes)
-	hash2 := sha256.Sum256(hash1[:])
-	checksum := hash2[:4]
-
-	addressBytes := append(rawBytes, checksum...)
-	base58Address := base58.Encode(addressBytes)
-	return base58Address, nil
-}
-
-func hexToBytes(hexStr string) ([]byte, error) {
-	if len(hexStr)%2 != 0 {
-		hexStr = "0" + hexStr
-	}
-	return hex.DecodeString(hexStr)
-}
+)

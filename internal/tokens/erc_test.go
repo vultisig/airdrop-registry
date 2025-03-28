@@ -40,7 +40,7 @@ func TestErcDiscovery(t *testing.T) {
 	oneInchevmbaseservice := &ercDiscoveryService{
 		logger:         logrus.WithField("module", "oneInch_evm_base_service").Logger,
 		baseAddress:    mockServer.URL,
-		cmcIDService:   NewCMCIDService(),
+		cmcIDService:   NewCMCService(),
 		oneinchService: NewOneinchService(),
 	}
 	oneInchevmbaseservice.oneinchService.oneinchBaseURL = mockServer.URL
