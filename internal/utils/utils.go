@@ -59,7 +59,7 @@ func HexToBase58(hexAddress string) (string, error) {
 	return base58Address, nil
 }
 
-func hexToBytes(hexStr string) ([]byte, error) {
+func HexToBytes(hexStr string) ([]byte, error) {
 	if len(hexStr)%2 != 0 {
 		hexStr = "0" + hexStr
 	}

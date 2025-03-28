@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/vultisig/airdrop-registry/internal/utils"
 	"math/big"
 	"net/http"
 	"strconv"
@@ -173,12 +174,12 @@ func (trc *trcDiscoveryService) processToken(address, contract, balanceStr strin
 }
 
 func (trc *trcDiscoveryService) fetchTokenData(address, contract, selector string) (string, error) {
-	hexContract, err := DecodeBase58ToHex(contract)
+	hexContract, err := utils.DecodeBase58ToHex(contract)
 	if err != nil {
 		return "", fmt.Errorf("failed to decode contract hex: %w", err)
 	}
 
-	hexAddress, err := DecodeBase58ToHex(address)
+	hexAddress, err := utils.DecodeBase58ToHex(address)
 	if err != nil {
 		return "", fmt.Errorf("failed to decode contract hex: %w", err)
 	}
@@ -209,7 +210,7 @@ func (trc *trcDiscoveryService) fetchTokenData(address, contract, selector strin
 		if len(result) < 128 {
 			return "", fmt.Errorf("invalid symbol data length")
 		}
-		symbolBytes, err := hexToBytes(result[128:])
+		symbolBytes, err := utils.HexToBytes(result[128:])
 		if err != nil {
 			return "", fmt.Errorf("failed to decode symbol hex: %w", err)
 		}
