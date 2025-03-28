@@ -74,15 +74,17 @@ func (c *CMCService) init() error {
 			logrus.Errorf("error fetching cmc id from %s: %e", url, err)
 			return nil
 		}
-		resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
+			resp.Body.Close()
 			logrus.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
 			return fmt.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
 		}
 		if err := json.NewDecoder(resp.Body).Decode(&cmcMainModel); err != nil {
+			resp.Body.Close()
 			logrus.Errorf("error decoding cmc id from %s: %e", url, err)
 			return fmt.Errorf("error decoding cmc id from %s: %e", url, err)
 		}
+		resp.Body.Close()
 		for _, v := range cmcMainModel.Data {
 			if v.Platform == nil {
 				c.nativeCoinIds[v.Name] = v.ID
