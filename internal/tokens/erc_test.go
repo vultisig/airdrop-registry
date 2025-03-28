@@ -41,7 +41,7 @@ func TestErcDiscovery(t *testing.T) {
 		logger:         logrus.WithField("module", "oneInch_evm_base_service").Logger,
 		baseAddress:    mockServer.URL,
 		cmcIDService:   NewCMCService(),
-		oneinchService: NewOneinchService(),
+		oneinchService: NewOneInchService(),
 	}
 	oneInchevmbaseservice.oneinchService.oneinchBaseURL = mockServer.URL
 	oneInchevmbaseservice.cmcIDService.cachedData.Set("Ethereum0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", 2396, cache.DefaultExpiration)

@@ -19,7 +19,7 @@ func TestSolDiscoveryService_processTokenAccounts(t *testing.T) {
 	service := &solanaDiscoveryService{
 		logger:         logrus.New(),
 		cmcService:     NewCMCService(),
-		oneInchService: NewOneinchService(),
+		oneInchService: NewOneInchService(),
 	}
 
 	// Parse the embedded JSON response

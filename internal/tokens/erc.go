@@ -29,10 +29,10 @@ type ercDiscoveryService struct {
 	logger         *logrus.Logger
 	baseAddress    string
 	cmcIDService   *CMCService
-	oneinchService *oneinchService
+	oneinchService *oneInchService
 }
 
-func NewErcDiscoveryService(chain common.Chain, oneinchService *oneinchService, cmcIDService *CMCService) autoDiscoveryService {
+func NewErcDiscoveryService(chain common.Chain, oneinchService *oneInchService, cmcIDService *CMCService) autoDiscoveryService {
 	return &ercDiscoveryService{
 		logger:         logrus.WithField("module", "oneInch_evm_base_service").Logger,
 		baseAddress:    "https://api.vultisig.com/1inch",
@@ -78,12 +78,21 @@ func (o *ercDiscoveryService) discover(address string, chain common.Chain) ([]mo
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	coins, err := o.processAccounts(address, chain, accounts)
-	if err != nil {
-		o.logger.WithError(err).Error("Failed to process balances")
-		return nil, fmt.Errorf("failed to process balances: %w", err)
+	coins := make([]models.CoinBase, 0)
+	for contract, balance := range accounts {
+		if balance == "0" {
+			continue
+		}
+		if contract == ethereum {
+			continue
+		}
+		coins = append(coins, models.CoinBase{
+			Address:         address,
+			Balance:         balance,
+			Chain:           chain,
+			ContractAddress: contract,
+		})
 	}
-
 	// Check if coinBase is nil
 	if len(coins) == 0 {
 		o.logger.Debug("No tokens found with non-zero balance")
@@ -109,37 +118,4 @@ func (o *ercDiscoveryService) discover(address string, chain common.Chain) ([]mo
 		coins[i].CMCId = cmcId
 	}
 	return coins, nil
-}
-
-func (o *ercDiscoveryService) processAccounts(address string, chain common.Chain, accounts map[string]string) ([]models.CoinBase, error) {
-	coins := make([]models.CoinBase, 0)
-	for contract, balance := range accounts {
-		if balance == "0" {
-			continue
-		}
-		if contract == ethereum {
-			continue
-		}
-		coins = append(coins, models.CoinBase{
-			Address:         address,
-			Balance:         balance,
-			Chain:           chain,
-			ContractAddress: contract,
-		})
-	}
-	return coins, nil
-}
-
-func (o *ercDiscoveryService) search(coin models.CoinBase) (models.CoinBase, error) {
-	coins, err := o.discover(coin.Address, coin.Chain)
-	if err != nil {
-		return models.CoinBase{}, fmt.Errorf("failed to discover token: %w", err)
-	}
-
-	for _, c := range coins {
-		if c.ContractAddress == coin.ContractAddress {
-			return c, nil
-		}
-	}
-	return models.CoinBase{}, fmt.Errorf("token not found")
 }

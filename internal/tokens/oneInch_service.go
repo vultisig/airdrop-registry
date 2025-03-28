@@ -36,15 +36,15 @@ var chainIDs map[common.Chain]int = map[common.Chain]int{
 	common.CronosChain: 25,
 }
 
-type oneinchService struct {
+type oneInchService struct {
 	logger         *logrus.Logger
 	oneinchBaseURL string
 	cachedData     *cache.Cache
 	coinBase       []models.CoinBase
 }
 
-func NewOneinchService() *oneinchService {
-	return &oneinchService{
+func NewOneInchService() *oneInchService {
+	return &oneInchService{
 		logger:         logrus.WithField("module", "oneinch_service").Logger,
 		oneinchBaseURL: "https://api.vultisig.com/1inch",
 		cachedData:     cache.New(10*time.Hour, 10*time.Hour),
@@ -52,7 +52,7 @@ func NewOneinchService() *oneinchService {
 	}
 }
 
-func (o *oneinchService) Load1inchTokens(chain common.Chain) ([]models.Coin, error) {
+func (o *oneInchService) Load1inchTokens(chain common.Chain) ([]models.Coin, error) {
 	if _, ok := chainIDs[chain]; !ok {
 		return nil, fmt.Errorf("chain: %s is not supported", chain)
 	}
@@ -94,7 +94,7 @@ func (o *oneinchService) Load1inchTokens(chain common.Chain) ([]models.Coin, err
 	return coins, nil
 }
 
-func (o *oneinchService) GetTokenDetailsByContract(chain, contract string) (models.CoinBase, error) {
+func (o *oneInchService) GetTokenDetailsByContract(chain, contract string) (models.CoinBase, error) {
 	key := chain + contract
 	if cachedData, found := o.cachedData.Get(key); found {
 		if coin, ok := cachedData.(models.CoinBase); ok {

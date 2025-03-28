@@ -21,7 +21,7 @@ type solanaDiscoveryService struct {
 	logger         *logrus.Logger
 	baseAddress    string
 	cmcService     *CMCService
-	oneInchService *oneinchService
+	oneInchService *oneInchService
 }
 
 func NewSolDiscoveryService(cmcService *CMCService) autoDiscoveryService {
