@@ -52,10 +52,14 @@ func TestTrcAutoDiscovery(t *testing.T) {
 			}))
 			defer server.Close()
 			// Create test server
+			cmcService, err := NewCMCService()
+			if err != nil {
+				t.Fatalf("Failed to create CMCService: %v", err)
+			}
 			trc := &trcDiscoveryService{
 				logger:      logrus.New(),
 				tronBaseURL: server.URL,
-				cmcService:  NewCMCService(),
+				cmcService:  cmcService,
 			}
 			trc.cmcService.baseURL = "https://api.vultisig.com/cmc/v1/cryptocurrency"
 
@@ -124,11 +128,14 @@ func TestFetchTokenData(t *testing.T) {
 			defer server.Close()
 
 			// Create service with test server URL
-			url := "https://api.trongrid.io"
+			cmcService, err := NewCMCService()
+			if err != nil {
+				t.Fatalf("Failed to create CMCService: %v", err)
+			}
 			td := &trcDiscoveryService{
 				logger:      logrus.New(),
-				tronBaseURL: url,
-				cmcService:  NewCMCService(),
+				tronBaseURL: "https://api.trongrid.io",
+				cmcService:  cmcService,
 			}
 
 			// Call method

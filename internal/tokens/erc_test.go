@@ -37,10 +37,15 @@ func TestErcDiscovery(t *testing.T) {
 	}))
 	defer mockServer.Close()
 
+	cmcService, err := NewCMCService()
+	if err != nil {
+		t.Fatalf("Failed to create CMCService: %v", err)
+	}
+
 	oneInchevmbaseservice := &ercDiscoveryService{
 		logger:         logrus.WithField("module", "oneInch_evm_base_service").Logger,
 		baseAddress:    mockServer.URL,
-		cmcService:     NewCMCService(),
+		cmcService:     cmcService,
 		oneInchService: NewOneInchService(),
 	}
 	oneInchevmbaseservice.oneInchService.oneInchBaseURL = mockServer.URL

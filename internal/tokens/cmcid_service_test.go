@@ -32,7 +32,7 @@ func TestCMCIDService_GetCMCID(t *testing.T) {
 	}))
 	defer mockServer.Close()
 	cachedData := cache.New(10*time.Hour, 1*time.Hour)
-	cmcIDService := &CMCService{
+	cmcService := &CMCService{
 		baseURL:    mockServer.URL,
 		cachedData: cachedData,
 		nativeCoinIds: map[string]int{
@@ -47,9 +47,9 @@ func TestCMCIDService_GetCMCID(t *testing.T) {
 			"BNB0xA697e272a73744b343528C3Bc4702F2565b2F422":      23095,
 		},
 	}
-	cmcIDService.baseURL = mockServer.URL
+	cmcService.baseURL = mockServer.URL
 	type v int
-	cmcIDService.cachedData.Set("Osmosisibc/D79E7D83AB399BFFF93433E54FAA480C191248FC556924A2A8351AE2638B3877", 228261, cache.DefaultExpiration)
+	cmcService.cachedData.Set(cmcService.getcacheKey(cmcChainMap[common.Osmosis], "ibc/D79E7D83AB399BFFF93433E54FAA480C191248FC556924A2A8351AE2638B3877"), 228261, cache.DefaultExpiration)
 	type cmc struct {
 		chain         common.Chain
 		asset         models.Coin
@@ -70,7 +70,7 @@ func TestCMCIDService_GetCMCID(t *testing.T) {
 	}
 
 	for _, cmc := range cmcVals {
-		cmcid, err := cmcIDService.GetCMCID(cmc.chain, cmc.asset)
+		cmcid, err := cmcService.GetCMCID(cmc.chain, cmc.asset)
 		assert.NoError(t, err)
 		assert.Equal(t, cmc.expectedCMCID, cmcid)
 	}
