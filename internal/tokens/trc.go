@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/vultisig/airdrop-registry/internal/utils"
 	"math/big"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/vultisig/airdrop-registry/internal/utils"
 
 	"github.com/sirupsen/logrus"
 	"github.com/vultisig/airdrop-registry/internal/common"
@@ -64,8 +65,8 @@ func (trc *trcDiscoveryService) discover(address string, chain common.Chain) ([]
 
 	coins, err := trc.processAccounts(address, accountResponse.Data)
 	if err != nil {
-		trc.logger.Warn("failed to proccess accounts")
-		return nil, fmt.Errorf("failed to proccess accounts: %w", err)
+		trc.logger.Warn("failed to process accounts")
+		return nil, fmt.Errorf("failed to process accounts: %w", err)
 	}
 	return coins, nil
 }
