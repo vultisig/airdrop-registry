@@ -92,16 +92,16 @@ func (c *CMCService) fetchCMCMap(start, limit int) ([]mainData, error) {
 	url := fmt.Sprintf("%s/map?sort=cmc_rank&limit=%d&start=%d", c.baseURL, limit, start)
 	resp, err := http.Get(url)
 	if err != nil {
-		logrus.Errorf("error fetching cmc id from %s: %v", url, err)
+		c.logger.Errorf("error fetching cmc id from %s: %v", url, err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		logrus.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
+		c.logger.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
 		return nil, fmt.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&cmcMainModel); err != nil {
-		logrus.Errorf("error decoding cmc id from %s: %v", url, err)
+		c.logger.Errorf("error decoding cmc id from %s: %v", url, err)
 		return nil, fmt.Errorf("error decoding cmc id from %s: %v", url, err)
 	}
 	return cmcMainModel.Data, nil
