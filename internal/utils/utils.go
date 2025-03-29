@@ -40,7 +40,7 @@ func DecodeBase58ToHex(base58Address string) (string, error) {
 	}
 
 	payload := rawBytes[:len(rawBytes)-4]
-	hexAddress := fmt.Sprintf("%X", payload)
+	hexAddress := hex.EncodeToString(payload)
 	return hexAddress, nil
 }
 
