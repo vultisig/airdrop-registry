@@ -38,6 +38,9 @@ func DecodeBase58ToHex(base58Address string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if len(rawBytes) < 4 {
+		return "", fmt.Errorf("decoded address is too short")
+	}
 
 	payload := rawBytes[:len(rawBytes)-4]
 	hexAddress := hex.EncodeToString(payload)
