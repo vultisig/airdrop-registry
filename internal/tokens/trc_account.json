@@ -1,0 +1,328 @@
+{
+    "data": [
+      {
+        "owner_permission": {
+          "keys": [
+            {
+              "address": "TS98H6jSx6uv1gG1vx6CJZMeYGkMZXgQ7K",
+              "weight": 1
+            }
+          ],
+          "threshold": 1,
+          "permission_name": "owner"
+        },
+        "account_resource": {
+          "energy_window_optimized": true,
+          "acquired_delegated_frozenV2_balance_for_energy": 24077573628683,
+          "energy_usage": 251341050,
+          "latest_consume_time_for_energy": 1743117360000,
+          "energy_window_size": 14585304
+        },
+        "active_permission": [
+          {
+            "operations": "7fff1fc0033ec30f000000000000000000000000000000000000000000000000",
+            "keys": [
+              {
+                "address": "TS98H6jSx6uv1gG1vx6CJZMeYGkMZXgQ7K",
+                "weight": 1
+              }
+            ],
+            "threshold": 1,
+            "id": 2,
+            "type": "Active",
+            "permission_name": "active"
+          }
+        ],
+        "address": "41b1623aaeeac63781b6b2b2325ee6d434b6af4b24",
+        "create_time": 1713412473000,
+        "latest_consume_time": 1743117360000,
+        "acquired_delegated_frozenV2_balance_for_bandwidth": 3392627110941,
+        "net_usage": 1149789,
+        "latest_opration_time": 1743117360000,
+        "free_asset_net_usageV2": [
+          {
+            "value": 0,
+            "key": "1004978"
+          },
+          {
+            "value": 0,
+            "key": "1004989"
+          },
+          {
+            "value": 0,
+            "key": "1004920"
+          },
+          {
+            "value": 0,
+            "key": "1002992"
+          },
+          {
+            "value": 0,
+            "key": "1003533"
+          },
+          {
+            "value": 0,
+            "key": "1005027"
+          },
+          {
+            "value": 0,
+            "key": "1003134"
+          },
+          {
+            "value": 0,
+            "key": "1005026"
+          },
+          {
+            "value": 0,
+            "key": "1003606"
+          },
+          {
+            "value": 0,
+            "key": "1004937"
+          },
+          {
+            "value": 0,
+            "key": "1005047"
+          },
+          {
+            "value": 0,
+            "key": "1005002"
+          },
+          {
+            "value": 0,
+            "key": "1002000"
+          },
+          {
+            "value": 0,
+            "key": "1005023"
+          },
+          {
+            "value": 0,
+            "key": "1005043"
+          },
+          {
+            "value": 0,
+            "key": "1005065"
+          },
+          {
+            "value": 0,
+            "key": "1004031"
+          },
+          {
+            "value": 0,
+            "key": "1005074"
+          },
+          {
+            "value": 0,
+            "key": "1005040"
+          }
+        ],
+        "assetV2": [
+          {
+            "value": 3300,
+            "key": "1004978"
+          },
+          {
+            "value": 2222222,
+            "key": "1004989"
+          },
+          {
+            "value": 587444416,
+            "key": "1004920"
+          },
+          {
+            "value": 11475797,
+            "key": "1002992"
+          },
+          {
+            "value": 3351,
+            "key": "1003533"
+          },
+          {
+            "value": 8888880000,
+            "key": "1005027"
+          },
+          {
+            "value": 24132966,
+            "key": "1003134"
+          },
+          {
+            "value": 8888880000,
+            "key": "1005026"
+          },
+          {
+            "value": 730592,
+            "key": "1003606"
+          },
+          {
+            "value": 977777776800,
+            "key": "1004937"
+          },
+          {
+            "value": 888800000,
+            "key": "1005047"
+          },
+          {
+            "value": 1950000000,
+            "key": "1005002"
+          },
+          {
+            "value": 160,
+            "key": "1002000"
+          },
+          {
+            "value": 2497500,
+            "key": "1005023"
+          },
+          {
+            "value": 9999,
+            "key": "1005043"
+          },
+          {
+            "value": 8888880000,
+            "key": "1005065"
+          },
+          {
+            "value": 596591,
+            "key": "1004031"
+          },
+          {
+            "value": 444555666,
+            "key": "1005074"
+          },
+          {
+            "value": 88000000,
+            "key": "1005040"
+          }
+        ],
+        "frozenV2": [
+          {
+  
+          },
+          {
+            "amount": 100000000,
+            "type": "ENERGY"
+          },
+          {
+            "type": "TRON_POWER"
+          }
+        ],
+        "balance": 2931874741214,
+        "trc20": [
+          {
+            "TAz6oGWhsmHPp7Ap6khmAYxjfHFYokqdQ4": "300000000000000000000"
+          },
+          {
+            "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4": "53683960919129939360000000000"
+          },
+          {
+            "TFkyVCGCU1AQYpTyZgtZ2bFJX8EszoTx96": "10000000000000000000000"
+          },
+          {
+            "TUPM7K8REVzD2UdV4R5fe5M8XbnR2DdoJ6": "13839317421810651850000000000"
+          },
+          {
+            "TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7": "630266328972901"
+          },
+          {
+            "TX5eXdf8458bZ77fk8xdvUgiQmC3L93iv7": "110857591954790936410"
+          },
+          {
+            "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8": "450316926"
+          },
+          {
+            "TCFLL5dx5ZJdKnWuesXxi1VPwjLVmWZZy9": "724408871235320000000000"
+          },
+          {
+            "TASC4sgG9nPdWQymTZK93Qr7vPsV1nTK4C": "88000000000000000000"
+          },
+          {
+            "TEFuFEvf68MLKi5EyCjYbDuvniKLu6mmrC": "888888000000000000000"
+          },
+          {
+            "TAt4ufXFaHZAEV44ev7onThjTnF61SEaEM": "1486772184554430000000000"
+          },
+          {
+            "TP3prcvQknVthrVnn281cKST56eWiLgJJM": "13818476772865480000000000"
+          },
+          {
+            "TXq5y1AjZZhbJRzRCA6UYYAxeTa3U4Lh3P": "2000000000000000000000"
+          },
+          {
+            "TN2FuPjRR5XyredtpaGFeHHyycnukXUSGP": "20000000000000000000"
+          },
+          {
+            "TSSMHYeV2uE9qYH95DqyoCuNCzEL1NvU3S": "3169435527594790000000000"
+          },
+          {
+            "TVj7RNVHy6thbM7BWdSe9G6gXwKhjhdNZS": "21735107276450"
+          },
+          {
+            "TXL6rJbvmjD46zeN1JssfgxvSo99qC8MRT": "722967286083580000000000"
+          },
+          {
+            "TYWvmmnsTdSYMLZsUmhQyRoF4pD2eYWEiX": "44172858654756"
+          },
+          {
+            "TQCfza5xo7srwPsYvdpQgYbgQAUWcAcjSa": "5000000000000000000000"
+          },
+          {
+            "TPUZseUsV89tM157aLfkuKYEaRKzBirmRb": "1000000000000000000"
+          },
+          {
+            "TVyv2Mp3T3pg49b5hMVfcujE8LNacwDLLc": "1000000"
+          },
+          {
+            "TAwAg9wtQzTMFsijnSFotJrpxhMm3AqW1d": "17881946863963450000000000"
+          },
+          {
+            "TUFonyWZ4Tza5MzgDj6g2u5rfdGoRVYG7g": "23625739136602660000000000"
+          },
+          {
+            "TA6WG8Dodq5bcSwaprCVAVsg2heqP3zDVi": "3000000000000000000000"
+          },
+          {
+            "TVstZAtEeTz1s8saqcMR8oFHLK167FeUaj": "231000000000000000000"
+          },
+          {
+            "TFfjNs4y48eJwaZAQ6sELvVZ5eGZv4LsNo": "4326668131312430904"
+          },
+          {
+            "TMJYnuo6vz6nBnwnhcTi83qrodBGnFyvdp": "69961000000"
+          },
+          {
+            "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq": "54688652842926854"
+          },
+          {
+            "THvXdGAR14VC4EJmffjqzXjjmdWATWWaZr": "1000000000000000000"
+          },
+          {
+            "TDxL4V5LE6TYSFXSCWJkkSsCYbgmrDnTer": "6205427525146080000000000"
+          },
+          {
+            "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t": "4958702631789"
+          },
+          {
+            "TNgmve2f5A7wP6Lrx9KkfAPFxBTmcmS6Pt": "228000000"
+          },
+          {
+            "TTd2Dw2rjRa9B5qoc58G8MHsJ4zMomZxnu": "35100000000000000000"
+          }
+        ],
+        "latest_consume_free_time": 1713412548000,
+        "votes": [
+          {
+            "vote_address": "TSMC4YzUSfySfqKuFnJbYyU3W6PBebBk2E",
+            "vote_count": 100
+          }
+        ],
+        "net_window_size": 14970736,
+        "net_window_optimized": true
+      }
+    ],
+    "success": true,
+    "meta": {
+      "at": 1743117424350,
+      "page_size": 1
+    }
+  }
