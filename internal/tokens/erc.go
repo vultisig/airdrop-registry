@@ -72,7 +72,7 @@ func (o *ercDiscoveryService) Discover(address string, chain common.Chain) ([]mo
 		return nil, fmt.Errorf("API request failed with status: %d", resp.StatusCode)
 	}
 
-	accounts := make(map[string]string, 0)
+	accounts := make(map[string]string)
 	if err := json.NewDecoder(resp.Body).Decode(&accounts); err != nil {
 		o.logger.WithError(err).Error("Failed to decode response")
 		return nil, fmt.Errorf("failed to decode response: %w", err)
