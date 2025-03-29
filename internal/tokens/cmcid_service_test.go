@@ -49,7 +49,7 @@ func TestCMCIDService_GetCMCID(t *testing.T) {
 	}
 	cmcService.baseURL = mockServer.URL
 	type v int
-	cmcService.cachedData.Set(cmcService.getcacheKey(cmcChainMap[common.Osmosis], "ibc/D79E7D83AB399BFFF93433E54FAA480C191248FC556924A2A8351AE2638B3877"), 228261, cache.DefaultExpiration)
+	cmcService.cachedData.Set(cmcService.getCacheKey(cmcChainMap[common.Osmosis], "ibc/D79E7D83AB399BFFF93433E54FAA480C191248FC556924A2A8351AE2638B3877"), 228261, cache.DefaultExpiration)
 	type cmc struct {
 		chain         common.Chain
 		asset         models.Coin

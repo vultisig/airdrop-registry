@@ -76,7 +76,7 @@ func (c *CMCService) init() error {
 			if v.Platform == nil {
 				c.nativeCoinIds[v.Name] = v.ID
 			} else {
-				c.cachedData.Set(c.getcacheKey(v.Platform.Name, v.Platform.TokenAddress), v.ID, cache.DefaultExpiration)
+				c.cachedData.Set(c.getCacheKey(v.Platform.Name, v.Platform.TokenAddress), v.ID, cache.DefaultExpiration)
 			}
 		}
 		if len(dataMap) < limit {
@@ -119,7 +119,7 @@ func (c *CMCService) GetCMCID(chain common.Chain, coin models.Coin) (int, error)
 }
 
 func (c *CMCService) GetCMCIDByContract(chain, contract string) (int, error) {
-	if cachedData, found := c.cachedData.Get(c.getcacheKey(chain, contract)); found {
+	if cachedData, found := c.cachedData.Get(c.getCacheKey(chain, contract)); found {
 		if cmcID, ok := cachedData.(int); ok {
 			return cmcID, nil
 		}
@@ -140,7 +140,7 @@ func (c *CMCService) GetCMCIDByContract(chain, contract string) (int, error) {
 	for _, v := range cmcContractModel.Data {
 		for _, ca := range v.ContractAddresses {
 			if ca.ContractAddress == contract && ca.Platform.Coin.Name == chain {
-				c.cachedData.Set(c.getcacheKey(ca.Platform.Name, contract), v.ID, cache.DefaultExpiration)
+				c.cachedData.Set(c.getCacheKey(ca.Platform.Name, contract), v.ID, cache.DefaultExpiration)
 				return v.ID, nil
 			}
 		}
@@ -148,7 +148,7 @@ func (c *CMCService) GetCMCIDByContract(chain, contract string) (int, error) {
 	return -1, fmt.Errorf("failed to get cmc id for contract: %s", contract)
 }
 
-func (c *CMCService) getcacheKey(chain, contract string) string {
+func (c *CMCService) getCacheKey(chain, contract string) string {
 	return fmt.Sprintf("%s_%s", chain, contract)
 }
 
