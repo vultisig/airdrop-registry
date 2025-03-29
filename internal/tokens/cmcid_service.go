@@ -59,12 +59,12 @@ func NewCMCService() (*CMCService, error) {
 		cachedData:    cache.New(10*time.Hour, 1*time.Hour),
 		nativeCoinIds: map[string]int{},
 	}
-	if err := cmcService.init(); err != nil {
+	if err := cmcService.initialise(); err != nil {
 		return nil, err
 	}
 	return &cmcService, nil
 }
-func (c *CMCService) init() error {
+func (c *CMCService) initialise() error {
 
 	start, limit := 1, 5000
 	for {
