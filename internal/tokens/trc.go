@@ -22,7 +22,7 @@ type trcDiscoveryService struct {
 	cmcService  *CMCService
 }
 
-func NewTRC20DiscoveryService(chain common.Chain, cmcService *CMCService) autoDiscoveryService {
+func NewTRC20DiscoveryService(chain common.Chain, cmcService *CMCService) AutoDiscoveryService {
 	return &trcDiscoveryService{
 		logger:      logrus.WithField("module", "trc_service").Logger,
 		tronBaseURL: "https://api.trongrid.io",
@@ -30,7 +30,7 @@ func NewTRC20DiscoveryService(chain common.Chain, cmcService *CMCService) autoDi
 	}
 }
 
-func (trc *trcDiscoveryService) discover(address string, chain common.Chain) ([]models.CoinBase, error) {
+func (trc *trcDiscoveryService) Discover(address string, chain common.Chain) ([]models.CoinBase, error) {
 	// Validate inputs
 	if address == "" {
 		return nil, fmt.Errorf("empty address provided")

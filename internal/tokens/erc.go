@@ -32,7 +32,7 @@ type ercDiscoveryService struct {
 	oneInchService *oneInchService
 }
 
-func NewERC20DiscoveryService(oneInchService *oneInchService, cmcService *CMCService) autoDiscoveryService {
+func NewERC20DiscoveryService(oneInchService *oneInchService, cmcService *CMCService) AutoDiscoveryService {
 	return &ercDiscoveryService{
 		logger:         logrus.WithField("module", "oneInch_evm_base_service").Logger,
 		baseAddress:    "https://api.vultisig.com/1inch",
@@ -41,7 +41,7 @@ func NewERC20DiscoveryService(oneInchService *oneInchService, cmcService *CMCSer
 	}
 }
 
-func (o *ercDiscoveryService) discover(address string, chain common.Chain) ([]models.CoinBase, error) {
+func (o *ercDiscoveryService) Discover(address string, chain common.Chain) ([]models.CoinBase, error) {
 	// Validate inputs
 	if address == "" {
 		return nil, fmt.Errorf("empty address provided")

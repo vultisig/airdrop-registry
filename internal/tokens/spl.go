@@ -23,7 +23,7 @@ type splDiscoveryService struct {
 	cmcService  *CMCService
 }
 
-func NewSPLDiscoveryService(cmcService *CMCService) autoDiscoveryService {
+func NewSPLDiscoveryService(cmcService *CMCService) AutoDiscoveryService {
 	return &splDiscoveryService{
 		logger:      logrus.WithField("module", "sol_discovery_service").Logger,
 		baseAddress: "https://api.vultisig.com/solana/",
@@ -31,7 +31,7 @@ func NewSPLDiscoveryService(cmcService *CMCService) autoDiscoveryService {
 	}
 }
 
-func (s *splDiscoveryService) discover(address string, chain common.Chain) ([]models.CoinBase, error) {
+func (s *splDiscoveryService) Discover(address string, chain common.Chain) ([]models.CoinBase, error) {
 	if address == "" {
 		return nil, fmt.Errorf("empty address provided")
 	}

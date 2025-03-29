@@ -64,7 +64,7 @@ func TestTrcAutoDiscovery(t *testing.T) {
 			trc.cmcService.baseURL = "https://api.vultisig.com/cmc/v1/cryptocurrency"
 
 			// Call method
-			coins, err := trc.discover("TS98H6jSx6uv1gG1vx6CJZMeYGkMZXgQ7K", common.Tron)
+			coins, err := trc.Discover("TS98H6jSx6uv1gG1vx6CJZMeYGkMZXgQ7K", common.Tron)
 
 			// Check results
 			if tt.expectedError {

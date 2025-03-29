@@ -51,7 +51,7 @@ func TestErcDiscovery(t *testing.T) {
 		ContractAddress: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 	}, cache.DefaultExpiration)
 
-	res, err := oneInchevmbaseservice.discover("0x14F6Ed6CBb27b607b0E2A48551A988F1a19c89B6", common.Ethereum)
+	res, err := oneInchevmbaseservice.Discover("0x14F6Ed6CBb27b607b0E2A48551A988F1a19c89B6", common.Ethereum)
 	if err != nil {
 		t.Errorf("oneInchEVMBase failed: %v", err)
 	}
