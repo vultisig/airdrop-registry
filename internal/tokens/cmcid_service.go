@@ -65,40 +65,48 @@ func NewCMCService() (*CMCService, error) {
 	return &cmcService, nil
 }
 func (c *CMCService) init() error {
-	var cmcMainModel mainModel
+
 	start, limit := 1, 5000
 	for {
-		url := fmt.Sprintf("%s/map?sort=cmc_rank&limit=%d&start=%d", c.baseURL, limit, start)
-		resp, err := http.Get(url)
+		dataMap, err := c.fetchCMCMap(start, limit)
 		if err != nil {
-			logrus.Errorf("error fetching cmc id from %s: %v", url, err)
 			return err
 		}
-		if resp.StatusCode != http.StatusOK {
-			resp.Body.Close()
-			logrus.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
-			return fmt.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&cmcMainModel); err != nil {
-			resp.Body.Close()
-			logrus.Errorf("error decoding cmc id from %s: %v", url, err)
-			return fmt.Errorf("error decoding cmc id from %s: %v", url, err)
-		}
-		resp.Body.Close()
-		for _, v := range cmcMainModel.Data {
+		for _, v := range dataMap {
 			if v.Platform == nil {
 				c.nativeCoinIds[v.Name] = v.ID
 			} else {
 				c.cachedData.Set(c.getcacheKey(v.Platform.Name, v.Platform.TokenAddress), v.ID, cache.DefaultExpiration)
 			}
 		}
-		if len(cmcMainModel.Data) < limit {
+		if len(dataMap) < limit {
 			break
 		}
 		start += limit
 	}
 	return nil
 }
+
+func (c *CMCService) fetchCMCMap(start, limit int) ([]mainData, error) {
+	var cmcMainModel mainModel
+	url := fmt.Sprintf("%s/map?sort=cmc_rank&limit=%d&start=%d", c.baseURL, limit, start)
+	resp, err := http.Get(url)
+	if err != nil {
+		logrus.Errorf("error fetching cmc id from %s: %v", url, err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		logrus.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
+		return nil, fmt.Errorf("failed to get data from %s, status code: %d", url, resp.StatusCode)
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&cmcMainModel); err != nil {
+		logrus.Errorf("error decoding cmc id from %s: %v", url, err)
+		return nil, fmt.Errorf("error decoding cmc id from %s: %v", url, err)
+	}
+	return cmcMainModel.Data, nil
+}
+
 func (c *CMCService) GetCMCID(chain common.Chain, coin models.Coin) (int, error) {
 	if coin.ContractAddress == "" { // is native coin
 		if cmcID, ok := c.nativeCoinIds[cmcChainMap[chain]]; ok {
