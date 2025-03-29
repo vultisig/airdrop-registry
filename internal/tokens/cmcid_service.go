@@ -71,7 +71,7 @@ func (c *CMCService) init() error {
 		url := fmt.Sprintf("%s/map?sort=cmc_rank&limit=%d&start=%d", c.baseURL, limit, start)
 		resp, err := http.Get(url)
 		if err != nil {
-			logrus.Errorf("error fetching cmc id from %s: %e", url, err)
+			logrus.Errorf("error fetching cmc id from %s: %v", url, err)
 			return err
 		}
 		if resp.StatusCode != http.StatusOK {
@@ -81,8 +81,8 @@ func (c *CMCService) init() error {
 		}
 		if err := json.NewDecoder(resp.Body).Decode(&cmcMainModel); err != nil {
 			resp.Body.Close()
-			logrus.Errorf("error decoding cmc id from %s: %e", url, err)
-			return fmt.Errorf("error decoding cmc id from %s: %e", url, err)
+			logrus.Errorf("error decoding cmc id from %s: %v", url, err)
+			return fmt.Errorf("error decoding cmc id from %s: %v", url, err)
 		}
 		resp.Body.Close()
 		for _, v := range cmcMainModel.Data {
