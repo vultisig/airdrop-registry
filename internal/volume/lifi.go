@@ -34,6 +34,10 @@ func (l *lifiVolumeTracker) FetchVolume(from, to int64, affiliate string) (map[s
 		return nil, fmt.Errorf("error making GET request: %w", err)
 	}
 	defer l.SafeClose(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		l.logger.WithField("status_code", resp.StatusCode).Error("error response from server")
+		return nil, fmt.Errorf("error response from server: %s", resp.Status)
+	}
 	var volRes lifiVolumeModel
 	if err := json.NewDecoder(resp.Body).Decode(&volRes); err != nil {
 		l.logger.WithError(err).Error("error decoding response")
