@@ -1,0 +1,120 @@
+{
+    "actions": [ 
+        {
+            "date":   "1739518746459473723",
+            "height": "19862079",
+            "in": [
+                {
+                    "address": "0x060c27cd6719477f233e403d74da9513886f0a1a",
+                    "coins": [
+                        {
+                            "amount": "315789473676",
+                            "asset":  "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48"
+                        }
+                    ],
+                    "txID": "6A31B1ADC6211047175A1A465985B7B2E6C28945C587F91305B73946491226CF"
+                }
+            ],
+            "metadata":{
+                "swap":{
+                    "affiliateAddress": "t",
+                    "affiliateFee":     "0",
+                    "inPriceUSD":       "1.0005046063264105",
+                    "isStreamingSwap":  true,
+                    "liquidityFee":     "349228438",
+                    "memo":             "=:ETH.THOR-0XA5F2211B9B8170F694421F2046281775E8468044:0x060c27cd6719477F233E403d74da9513886F0a1A:7508256142234/1/0:t:0",
+                    "networkFees": [
+                        {
+                            "amount": "10387967866",
+                            "asset":  "ETH.THOR-0XA5F2211B9B8170F694421F2046281775E8468044"
+                        },
+                        {
+                            "amount": "272164500",
+                            "asset":  "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48"
+                        }
+                    ],
+                    "outPriceUSD": "0.06582207333142955",
+                    "streamingSwapMeta":{
+                        "count": "19",
+                        "depositedCoin":{
+                            "amount": "500000000000",
+                            "asset":  "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48"
+                        },
+                        "failedSwapReasons": [
+                            "emit asset 392492334429 less than price limit 392951609490",
+                            "emit asset 392492334428 less than price limit 392951609490",
+                            "emit asset 392492334428 less than price limit 392951609490",
+                            "emit asset 392492334428 less than price limit 392951609490",
+                            "emit asset 392492334427 less than price limit 392951609490",
+                            "emit asset 392492334427 less than price limit 392951609490",
+                            "emit asset 2720179808079 less than price limit 2750661266623"
+                        ],
+                        "failedSwaps": [
+                            "13", "14", "15", "16", "17", "18", "19"
+                        ],
+                        "inCoin":{
+                            "amount": "315789473676",
+                            "asset":  "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48"
+                        },
+                        "interval":   "1",
+                        "lastHeight": "19862097",
+                        "outCoin":{
+                            "amount": "4757594875611",
+                            "asset":  "ETH.THOR-0XA5F2211B9B8170F694421F2046281775E8468044"
+                        },
+                        "quantity": "19"
+                    },
+                    "swapSlip":   "16",
+                    "swapTarget": "395171375897",
+                    "txType":     "swap"
+                }
+            },
+            "out":[
+                {
+                    "address":   "thor1dl7un46w7l7f3ewrnrm6nq58nerjtp0dradjtd",
+                    "affiliate": true,
+                    "coins": [
+                        {
+                            "amount": "996806325",
+                            "asset":  "THOR.RUNE"
+                        }
+                    ],
+                    "height": "19738122",
+                    "txID":   ""
+                },
+                {
+                    "address": "0x060c27cd6719477f233e403d74da9513886f0a1a",
+                    "coins": [
+                        {
+                            "amount": "4747206907745",
+                            "asset":  "ETH.THOR-0XA5F2211B9B8170F694421F2046281775E8468044"
+                        }
+                    ],
+                    "height": "19862103",
+                    "txID":   "2FFFCAF7A20E138A2558B2F21D29A227D7EA4D0B806C588CA81AA07CEDF3FE9B"
+                },
+                {
+                    "address": "0x060c27cd6719477f233e403d74da9513886f0a1a",
+                    "coins": [
+                        {
+                            "amount": "183938361800",
+                            "asset":  "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48"
+                        }
+                    ],
+                    "height": "19862103",
+                    "txID":   "A28AF45D9116FAED319DC78AEBEDA731533EC2D9AB00602E7F240A015BEA1761"
+                }
+            ],
+            "pools": [
+                "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48",
+                "ETH.THOR-0XA5F2211B9B8170F694421F2046281775E8468044"
+            ],
+            "status": "success",
+            "type":   "swap"
+        }
+    ],
+    "meta":{
+        "nextPageToken": "198620799000000001",
+        "prevPageToken": "198620799000000001"
+    }
+}
