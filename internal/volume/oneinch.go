@@ -32,6 +32,8 @@ func (o *oneInchVolumeTracker) SafeClose(closer io.Closer) {
 		o.logger.Error(err)
 	}
 }
+
+// TODO: add from/to filter to etherscan request
 func (o *oneInchVolumeTracker) FetchVolume(from, to int64, affiliate string) (map[string]float64, error) {
 	// #TODO check api for from & to parameters
 	url := fmt.Sprintf("%s/v2/api?chainid=1&module=account&action=txlistinternal&address=%s&apikey=%s", o.etherscanbaseUrl, affiliate, o.etherscanApiKey)
