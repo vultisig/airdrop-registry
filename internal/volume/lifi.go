@@ -14,7 +14,7 @@ type lifiVolumeTracker struct {
 	logger  *logrus.Logger
 }
 
-func NewVolumeTrack() IVolumeTracker {
+func NewLifiVolumeTracker() IVolumeTracker {
 	return &lifiVolumeTracker{
 		baseUrl: "https://li.quest/v1",
 		logger:  logrus.WithField("module", "lifi_volume_tracker").Logger,

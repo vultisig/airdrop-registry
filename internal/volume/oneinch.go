@@ -18,7 +18,7 @@ type oneInchVolumeTracker struct {
 	logger           *logrus.Logger
 }
 
-func NewOneInchVolumeTrack(etherscanApiKey, ethplorerApiKey string) IVolumeTracker {
+func NewOneInchVolumeTracker(etherscanApiKey, ethplorerApiKey string) IVolumeTracker {
 	return &oneInchVolumeTracker{
 		etherscanbaseUrl: "https://api.etherscan.io",
 		ethplorerBaseUrl: "https://api.ethplorer.io",
