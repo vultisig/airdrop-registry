@@ -35,7 +35,7 @@ func TestOneInchVolume(t *testing.T) {
 	expect := map[string]float64{
 		"0x121a38277e0ba795edf8cb6be7935a9773e1ac25": 11.696993778690723,
 	}
-	res, err := oneInch.processVolume(1715879039, 1715889039, "0xa4a4f610e89488eb4ecc6c63069f241a54485269")
+	res, err := oneInch.FetchVolume(1715879039, 1715889039, "0xa4a4f610e89488eb4ecc6c63069f241a54485269")
 	assert.NoErrorf(t, err, "Failed to get: %v", err)
 	assert.Equal(t, expect["0x121a38277e0ba795edf8cb6be7935a9773e1ac25"], res["0x121a38277e0ba795edf8cb6be7935a9773e1ac25"])
 }

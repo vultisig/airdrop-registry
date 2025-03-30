@@ -29,13 +29,13 @@ func NewMayaMidgardTracker() IVolumeTracker {
 	}
 }
 
-func (v *midgardTracker) closer(closer io.Closer) {
+func (v *midgardTracker) SafeClose(closer io.Closer) {
 	if err := closer.Close(); err != nil {
 		v.logger.Error(err)
 	}
 }
 
-func (v *midgardTracker) processVolume(from, to int64, affiliate string) (map[string]float64, error) {
+func (v *midgardTracker) FetchVolume(from, to int64, affiliate string) (map[string]float64, error) {
 	return v.processVolumeWithToken(from, to, affiliate, "")
 }
 
@@ -48,7 +48,7 @@ func (v *midgardTracker) processVolumeWithToken(from, to int64, affiliate, nextP
 	if err != nil {
 		return nil, fmt.Errorf("error making GET request: %w", err)
 	}
-	defer v.closer(resp.Body)
+	defer v.SafeClose(resp.Body)
 	var volRes tcVolumeModel
 	if err := json.NewDecoder(resp.Body).Decode(&volRes); err != nil {
 		return nil, fmt.Errorf("error decoding response: %w", err)

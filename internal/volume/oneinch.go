@@ -27,19 +27,19 @@ func NewOneInchVolumeTracker(etherscanApiKey, ethplorerApiKey string) IVolumeTra
 		logger:           logrus.WithField("module", "oneInch_volume_tracker").Logger,
 	}
 }
-func (o *oneInchVolumeTracker) closer(closer io.Closer) {
+func (o *oneInchVolumeTracker) SafeClose(closer io.Closer) {
 	if err := closer.Close(); err != nil {
 		o.logger.Error(err)
 	}
 }
-func (o *oneInchVolumeTracker) processVolume(from, to int64, affiliate string) (map[string]float64, error) {
+func (o *oneInchVolumeTracker) FetchVolume(from, to int64, affiliate string) (map[string]float64, error) {
 	// #TODO check api for from & to parameters
 	url := fmt.Sprintf("%s/v2/api?chainid=1&module=account&action=txlistinternal&address=%s&apikey=%s", o.etherscanbaseUrl, affiliate, o.etherscanApiKey)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("error making GET request: %w", err)
 	}
-	defer o.closer(resp.Body)
+	defer o.SafeClose(resp.Body)
 	var etherScanResponse, etherScanFilteredResponse etherScanResponse
 	if err := json.NewDecoder(resp.Body).Decode(&etherScanResponse); err != nil {
 		return nil, fmt.Errorf("error decoding response: %w", err)
@@ -66,7 +66,7 @@ func (o *oneInchVolumeTracker) processVolume(from, to int64, affiliate string) (
 		if err != nil {
 			return nil, fmt.Errorf("error making GET request: %w", err)
 		}
-		defer o.closer(resp.Body)
+		defer o.SafeClose(resp.Body)
 		var ethplorerTx ethplorerVolumeModel
 		if err := json.NewDecoder(resp.Body).Decode(&ethplorerTx); err != nil {
 			return nil, fmt.Errorf("error decoding response: %w", err)

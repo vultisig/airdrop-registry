@@ -21,19 +21,19 @@ func NewLifiVolumeTracker() IVolumeTracker {
 	}
 }
 
-func (l *lifiVolumeTracker) closer(closer io.Closer) {
+func (l *lifiVolumeTracker) SafeClose(closer io.Closer) {
 	if err := closer.Close(); err != nil {
 		l.logger.Error(err)
 	}
 }
-func (l *lifiVolumeTracker) processVolume(from, to int64, affiliate string) (map[string]float64, error) {
+func (l *lifiVolumeTracker) FetchVolume(from, to int64, affiliate string) (map[string]float64, error) {
 	url := fmt.Sprintf("%s/analytics/transfers?integrator=%s&fromTimestamp=%d&toTimestamp=%d", l.baseUrl, affiliate, from, to)
 	resp, err := http.Get(url)
 	if err != nil {
 		l.logger.WithError(err).Error("error making GET request")
 		return nil, fmt.Errorf("error making GET request: %w", err)
 	}
-	defer l.closer(resp.Body)
+	defer l.SafeClose(resp.Body)
 	var volRes lifiVolumeModel
 	if err := json.NewDecoder(resp.Body).Decode(&volRes); err != nil {
 		l.logger.WithError(err).Error("error decoding response")

@@ -26,7 +26,7 @@ func TestLifiVolume(t *testing.T) {
 	expect := map[string]float64{
 		"0x0b1a6fdd08b8e63d6b9476b971f03354823448ce": 173.7686,
 	}
-	res, err := li.processVolume(1730468849, 1735134449, "t")
+	res, err := li.FetchVolume(1730468849, 1735134449, "t")
 	assert.NoErrorf(t, err, "Failed to get: %v", err)
 	assert.Equal(t, expect["0x0b1a6fdd08b8e63d6b9476b971f03354823448ce"], res["0x0b1a6fdd08b8e63d6b9476b971f03354823448ce"])
 }

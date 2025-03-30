@@ -39,7 +39,7 @@ func TestTCVolume(t *testing.T) {
 	expect := map[string]float64{
 		"0x060c27cd6719477f233e403d74da9513886f0a1a": 324578205539.9229,
 	}
-	res, err := vr.processVolume(1739510000, 1739519656, "t")
+	res, err := vr.FetchVolume(1739510000, 1739519656, "t")
 	assert.NoErrorf(t, err, "Failed to get: %v", err)
 	assert.Equal(t, expect, res)
 }
