@@ -10,66 +10,36 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type tcVolumeModel struct {
-	Actions []tcActions `json:"actions"`
-	Meta    tcMeta      `json:"meta"`
-}
-type tcSwap struct {
-	OutPriceUSD float64 `json:"outPriceUSD,string"`
-}
-type tcMetadata struct {
-	Swap tcSwap `json:"swap"`
-}
-type tcOutCoins struct {
-	Amount string `json:"amount"`
-	Asset  string `json:"asset"`
-}
-type tcOut struct {
-	Address   string       `json:"address"`
-	Affiliate *bool        `json:"affiliate"`
-	OutCoins  []tcOutCoins `json:"coins"`
-}
-type tcActions struct {
-	Date     string     `json:"date"`
-	Metadata tcMetadata `json:"metadata"`
-	Out      []tcOut    `json:"out"`
-	Status   string     `json:"status"`
-}
-type tcMeta struct {
-	NextPageToken string `json:"nextPageToken"`
-	PrevPageToken string `json:"prevPageToken"`
-}
-
-type tcVolumeTrack struct {
+type midgardTracker struct {
 	baseUrl string
 	logger  *logrus.Logger
 }
 
-func NewTCVolumeTrack() IVolume {
-	return &tcVolumeTrack{
+func NewTCMidgardTracker() IVolumeTracker {
+	return &midgardTracker{
 		baseUrl: "https://midgard.ninerealms.com/v2/actions",
 		logger:  logrus.WithField("module", "thorchain_volume_tracker").Logger,
 	}
 }
 
-func NewMayaVolumeTrack() IVolume {
-	return &tcVolumeTrack{
+func NewMayaMidgardTracker() IVolumeTracker {
+	return &midgardTracker{
 		baseUrl: "https://midgard.mayachain.info/v2/actions",
 		logger:  logrus.WithField("module", "mayachain_volume_tracker").Logger,
 	}
 }
 
-func (v *tcVolumeTrack) closer(closer io.Closer) {
+func (v *midgardTracker) closer(closer io.Closer) {
 	if err := closer.Close(); err != nil {
 		v.logger.Error(err)
 	}
 }
 
-func (v *tcVolumeTrack) processVolume(from, to int64, affiliate string) (map[string]float64, error) {
+func (v *midgardTracker) processVolume(from, to int64, affiliate string) (map[string]float64, error) {
 	return v.processVolumeWithToken(from, to, affiliate, "")
 }
 
-func (v *tcVolumeTrack) processVolumeWithToken(from, to int64, affiliate, nextPageToken string) (map[string]float64, error) {
+func (v *midgardTracker) processVolumeWithToken(from, to int64, affiliate, nextPageToken string) (map[string]float64, error) {
 	url := fmt.Sprintf("%s?affiliate=%s&type=swap&timestamp=%d", v.baseUrl, affiliate, to)
 	if nextPageToken != "" {
 		url = fmt.Sprintf("%s?affiliate=%s&type=swap&nextPageToken=%s", v.baseUrl, affiliate, nextPageToken)
@@ -118,4 +88,34 @@ func (v *tcVolumeTrack) processVolumeWithToken(from, to int64, affiliate, nextPa
 		}
 	}
 	return res, nil
+}
+
+type tcVolumeModel struct {
+	Actions []tcActions `json:"actions"`
+	Meta    tcMeta      `json:"meta"`
+}
+type tcSwap struct {
+	OutPriceUSD float64 `json:"outPriceUSD,string"`
+}
+type tcMetadata struct {
+	Swap tcSwap `json:"swap"`
+}
+type tcOutCoins struct {
+	Amount string `json:"amount"`
+	Asset  string `json:"asset"`
+}
+type tcOut struct {
+	Address   string       `json:"address"`
+	Affiliate *bool        `json:"affiliate"`
+	OutCoins  []tcOutCoins `json:"coins"`
+}
+type tcActions struct {
+	Date     string     `json:"date"`
+	Metadata tcMetadata `json:"metadata"`
+	Out      []tcOut    `json:"out"`
+	Status   string     `json:"status"`
+}
+type tcMeta struct {
+	NextPageToken string `json:"nextPageToken"`
+	PrevPageToken string `json:"prevPageToken"`
 }

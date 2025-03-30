@@ -10,40 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func mapToStruct(m map[string]any, result any) error {
-	jsonStr, err := json.Marshal(m)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(jsonStr, result)
-}
-
-type etherScanResponse struct {
-	Status  string            `json:"status"`
-	Message string            `json:"message"`
-	Result  []etherscanResult `json:"result"`
-}
-type etherscanResult struct {
-	Hash      string `json:"hash"`
-	TimeStamp int64  `json:"timeStamp,string"`
-	IsError   int    `json:"isError,string"`
-}
-type ethplorerPrice struct {
-	Rate float64 `json:"rate"`
-}
-type ethplorerTokenInfo struct {
-	Decimals int `json:"decimals,string"`
-	Price    any `json:"price"`
-}
-type ethplorerOperation struct {
-	Value     int64              `json:"value,string"`
-	To        string             `json:"to"`
-	TokenInfo ethplorerTokenInfo `json:"tokenInfo"`
-}
-type ethplorerVolumeModel struct {
-	Operations []ethplorerOperation `json:"operations"`
-}
-type oneInchVolumeTrack struct {
+type oneInchVolumeTracker struct {
 	etherscanbaseUrl string
 	etherscanApiKey  string
 	ethplorerBaseUrl string
@@ -51,8 +18,8 @@ type oneInchVolumeTrack struct {
 	logger           *logrus.Logger
 }
 
-func NewOneInchVolumeTrack(etherscanApiKey, ethplorerApiKey string) IVolume {
-	return &oneInchVolumeTrack{
+func NewOneInchVolumeTrack(etherscanApiKey, ethplorerApiKey string) IVolumeTracker {
+	return &oneInchVolumeTracker{
 		etherscanbaseUrl: "https://api.etherscan.io",
 		ethplorerBaseUrl: "https://api.ethplorer.io",
 		etherscanApiKey:  etherscanApiKey,
@@ -60,12 +27,12 @@ func NewOneInchVolumeTrack(etherscanApiKey, ethplorerApiKey string) IVolume {
 		logger:           logrus.WithField("module", "oneInch_volume_tracker").Logger,
 	}
 }
-func (o *oneInchVolumeTrack) closer(closer io.Closer) {
+func (o *oneInchVolumeTracker) closer(closer io.Closer) {
 	if err := closer.Close(); err != nil {
 		o.logger.Error(err)
 	}
 }
-func (o *oneInchVolumeTrack) processVolume(from, to int64, affiliate string) (map[string]float64, error) {
+func (o *oneInchVolumeTracker) processVolume(from, to int64, affiliate string) (map[string]float64, error) {
 	// #TODO check api for from & to parameters
 	url := fmt.Sprintf("%s/v2/api?chainid=1&module=account&action=txlistinternal&address=%s&apikey=%s", o.etherscanbaseUrl, affiliate, o.etherscanApiKey)
 	resp, err := http.Get(url)
@@ -122,4 +89,38 @@ func (o *oneInchVolumeTrack) processVolume(from, to int64, affiliate string) (ma
 		}
 	}
 	return res, nil
+}
+
+func mapToStruct(m map[string]any, result any) error {
+	jsonStr, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(jsonStr, result)
+}
+
+type etherScanResponse struct {
+	Status  string            `json:"status"`
+	Message string            `json:"message"`
+	Result  []etherscanResult `json:"result"`
+}
+type etherscanResult struct {
+	Hash      string `json:"hash"`
+	TimeStamp int64  `json:"timeStamp,string"`
+	IsError   int    `json:"isError,string"`
+}
+type ethplorerPrice struct {
+	Rate float64 `json:"rate"`
+}
+type ethplorerTokenInfo struct {
+	Decimals int `json:"decimals,string"`
+	Price    any `json:"price"`
+}
+type ethplorerOperation struct {
+	Value     int64              `json:"value,string"`
+	To        string             `json:"to"`
+	TokenInfo ethplorerTokenInfo `json:"tokenInfo"`
+}
+type ethplorerVolumeModel struct {
+	Operations []ethplorerOperation `json:"operations"`
 }

@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//go:embed one_inch_etherscan.json
+//go:embed etherscan_test_response.json
 var etherscanResponse string
 
-//go:embed one_inch_ethplorer.json
+//go:embed  etherplorer_test_response.json
 var ethplorerResponse string
 
 func TestOneInchVolume(t *testing.T) {
@@ -27,7 +27,7 @@ func TestOneInchVolume(t *testing.T) {
 		}
 	}))
 	defer mockServer.Close()
-	oneInch := oneInchVolumeTrack{
+	oneInch := oneInchVolumeTracker{
 		logger:           logrus.WithField("module", "vol_oneInch").Logger,
 		etherscanbaseUrl: mockServer.URL,
 		ethplorerBaseUrl: mockServer.URL,

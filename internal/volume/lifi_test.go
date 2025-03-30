@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//go:embed lifi_response.json
+//go:embed lifi_test_response.json
 var lisfiResponse string
 
 func TestLifiVolume(t *testing.T) {
@@ -19,7 +19,7 @@ func TestLifiVolume(t *testing.T) {
 		w.Write([]byte(lisfiResponse))
 	}))
 	defer mockServer.Close()
-	li := lifiVolumeTrack{
+	li := lifiVolumeTracker{
 		logger:  logrus.WithField("module", "vol_service").Logger,
 		baseUrl: mockServer.URL,
 	}

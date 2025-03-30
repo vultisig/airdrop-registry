@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//go:embed tc_vol_one.json
+//go:embed midgard_test_response.json
 var tcVolumeResponseOne string
 
 func TestTCVolume(t *testing.T) {
@@ -32,7 +32,7 @@ func TestTCVolume(t *testing.T) {
 		}
 	}))
 	defer mockServer.Close()
-	vr := tcVolumeTrack{
+	vr := midgardTracker{
 		logger:  logrus.WithField("module", "tc_vol_service").Logger,
 		baseUrl: mockServer.URL,
 	}
