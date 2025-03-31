@@ -1,0 +1,22 @@
+{
+    "status":  "1",
+    "message": "OK",
+    "result": [
+        {
+            "blockNumber":     "19883907",
+            "timeStamp":       "1715879039",
+            "hash":            "0x7a541e32d9ce12a7413d716b2870b5d2fe2ac31a91d67ee1f765d0b24e27f774",
+            "from":            "0xe37e799d5077682fa0a244d46e5649f71457bd09",
+            "to":              "0xa4a4f610e89488eb4ecc6c63069f241a54485269",
+            "value":           "28000000000000",
+            "contractAddress": "",
+            "input":           "",
+            "type":            "call",
+            "gas":             "498356",
+            "gasUsed":         "0",
+            "traceId":         "0_1_1_1",
+            "isError":         "0",
+            "errCode":         ""
+        }
+    ]
+}
