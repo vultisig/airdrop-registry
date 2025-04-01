@@ -17,6 +17,7 @@ type VaultResponse struct {
 	RegisteredAt          int64        `json:"registered_at"`
 	AvatarURL             string       `json:"avatar_url"`
 	ShowNameInLeaderboard bool         `json:"show_name_in_leaderboard"`
+	ReferralCode          string       `json:"referral_code"`
 }
 
 type VaultsResponse struct {

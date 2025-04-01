@@ -31,6 +31,7 @@ type Vault struct {
 	AvatarCollectionID    string  `gorm:"type:varchar(255)" json:"avatar_collection_id"`
 	AvatarItemID          int64   `gorm:"type:bigint" json:"avatar_item_id"`
 	ShowNameInLeaderboard bool    `gorm:"type:boolean;default:false" json:"show_name_in_leaderboard"`
+	ReferralCode          string  `gorm:"type:varchar(255)" json:"referral_code"`
 }
 
 func (*Vault) TableName() string {

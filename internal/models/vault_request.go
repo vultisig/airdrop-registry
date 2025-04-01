@@ -8,6 +8,7 @@ type VaultRequest struct {
 	PublicKeyEDDSA        string `json:"public_key_eddsa" binding:"required"`
 	HexChainCode          string `json:"hex_chain_code" binding:"required"`
 	ShowNameInLeaderboard bool   `json:"show_name_in_leaderboard"`
+	ReferralCode          string `json:"referral_code"`
 }
 
 // VaultRequest is the request to add a new vault into registry
