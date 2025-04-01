@@ -42,28 +42,28 @@ func TestErcDiscovery(t *testing.T) {
 		logger:     logrus.WithField("module", "oneInch_service").Logger,
 		cachedData: cache.New(10*time.Hour, 1*time.Hour),
 	}
-	oneInchevmbaseservice := &ercDiscoveryService{
+	dicoveryService := &ercDiscoveryService{
 		logger:         logrus.WithField("module", "oneInch_evm_base_service").Logger,
 		baseAddress:    mockServer.URL,
 		cmcService:     cmcService,
 		oneInchService: oneInchService,
 	}
-	oneInchevmbaseservice.oneInchService.oneInchBaseURL = mockServer.URL
-	oneInchevmbaseservice.cmcService.cachedData.Set(cmcService.getCacheKey("Ethereum", "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"), 2396, cache.DefaultExpiration)
-	oneInchevmbaseservice.oneInchService.cachedData.Set(oneInchService.getCacheKey("Ethereum", "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"), models.CoinBase{
+	dicoveryService.oneInchService.oneInchBaseURL = mockServer.URL
+	dicoveryService.cmcService.cachedData.Set(cmcService.getCacheKey("Ethereum", "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"), 2396, cache.DefaultExpiration)
+	dicoveryService.oneInchService.cachedData.Set(oneInchService.getCacheKey("Ethereum", "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"), models.CoinBase{
 		Decimals:        18,
 		Ticker:          "WETH",
 		ContractAddress: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 	}, cache.DefaultExpiration)
 
-	oneInchevmbaseservice.cmcService.cachedData.Set(cmcService.getCacheKey("Ethereum", "0xdac17f958d2ee523a2206206994597c13d831ec7"), 825, cache.DefaultExpiration)
-	oneInchevmbaseservice.oneInchService.cachedData.Set(oneInchService.getCacheKey("Ethereum", "0xdac17f958d2ee523a2206206994597c13d831ec7"), models.CoinBase{
+	dicoveryService.cmcService.cachedData.Set(cmcService.getCacheKey("Ethereum", "0xdac17f958d2ee523a2206206994597c13d831ec7"), 825, cache.DefaultExpiration)
+	dicoveryService.oneInchService.cachedData.Set(oneInchService.getCacheKey("Ethereum", "0xdac17f958d2ee523a2206206994597c13d831ec7"), models.CoinBase{
 		Decimals:        6,
 		Ticker:          "Tether",
 		ContractAddress: "0xdac17f958d2ee523a2206206994597c13d831ec7",
 	}, cache.DefaultExpiration)
 
-	res, err := oneInchevmbaseservice.Discover("0x14F6Ed6CBb27b607b0E2A48551A988F1a19c89B6", common.Ethereum)
+	res, err := dicoveryService.Discover("0x14F6Ed6CBb27b607b0E2A48551A988F1a19c89B6", common.Ethereum)
 	if err != nil {
 		t.Errorf("oneInchEVMBase failed: %v", err)
 	}
@@ -86,5 +86,18 @@ func TestErcDiscovery(t *testing.T) {
 	}
 	if !found {
 		t.Error("Expected to find WETH token in results")
+	}
+	found = false
+	for _, token := range res {
+		if token.Ticker == "Tether" {
+			found = true
+			if token.CMCId != 825 {
+				t.Errorf("Expected Tether CMC ID to be 825, got %d", token.CMCId)
+			}
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected to find Tether token in results")
 	}
 }
