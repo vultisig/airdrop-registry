@@ -90,13 +90,12 @@ func (o *oneInchService) LoadOneInchTokens(chain common.Chain) ([]models.Coin, e
 		})
 	}
 
-	o.cachedData.Set(chain.String(), coins, 10*time.Hour)
+	o.cachedData.Set(o.getCacheKey(chain.String(), ""), coins, 10*time.Hour)
 	return coins, nil
 }
 
 func (o *oneInchService) GetTokenDetailsByContract(chain, contract string) (models.CoinBase, error) {
-	key := chain + contract
-	if cachedData, found := o.cachedData.Get(key); found {
+	if cachedData, found := o.cachedData.Get(o.getCacheKey(chain, contract)); found {
 		if coin, ok := cachedData.(models.CoinBase); ok {
 			return coin, nil
 		}
@@ -141,6 +140,10 @@ func (o *oneInchService) GetTokenDetailsByContract(chain, contract string) (mode
 		"decimals":     tokenData.Assets.Decimals,
 		"tokenName":    tokenData.Assets.Name,
 	}).Debug("Token details retrieved successfully")
-	o.cachedData.Set(key, coin, 10*time.Hour)
+	o.cachedData.Set(o.getCacheKey(chain, contract), coin, 10*time.Hour)
 	return coin, nil
+}
+
+func (c *oneInchService) getCacheKey(chain, contract string) string {
+	return fmt.Sprintf("%s_%s", chain, contract)
 }
