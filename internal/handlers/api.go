@@ -72,6 +72,7 @@ func (a *Api) setupRouting() {
 	rg.DELETE("/vault/:ecdsaPublicKey/:eddsaPublicKey", a.deleteVaultHandler)
 	rg.GET("/vault/:ecdsaPublicKey/:eddsaPublicKey", a.getVaultHandler)
 	rg.POST("/vault/:ecdsaPublicKey/:eddsaPublicKey/alias", a.updateAliasHandler)
+	rg.POST("/vault/:ecdsaPublicKey/:eddsaPublicKey/referral", a.updateReferralHandler)
 	rg.GET("/vault/shared/:uid", a.getVaultByUIDHandler)
 	rg.POST("/vault/join-airdrop", a.joinAirdrop)
 	rg.POST("/vault/exit-airdrop", a.exitAirdrop)

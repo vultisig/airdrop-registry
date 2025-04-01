@@ -78,6 +78,7 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		Coins:                 []models.ChainCoins{},
 		AvatarURL:             vault.AvatarURL,
 		ShowNameInLeaderboard: vault.ShowNameInLeaderboard,
+		ReferralCode:          vault.ReferralCode,
 	}
 	for _, coin := range coins {
 		found := false
@@ -276,6 +277,39 @@ func (a *Api) updateAliasHandler(c *gin.Context) {
 	if v.HexChainCode == vault.HexChainCode && v.Uid == vault.Uid {
 		v.Alias = vault.Name
 		v.ShowNameInLeaderboard = vault.ShowNameInLeaderboard
+		if err := a.s.UpdateVault(v); err != nil {
+			a.logger.Error(err)
+			_ = c.Error(errFailedToJoinRegistry)
+			return
+		}
+	} else {
+		_ = c.Error(errForbiddenAccess)
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+func (a *Api) updateReferralHandler(c *gin.Context) {
+	var vault models.VaultRequest
+	if err := c.ShouldBindJSON(&vault); err != nil {
+		a.logger.Error(err)
+		_ = c.Error(errInvalidRequest)
+		return
+	}
+	// check vault already exists , should we tell front-end that vault already registered?
+	v, err := a.s.GetVault(vault.PublicKeyECDSA, vault.PublicKeyEDDSA)
+	if err != nil {
+		a.logger.Error(err)
+		_ = c.Error(errFailedToGetVault)
+		return
+	}
+
+	if v == nil {
+		_ = c.Error(errVaultNotFound)
+		return
+	}
+	if v.HexChainCode == vault.HexChainCode && v.Uid == vault.Uid {
+		v.ReferralCode = vault.ReferralCode
 		if err := a.s.UpdateVault(v); err != nil {
 			a.logger.Error(err)
 			_ = c.Error(errFailedToJoinRegistry)
