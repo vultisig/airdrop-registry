@@ -144,6 +144,6 @@ func (o *oneInchService) GetTokenDetailsByContract(chain, contract string) (mode
 	return coin, nil
 }
 
-func (c *oneInchService) getCacheKey(chain, contract string) string {
+func (o *oneInchService) getCacheKey(chain, contract string) string {
 	return fmt.Sprintf("%s_%s", chain, contract)
 }
