@@ -279,7 +279,7 @@ func (a *Api) updateAliasHandler(c *gin.Context) {
 		v.ShowNameInLeaderboard = vault.ShowNameInLeaderboard
 		if err := a.s.UpdateVault(v); err != nil {
 			a.logger.Error(err)
-			_ = c.Error(errFaildToUpdateVault)
+			_ = c.Error(errFailedToUpdateVault)
 			return
 		}
 	} else {
@@ -312,7 +312,7 @@ func (a *Api) updateReferralHandler(c *gin.Context) {
 		v.ReferralCode = vault.ReferralCode
 		if err := a.s.UpdateVault(v); err != nil {
 			a.logger.Error(err)
-			_ = c.Error(errFaildToUpdateVault)
+			_ = c.Error(errFailedToUpdateVault)
 			return
 		}
 	} else {

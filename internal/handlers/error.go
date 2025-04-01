@@ -17,7 +17,7 @@ var (
 	errFailedToDeleteVault     = errors.New("FAIL_TO_DELETE_VAULT")
 	errFailedToGetCoin         = errors.New("FAIL_TO_GET_COIN")
 	errFailedToJoinRegistry    = errors.New("FAIL_TO_JOIN_REGISTRY")
-	errFaildToUpdateVault      = errors.New("FAIL_TO_UPDATE_VAULT")
+	errFailedToUpdateVault     = errors.New("FAIL_TO_UPDATE_VAULT")
 	errFailedToExitRegistry    = errors.New("FAIL_TO_EXIT_REGISTRY")
 	errForbiddenAccess         = errors.New("FORBIDDEN_ACCESS")
 	errFailedToGetAddress      = errors.New("FAIL_TO_GET_ADDRESS")
@@ -55,7 +55,7 @@ func ErrorHandler() gin.HandlerFunc {
 				errors.Is(err, errFailedToDeleteVault),
 				errors.Is(err, errFailedToGetCoin),
 				errors.Is(err, errFailedToJoinRegistry),
-				errors.Is(err, errFaildToUpdateVault),
+				errors.Is(err, errFailedToUpdateVault),
 				errors.Is(err, errFailedToExitRegistry),
 				errors.Is(err, errFailedToGetAddress),
 				errors.Is(err, errFailedToAddCoin),
