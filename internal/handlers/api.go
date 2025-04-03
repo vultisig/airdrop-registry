@@ -17,6 +17,7 @@ import (
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/models"
 	"github.com/vultisig/airdrop-registry/internal/services"
+	"github.com/vultisig/airdrop-registry/openapi"
 )
 
 // Api is the main handler for the API
@@ -90,6 +91,9 @@ func (a *Api) setupRouting() {
 	// leader board
 	rg.GET("/leaderboard/vaults", a.getVaultsByRankHandler)
 
+	// openapi doc
+	rg.GET("/doc", openapi.HandleSwaggerUI)
+	rg.GET("/doc/openapi.yaml", openapi.HandleSpecYAML)
 	// NFT-related endpoints
 	rg.GET("/nft/price/:collectionID", a.getCollectionMinPriceHandler)
 	rg.POST("/nft/avatar", a.setNftAvatarHandler)
