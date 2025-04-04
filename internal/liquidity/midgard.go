@@ -10,15 +10,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type TcMayaPoolPositionResolver struct {
+type MidgardLPResolver struct {
 	baseAddress string
 	usdPools    []string
 	poolCache   *cache.Cache
 	logger      *logrus.Logger
 }
 
-func NewMidgardLPResolver(baseAddress string, usdPools []string) *TcMayaPoolPositionResolver {
-	return &TcMayaPoolPositionResolver{
+func NewMidgardLPResolver(baseAddress string, usdPools []string) *MidgardLPResolver {
+	return &MidgardLPResolver{
 		baseAddress: baseAddress,
 		usdPools:    usdPools,
 		poolCache:   cache.New(3*time.Hour, 6*time.Hour),
@@ -43,24 +43,24 @@ type members struct {
 	Pools []member `json:"pools"`
 }
 
-func (tcm *TcMayaPoolPositionResolver) GetLiquidityPosition(address string) (float64, error) {
+func (m *MidgardLPResolver) GetLiquidityPosition(address string) (float64, error) {
 	var totalLiquidity float64
-	members, err := tcm.GetMemberPosition(address)
+	members, err := m.GetMemberPosition(address)
 	if err != nil {
-		return 0, fmt.Errorf("failed to fetch member from %s: %w", tcm.baseAddress, err)
+		return 0, fmt.Errorf("failed to fetch member from %s: %w", m.baseAddress, err)
 	}
 	if members.Pools == nil {
 		return 0, nil
 	}
-	nativeTokenPrice, err := tcm.getNativeTokenPrice()
+	nativeTokenPrice, err := m.getNativeTokenPrice()
 	if err != nil {
 		return 0, fmt.Errorf("failed to get native token price: %w", err)
 	}
 
 	for _, memberPool := range members.Pools {
-		assetPrice, err := tcm.getAssetPrice(memberPool.Pool)
+		assetPrice, err := m.getAssetPrice(memberPool.Pool)
 		if err != nil {
-			tcm.logger.WithError(err).WithField("asset", memberPool.Pool).Error("failed to get asset price")
+			m.logger.WithError(err).WithField("asset", memberPool.Pool).Error("failed to get asset price")
 			return 0, fmt.Errorf("failed to get asset price for pool %s: %w", memberPool.Pool, err)
 		}
 
@@ -71,11 +71,11 @@ func (tcm *TcMayaPoolPositionResolver) GetLiquidityPosition(address string) (flo
 	return totalLiquidity, nil
 }
 
-func (tcm *TcMayaPoolPositionResolver) GetMemberPosition(address string) (members, error) {
+func (m *MidgardLPResolver) GetMemberPosition(address string) (members, error) {
 	if address == "" {
 		return members{}, nil
 	}
-	url := fmt.Sprintf("%s/v2/member/%s", tcm.baseAddress, address)
+	url := fmt.Sprintf("%s/v2/member/%s", m.baseAddress, address)
 	resp, err := http.Get(url)
 	if err != nil {
 		return members{}, fmt.Errorf("error fetching member from %s: %v", url, err)
@@ -94,8 +94,8 @@ func (tcm *TcMayaPoolPositionResolver) GetMemberPosition(address string) (member
 	return members, nil
 }
 
-func (tcm *TcMayaPoolPositionResolver) refreshCache() error {
-	url := fmt.Sprintf("%s/v2/pools", tcm.baseAddress)
+func (m *MidgardLPResolver) refreshCache() error {
+	url := fmt.Sprintf("%s/v2/pools", m.baseAddress)
 	resp, err := http.Get(url)
 	if err != nil {
 		return fmt.Errorf("error fetching pools from %s: %v", url, err)
@@ -109,22 +109,22 @@ func (tcm *TcMayaPoolPositionResolver) refreshCache() error {
 		return fmt.Errorf("error decoding pools response: %w", err)
 	}
 	for _, p := range pools {
-		tcm.poolCache.Set(p.Asset, p, cache.DefaultExpiration)
+		m.poolCache.Set(p.Asset, p, cache.DefaultExpiration)
 	}
 	return nil
 }
 
-func (tcm *TcMayaPoolPositionResolver) getAssetPrice(asset string) (float64, error) {
-	if cached, ok := tcm.poolCache.Get(asset); ok {
+func (m *MidgardLPResolver) getAssetPrice(asset string) (float64, error) {
+	if cached, ok := m.poolCache.Get(asset); ok {
 		if pool, ok := cached.(pool); ok {
 			return pool.AssetPriceUSD, nil
 		}
 	}
-	err := tcm.refreshCache()
+	err := m.refreshCache()
 	if err != nil {
 		return 0, fmt.Errorf("failed to refresh pool cache: %w", err)
 	}
-	if cached, ok := tcm.poolCache.Get(asset); ok {
+	if cached, ok := m.poolCache.Get(asset); ok {
 		if pool, ok := cached.(pool); ok {
 			return pool.AssetPriceUSD, nil
 		}
@@ -132,11 +132,11 @@ func (tcm *TcMayaPoolPositionResolver) getAssetPrice(asset string) (float64, err
 	return 0, nil
 }
 
-func (tcm *TcMayaPoolPositionResolver) getNativeTokenPrice() (float64, error) {
+func (m *MidgardLPResolver) getNativeTokenPrice() (float64, error) {
 	var nativePriceSum float64
 	var count int
-	for _, usdpool := range tcm.usdPools {
-		if cached, ok := tcm.poolCache.Get(usdpool); ok {
+	for _, usdpool := range m.usdPools {
+		if cached, ok := m.poolCache.Get(usdpool); ok {
 			if pool, ok := cached.(pool); ok {
 				if pool.AssetPrice > 0 && pool.AssetPriceUSD > 0 {
 					nativePriceSum += pool.AssetPriceUSD / pool.AssetPrice
@@ -149,14 +149,14 @@ func (tcm *TcMayaPoolPositionResolver) getNativeTokenPrice() (float64, error) {
 		return nativePriceSum / float64(count), nil
 	}
 
-	err := tcm.refreshCache()
+	err := m.refreshCache()
 	if err != nil {
 		return 0, fmt.Errorf("failed to refresh pool cache: %w", err)
 	}
 	nativePriceSum = 0
 	count = 0
-	for _, usdpool := range tcm.usdPools {
-		if cached, ok := tcm.poolCache.Get(usdpool); ok {
+	for _, usdpool := range m.usdPools {
+		if cached, ok := m.poolCache.Get(usdpool); ok {
 			if pool, ok := cached.(pool); ok {
 				if pool.AssetPrice > 0 && pool.AssetPriceUSD > 0 {
 					nativePriceSum += pool.AssetPriceUSD / pool.AssetPrice

@@ -14,8 +14,8 @@ import (
 type LiquidityPositionResolver struct {
 	logger            *logrus.Logger
 	thorwalletBaseURL string
-	tclpResolver      *TcMayaPoolPositionResolver
-	mayalpResolver    *TcMayaPoolPositionResolver
+	tclpResolver      *MidgardLPResolver
+	mayalpResolver    *MidgardLPResolver
 	wewelpResolver    *weweLpResolver
 	tgtPrice          float64
 	mu                sync.RWMutex

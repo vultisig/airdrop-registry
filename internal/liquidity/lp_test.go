@@ -57,13 +57,13 @@ func TestGetLiquidityPosition(t *testing.T) {
 		"ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48",
 	}
 
-	tclpResolver := &TcMayaPoolPositionResolver{
+	tclpResolver := &MidgardLPResolver{
 		baseAddress: mockServer.URL + "/thor",
 		usdPools:    tcusdPools,
 		poolCache:   cache.New(3*time.Hour, 6*time.Hour),
 		logger:      logrus.WithField("module", "tc_position_resolver").Logger,
 	}
-	mayalpResolver := &TcMayaPoolPositionResolver{
+	mayalpResolver := &MidgardLPResolver{
 		baseAddress: mockServer.URL + "/maya",
 		usdPools: []string{
 			"ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7",
@@ -150,7 +150,7 @@ func TestGetMemberPosition(t *testing.T) {
 	}))
 	defer mockServer.Close()
 
-	tcResolver := &TcMayaPoolPositionResolver{
+	tcResolver := &MidgardLPResolver{
 		baseAddress: mockServer.URL + "/tc/v2/member",
 		logger:      logrus.WithField("module", "test").Logger,
 	}
@@ -173,7 +173,7 @@ func TestGetMemberPosition(t *testing.T) {
 	assert.Error(t, err)
 	assert.Empty(t, members.Pools)
 
-	mayaResolver := &TcMayaPoolPositionResolver{
+	mayaResolver := &MidgardLPResolver{
 		baseAddress: mockServer.URL + "/maya/v2/member",
 		logger:      logrus.WithField("module", "test").Logger,
 	}
@@ -214,7 +214,7 @@ func TestRefreshCache(t *testing.T) {
 	}))
 	defer mockServer.Close()
 
-	resolver := &TcMayaPoolPositionResolver{
+	resolver := &MidgardLPResolver{
 		baseAddress: mockServer.URL,
 		poolCache:   cache.New(3*time.Hour, 6*time.Hour),
 		logger:      logrus.WithField("module", "test").Logger,
@@ -256,7 +256,7 @@ func TestGetAssetPrice(t *testing.T) {
 	}))
 	defer mockServer.Close()
 
-	resolver := &TcMayaPoolPositionResolver{
+	resolver := &MidgardLPResolver{
 		baseAddress: mockServer.URL,
 		poolCache:   cache.New(3*time.Hour, 6*time.Hour),
 		logger:      logrus.WithField("module", "test").Logger,
@@ -305,7 +305,7 @@ func TestGetNativeTokenPrice(t *testing.T) {
 	}))
 	defer mockServer.Close()
 
-	resolver := &TcMayaPoolPositionResolver{
+	resolver := &MidgardLPResolver{
 		baseAddress: mockServer.URL,
 		usdPools:    []string{},
 		poolCache:   cache.New(3*time.Hour, 6*time.Hour),
