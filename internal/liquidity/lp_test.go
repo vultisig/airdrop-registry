@@ -307,7 +307,7 @@ func TestGetNativeTokenPrice(t *testing.T) {
 
 	resolver := &MidgardLPResolver{
 		baseAddress: mockServer.URL,
-		usdPools:    []string{},
+		usdPools:    []string{"ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7", "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48"},
 		poolCache:   cache.New(3*time.Hour, 6*time.Hour),
 		logger:      logrus.WithField("module", "test").Logger,
 	}
