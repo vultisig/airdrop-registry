@@ -183,7 +183,7 @@ func (s *splDiscoveryService) getCoinDecimal(address string) (int, error) {
 	}
 	resp, err := http.Post(s.baseAddress, "application/json", bytes.NewBuffer(buf))
 	if err != nil {
-		return 0, fmt.Errorf("error fetching balance of address %s on %s: %w", address, chain, err)
+		return 0, fmt.Errorf("error fetching balance of address %s: %w", address, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusTooManyRequests {
