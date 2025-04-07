@@ -220,6 +220,32 @@ func (trc *trcDiscoveryService) fetchTokenData(address, contract, selector strin
 	return result, nil
 }
 
+func (trc *trcDiscoveryService) Search(coin models.CoinBase) (models.CoinBase, error) {
+	cmcId, err := trc.cmcService.GetCMCIDByContract(coin.Chain.String(), coin.ContractAddress)
+	if err != nil {
+		trc.logger.WithError(err).Error("Failed to fetch cmc id")
+		return models.CoinBase{}, fmt.Errorf("failed to fetch cmc id: %w", err)
+	}
+	symbol, err := trc.fetchTokenData(coin.ContractAddress, coin.ContractAddress, "symbol()")
+	if err != nil {
+		return models.CoinBase{}, fmt.Errorf("failed to get symbol: %w", err)
+	}
+
+	decimalsHex, err := trc.fetchTokenData(coin.ContractAddress, coin.ContractAddress, "decimals()")
+	if err != nil {
+		return models.CoinBase{}, fmt.Errorf("failed to get decimals: %w", err)
+	}
+
+	decimal, err := strconv.ParseInt(decimalsHex, 16, 64)
+	if err != nil {
+		return models.CoinBase{}, fmt.Errorf("failed to parse decimals: %w", err)
+	}
+	coin.CMCId = cmcId
+	coin.Ticker = symbol
+	coin.Decimals = int(decimal)
+	return coin, nil
+}
+
 type (
 	trcAccountResponse struct {
 		Data    []trcAccount `json:"data"`

@@ -68,3 +68,12 @@ func HexToBytes(hexStr string) ([]byte, error) {
 	}
 	return hex.DecodeString(hexStr)
 }
+
+func NewJsonRPCRequest(method string, params interface{}, id int) map[string]interface{} {
+	return map[string]interface{}{
+		"jsonrpc": "2.0",
+		"method":  method,
+		"params":  params,
+		"id":      id,
+	}
+}

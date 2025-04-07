@@ -41,7 +41,7 @@ func NewERC20DiscoveryService(oneInchService *oneInchService, cmcService *CMCSer
 	}
 }
 
-func (o *ercDiscoveryService) Discover(address string, chain common.Chain) ([]models.CoinBase, error) {
+func (e *ercDiscoveryService) Discover(address string, chain common.Chain) ([]models.CoinBase, error) {
 	// Validate inputs
 	if address == "" {
 		return nil, fmt.Errorf("empty address provided")
@@ -51,10 +51,10 @@ func (o *ercDiscoveryService) Discover(address string, chain common.Chain) ([]mo
 	if !ok {
 		return nil, fmt.Errorf("unsupported chain: %v", chain)
 	}
-	url := fmt.Sprintf("%s/balance/v1.2/%d/balances/%s", o.baseAddress, chainID, address)
+	url := fmt.Sprintf("%s/balance/v1.2/%d/balances/%s", e.baseAddress, chainID, address)
 	resp, err := http.Get(url)
 	if err != nil {
-		o.logger.WithFields(logrus.Fields{
+		e.logger.WithFields(logrus.Fields{
 			"error": err,
 			"url":   url,
 			"chain": chain,
@@ -64,7 +64,7 @@ func (o *ercDiscoveryService) Discover(address string, chain common.Chain) ([]mo
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		o.logger.WithFields(logrus.Fields{
+		e.logger.WithFields(logrus.Fields{
 			"statusCode": resp.StatusCode,
 			"url":        url,
 			"chain":      chain,
@@ -74,7 +74,7 @@ func (o *ercDiscoveryService) Discover(address string, chain common.Chain) ([]mo
 
 	accounts := make(map[string]string)
 	if err := json.NewDecoder(resp.Body).Decode(&accounts); err != nil {
-		o.logger.WithError(err).Error("Failed to decode response")
+		e.logger.WithError(err).Error("Failed to decode response")
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
@@ -95,20 +95,20 @@ func (o *ercDiscoveryService) Discover(address string, chain common.Chain) ([]mo
 	}
 	// Check if coinBase is nil
 	if len(coins) == 0 {
-		o.logger.Debug("No tokens found with non-zero balance")
+		e.logger.Debug("No tokens found with non-zero balance")
 		return coins, nil
 	}
 
 	for i, coin := range coins {
-		tokenDetails, err := o.oneInchService.GetTokenDetailsByContract(chain.String(), coin.ContractAddress)
+		tokenDetails, err := e.oneInchService.GetTokenDetailsByContract(chain.String(), coin.ContractAddress)
 		if err != nil {
-			o.logger.WithError(err).Error("Failed to fetch token details")
+			e.logger.WithError(err).Error("Failed to fetch token details")
 			return nil, fmt.Errorf("failed to fetch token details: %w", err)
 		}
 
-		cmcId, err := o.cmcService.GetCMCIDByContract(chain.String(), coin.ContractAddress)
+		cmcId, err := e.cmcService.GetCMCIDByContract(chain.String(), coin.ContractAddress)
 		if err != nil {
-			o.logger.WithError(err).Error("Failed to fetch cmc id")
+			e.logger.WithError(err).Error("Failed to fetch cmc id")
 			return nil, fmt.Errorf("failed to fetch cmc id: %w", err)
 		}
 
@@ -118,4 +118,24 @@ func (o *ercDiscoveryService) Discover(address string, chain common.Chain) ([]mo
 		coins[i].CMCId = cmcId
 	}
 	return coins, nil
+}
+
+func (e *ercDiscoveryService) Search(coin models.CoinBase) (models.CoinBase, error) {
+	cmcId, err := e.cmcService.GetCMCIDByContract(coin.Chain.String(), coin.ContractAddress)
+	if err != nil {
+		e.logger.WithError(err).Error("Failed to fetch cmc id")
+		return models.CoinBase{}, fmt.Errorf("failed to fetch cmc id: %w", err)
+	}
+	oneInchCoin, err := e.oneInchService.GetTokenDetailsByContract(coin.Chain.String(), coin.ContractAddress)
+	if err != nil {
+		e.logger.WithError(err).Error("Failed to fetch token details")
+		return models.CoinBase{}, fmt.Errorf("failed to fetch token details: %w", err)
+	}
+
+	coin.Ticker = oneInchCoin.Ticker
+	coin.Decimals = oneInchCoin.Decimals
+	coin.PriceProviderID = oneInchCoin.PriceProviderID
+	coin.Logo = oneInchCoin.Logo
+	coin.CMCId = cmcId
+	return coin, nil
 }
