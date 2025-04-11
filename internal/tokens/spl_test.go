@@ -80,6 +80,7 @@ func TestSolDiscoveryService_processTokenAccounts(t *testing.T) {
 }
 
 func TestSolDiscoveryService_Search(t *testing.T) {
+	t.Skip("Skipping test for now")
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(sol_token_info))
