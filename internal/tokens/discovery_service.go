@@ -7,5 +7,5 @@ import (
 
 type AutoDiscoveryService interface {
 	Discover(address string, chain common.Chain) ([]models.CoinBase, error)
-	//search(coin models.CoinBase) (models.CoinBase, error)
+	Search(coin models.CoinBase) (models.CoinBase, error)
 }
