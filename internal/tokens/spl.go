@@ -67,7 +67,7 @@ func (s *splDiscoveryService) fetchTokenAccounts(address string) ([]models.CoinB
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	resp, err := http.Post(s.baseAddress, "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post("https://api.vultisig.com/solana/", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		s.logger.WithFields(logrus.Fields{
 			"error": err,
@@ -152,7 +152,7 @@ type (
 )
 
 func (s *splDiscoveryService) Search(coin models.CoinBase) (models.CoinBase, error) {
-	cmcId, err := s.cmcService.GetCMCIDByContract(coin.Chain.String(), coin.ContractAddress)
+	cmcId, err := s.cmcService.GetCMCIDByContract(cmcChainMap[coin.Chain], coin.ContractAddress)
 	if err != nil {
 		s.logger.WithError(err).WithField("contract", coin.ContractAddress).
 			Warn("failed to get CMCID for contract")
@@ -225,7 +225,7 @@ type SPLTokenInfoResp struct {
 			Executable bool   `json:"executable"`
 			Lamports   int64  `json:"lamports"`
 			Owner      string `json:"owner"`
-			RentEpoch  int64  `json:"rentEpoch"`
+			RentEpoch  uint64 `json:"rentEpoch"`
 			Space      int    `json:"space"`
 		} `json:"value"`
 	} `json:"result"`
