@@ -141,7 +141,7 @@ type (
 			Program string `json:"program"`
 		} `json:"data"`
 		Owner     string `json:"owner"`
-		RentEpoch int64  `json:"rentEpoch"`
+		RentEpoch uint64 `json:"rentEpoch"`
 	}
 	tokenAmount struct {
 		Amount         string  `json:"amount"`
@@ -152,7 +152,11 @@ type (
 )
 
 func (s *splDiscoveryService) Search(coin models.CoinBase) (models.CoinBase, error) {
-	cmcId, err := s.cmcService.GetCMCIDByContract(cmcChainMap[coin.Chain], coin.ContractAddress)
+	chainName, exists := cmcChainMap[coin.Chain]
+	if !exists {
+		return models.CoinBase{}, fmt.Errorf("unsupported chain: %v", coin.Chain)
+	}
+	cmcId, err := s.cmcService.GetCMCIDByContract(chainName, coin.ContractAddress)
 	if err != nil {
 		s.logger.WithError(err).WithField("contract", coin.ContractAddress).
 			Warn("failed to get CMCID for contract")

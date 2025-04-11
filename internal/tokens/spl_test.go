@@ -68,6 +68,29 @@ func TestSolDiscoveryService_processTokenAccounts(t *testing.T) {
 		ContractAddress: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
 		CMCId:           3408,
 	}
+	if len(results) == 0 {
+		t.Error("processTokenAccounts() returned empty results")
+		return
+	}
+
+	// Validate that all required fields in the results are populated
+	for i, result := range results {
+		if result.Address == "" {
+			t.Errorf("processTokenAccounts() result[%d] has an empty Address field", i)
+		}
+		if result.Balance == "" {
+			t.Errorf("processTokenAccounts() result[%d] has an empty Balance field", i)
+		}
+		if result.Chain == 0 {
+			t.Errorf("processTokenAccounts() result[%d] has an uninitialized Chain field", i)
+		}
+		if result.ContractAddress == "" {
+			t.Errorf("processTokenAccounts() result[%d] has an empty ContractAddress field", i)
+		}
+		if result.CMCId == 0 {
+			t.Errorf("processTokenAccounts() result[%d] has an uninitialized CMCId field", i)
+		}
+	}
 
 	if !reflect.DeepEqual(results[0].Address, expected.Address) ||
 		!reflect.DeepEqual(results[0].Balance, expected.Balance) ||
@@ -80,7 +103,6 @@ func TestSolDiscoveryService_processTokenAccounts(t *testing.T) {
 }
 
 func TestSolDiscoveryService_Search(t *testing.T) {
-	t.Skip("Skipping test for now")
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(sol_token_info))
@@ -95,6 +117,7 @@ func TestSolDiscoveryService_Search(t *testing.T) {
 		name     string
 		input    models.CoinBase
 		expected models.CoinBase
+		wantErr  bool
 	}{
 		{
 			name: "USDC token search",
@@ -105,6 +128,7 @@ func TestSolDiscoveryService_Search(t *testing.T) {
 				Chain:           common.Solana,
 				Decimals:        6,
 			},
+			wantErr: false,
 			expected: models.CoinBase{
 				Ticker:          "USDC",
 				Address:         "CG4V2eoUXnwJSDsmr1fNdbR9r63XHLKD9gA2xpCRdRby",
@@ -114,17 +138,28 @@ func TestSolDiscoveryService_Search(t *testing.T) {
 				Decimals:        6,
 			},
 		},
+		{
+			name: "Invalid address search",
+			input: models.CoinBase{
+				Ticker:          "INVALID",
+				Address:         "invalid_address",
+				ContractAddress: "invalid_contract",
+				Chain:           common.Solana,
+			},
+			wantErr:  true,
+			expected: models.CoinBase{},
+		},
 	}
 
 	// Run tests
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := discovery.Search(tc.input)
-			if err != nil {
+			if (err != nil) != tc.wantErr {
 				t.Errorf("Search() error = %v", err)
 				return
 			}
-			if !reflect.DeepEqual(result, tc.expected) {
+			if !tc.wantErr && !reflect.DeepEqual(result, tc.expected) {
 				t.Errorf("Search() = %v, want %v", result, tc.expected)
 			}
 		})
