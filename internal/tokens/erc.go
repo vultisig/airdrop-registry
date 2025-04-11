@@ -121,7 +121,6 @@ func (e *ercDiscoveryService) Discover(address string, chain common.Chain) ([]mo
 }
 
 func (e *ercDiscoveryService) Search(coin models.CoinBase) (models.CoinBase, error) {
-	cmcId, err := e.cmcService.GetCMCIDByContract(coin.Chain.String(), coin.ContractAddress)
 	if err != nil {
 		e.logger.WithError(err).Error("Failed to fetch cmc id")
 		return models.CoinBase{}, fmt.Errorf("failed to fetch cmc id: %w", err)
