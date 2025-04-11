@@ -67,7 +67,7 @@ func (s *splDiscoveryService) fetchTokenAccounts(address string) ([]models.CoinB
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	resp, err := http.Post("https://api.vultisig.com/solana/", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post(s.baseAddress, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		s.logger.WithFields(logrus.Fields{
 			"error": err,
