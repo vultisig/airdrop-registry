@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 
+	_ "embed"
+
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/common"
 	"github.com/vultisig/airdrop-registry/internal/models"
@@ -48,6 +50,7 @@ func main() {
 
 	const batchSize = 1000
 	var currentID uint64
+	predefinedService := tokens.NewPredefinedTokenService()
 	for {
 		coins, err := storage.GetCoinsWithPage(currentID, batchSize)
 		if err != nil {
@@ -59,14 +62,40 @@ func main() {
 		}
 		currentID = uint64(coins[len(coins)-1].ID)
 		for _, coin := range coins {
+
 			if coin.CMCId == 0 || coin.Decimals == 0 {
-				log.Printf("Invalid coin data - CMCId: %d, Decimals: %d, Chain: %s, Address: %s",
+				log.Printf("Invalid coin data - CMCId: %d, Decimals: %d, Chain: %s, Address: %s \n\n",
 					coin.CMCId, coin.Decimals, coin.Chain, coin.ContractAddress)
+
 				continue
 			}
+
+			// check in predefined tokens
+			predefinedCoin, err := predefinedService.Search(models.CoinBase{
+				Chain:           coin.Chain,
+				Address:         coin.Address,
+				ContractAddress: coin.ContractAddress,
+			},
+			)
+			if err == nil {
+				if predefinedCoin.CMCId != coin.CMCId || predefinedCoin.Decimals != coin.Decimals {
+					log.Printf("mismatch found in predefined tokens - System(CMCId: %d, Decimals: %d) vs User(CMCId: %d, Decimals: %d) for %s on %s \n\n",
+						coin.CMCId, coin.Decimals, predefinedCoin.CMCId, predefinedCoin.Decimals, coin.ContractAddress, coin.Chain)
+				} else {
+					log.Printf("Coin data matches in predefined tokens - CMCId: %d, Decimals: %d for %s on %s \n\n",
+						coin.CMCId, coin.Decimals, coin.ContractAddress, coin.Chain)
+				}
+				continue
+			} else {
+				log.Printf("Coin not found in predefined tokens - CMCId: %d, Decimals: %d for %s on %s \n\n",
+					coin.CMCId, coin.Decimals, coin.ContractAddress, coin.Chain)
+			}
+
 			discoveryService, exists := discoveryServices[coin.Chain]
 			if !exists {
-				log.Printf("No discovery service found for chain: %s", coin.Chain)
+				// set colour to yellow
+
+				log.Printf("No discovery service found for chain: %s\n\n", coin.Chain)
 				continue
 			}
 			// if coin.ContractAddress == "" {
@@ -78,11 +107,19 @@ func main() {
 				ContractAddress: coin.ContractAddress,
 			})
 			if err != nil {
-				log.Printf("Error searching coin %s on chain %s: %v", coin.ContractAddress, coin.Chain, err)
+				log.Printf("Error searching coin %s on chain %s: %v \n\n", coin.ContractAddress, coin.Chain, err)
 				continue
 			}
 			if coinData.CMCId != coin.CMCId || coinData.Decimals != coin.Decimals {
-				log.Printf("mismatch found - System(CMCId: %d, Decimals: %d) vs User(CMCId: %d, Decimals: %d) for %s on %s",
+				log.Printf("mismatch found - System(CMCId: %d, Decimals: %d) vs User(CMCId: %d, Decimals: %d) for %s on %s \n\n",
+					coin.CMCId, coin.Decimals, coinData.CMCId, coinData.Decimals, coin.ContractAddress, coin.Chain)
+			}
+
+			if coinData.CMCId == coin.CMCId && coinData.Decimals == coin.Decimals {
+				log.Printf("Coin data matches - CMCId: %d, Decimals: %d for %s on %s \n\n",
+					coin.CMCId, coin.Decimals, coin.ContractAddress, coin.Chain)
+			} else {
+				log.Printf("Coin data mismatch - System(CMCId: %d, Decimals: %d) vs User(CMCId: %d, Decimals: %d) for %s on %s \n\n",
 					coin.CMCId, coin.Decimals, coinData.CMCId, coinData.Decimals, coin.ContractAddress, coin.Chain)
 			}
 		}

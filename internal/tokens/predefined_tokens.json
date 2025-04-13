@@ -1,0 +1,188 @@
+[
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 1027,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 29814,
+    "contract_address": "0x7189fb5b6504bbff6a852b13b7b82a3c118fdc27",
+    "decimals": 18
+  },
+  {
+    "chain": "Avalanche",
+    "cmc_id": 5805,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Base",
+    "cmc_id": 1027,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Bitcoin",
+    "cmc_id": 1,
+    "contract_address": "",
+    "decimals": 8
+  },
+  {
+    "chain": "BitcoinCash",
+    "cmc_id": 1831,
+    "contract_address": "",
+    "decimals": 8
+  },
+  {
+    "chain": "Blast",
+    "cmc_id": 1027,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "BSC",
+    "cmc_id": 1839,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "CronosChain",
+    "cmc_id": 3635,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Dogecoin",
+    "cmc_id": 74,
+    "contract_address": "",
+    "decimals": 8
+  },
+  {
+    "chain": "Dydx",
+    "cmc_id": 28324,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Dash",
+    "cmc_id": 131,
+    "contract_address": "",
+    "decimals": 8
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 1027,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Cosmos",
+    "cmc_id": 3794,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "Kujira",
+    "cmc_id": 15185,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "Litecoin",
+    "cmc_id": 2,
+    "contract_address": "",
+    "decimals": 8
+  },
+  {
+    "chain": "MayaChain",
+    "cmc_id": 0,
+    "contract_address": "",
+    "decimals": 10
+  },
+  {
+    "chain": "Noble",
+    "cmc_id": 0,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "Optimism",
+    "cmc_id": 1027,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Osmosis",
+    "cmc_id": 12220,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "Polkadot",
+    "cmc_id": 6636,
+    "contract_address": "",
+    "decimals": 10
+  },
+  {
+    "chain": "Polygon",
+    "cmc_id": 3890,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Solana",
+    "cmc_id": 5426,
+    "contract_address": "",
+    "decimals": 9
+  },
+  {
+    "chain": "Sui",
+    "cmc_id": 20947,
+    "contract_address": "",
+    "decimals": 9
+  },
+  {
+    "chain": "Terra",
+    "cmc_id": 20314,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "TerraClassic",
+    "cmc_id": 4172,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "THORChain",
+    "cmc_id": 4157,
+    "contract_address": "",
+    "decimals": 8
+  },
+  {
+    "chain": "TON",
+    "cmc_id": 11419,
+    "contract_address": "",
+    "decimals": 9
+  },
+  {
+    "chain": "Tron",
+    "cmc_id": 1958,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "XRP",
+    "cmc_id": 52,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "Zksync",
+    "cmc_id": 24091,
+    "contract_address": "",
+    "decimals": 18
+  }
+]

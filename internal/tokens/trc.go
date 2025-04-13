@@ -221,7 +221,11 @@ func (trc *trcDiscoveryService) fetchTokenData(address, contract, selector strin
 }
 
 func (trc *trcDiscoveryService) Search(coin models.CoinBase) (models.CoinBase, error) {
-	cmcId, err := trc.cmcService.GetCMCIDByContract(cmcChainMap[coin.Chain], coin.ContractAddress)
+	chainName, exists := cmcChainMap[coin.Chain]
+	if !exists {
+		return models.CoinBase{}, fmt.Errorf("unsupported chain: %v", coin.Chain)
+	}
+	cmcId, err := trc.cmcService.GetCMCIDByContract(chainName, coin.ContractAddress)
 	if err != nil {
 		trc.logger.WithError(err).Error("Failed to fetch cmc id")
 		return models.CoinBase{}, fmt.Errorf("failed to fetch cmc id: %w", err)

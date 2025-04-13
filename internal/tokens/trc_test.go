@@ -166,7 +166,10 @@ func Test_trcDiscoveryService_Search(t *testing.T) {
 			var requestBody struct {
 				FunctionSelector string `json:"function_selector"`
 			}
-			json.NewDecoder(r.Body).Decode(&requestBody)
+			if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
 
 			switch requestBody.FunctionSelector {
 			case "symbol()":
