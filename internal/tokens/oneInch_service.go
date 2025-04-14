@@ -24,7 +24,7 @@ type tokensResponse struct {
 	Tokens map[string]token `json:"tokens"`
 }
 
-var chainIDs = map[common.Chain]int{
+var chainIDs map[common.Chain]int = map[common.Chain]int{
 	common.Ethereum:    1,
 	common.Avalanche:   43114,
 	common.Base:        8453,
@@ -90,17 +90,22 @@ func (o *oneInchService) LoadOneInchTokens(chain common.Chain) ([]models.Coin, e
 		})
 	}
 
-	o.cachedData.Set(o.getCacheKey(chain.String(), ""), coins, 10*time.Hour)
+	o.cachedData.Set(chain.String(), coins, 10*time.Hour)
 	return coins, nil
 }
 
-func (o *oneInchService) GetTokenDetailsByContract(chain, contract string) (models.CoinBase, error) {
-	if cachedData, found := o.cachedData.Get(o.getCacheKey(chain, contract)); found {
+func (o *oneInchService) GetTokenDetailsByContract(chain common.Chain, contract string) (models.CoinBase, error) {
+	chainID, ok := chainIDs[chain]
+	if !ok {
+		return models.CoinBase{}, fmt.Errorf("chain: %s is not supported", chain)
+	}
+	cacheKey := o.getCacheKey(chain.String(), contract)
+	if cachedData, found := o.cachedData.Get(cacheKey); found {
 		if coin, ok := cachedData.(models.CoinBase); ok {
 			return coin, nil
 		}
 	}
-	url := fmt.Sprintf("%s/token-details/v1.0/details/%s/%s", o.oneInchBaseURL, chain, contract)
+	url := fmt.Sprintf("%s/token-details/v1.0/details/%d/%s", o.oneInchBaseURL, chainID, contract)
 	resp, err := http.Get(url)
 	if err != nil {
 		o.logger.WithFields(logrus.Fields{
@@ -140,7 +145,7 @@ func (o *oneInchService) GetTokenDetailsByContract(chain, contract string) (mode
 		"decimals":     tokenData.Assets.Decimals,
 		"tokenName":    tokenData.Assets.Name,
 	}).Debug("Token details retrieved successfully")
-	o.cachedData.Set(o.getCacheKey(chain, contract), coin, 10*time.Hour)
+	o.cachedData.Set(cacheKey, coin, 10*time.Hour)
 	return coin, nil
 }
 
