@@ -100,7 +100,7 @@ func (e *ercDiscoveryService) Discover(address string, chain common.Chain) ([]mo
 	}
 
 	for i, coin := range coins {
-		tokenDetails, err := e.oneInchService.GetTokenDetailsByContract(chain.String(), coin.ContractAddress)
+		tokenDetails, err := e.oneInchService.GetTokenDetailsByContract(chain, coin.ContractAddress)
 		if err != nil {
 			e.logger.WithError(err).Error("Failed to fetch token details")
 			return nil, fmt.Errorf("failed to fetch token details: %w", err)
@@ -130,7 +130,7 @@ func (e *ercDiscoveryService) Search(coin models.CoinBase) (models.CoinBase, err
 		e.logger.WithError(err).Error("Failed to fetch cmc id")
 		return models.CoinBase{}, fmt.Errorf("failed to fetch cmc id: %w", err)
 	}
-	oneInchCoin, err := e.oneInchService.GetTokenDetailsByContract(coin.Chain.String(), coin.ContractAddress)
+	oneInchCoin, err := e.oneInchService.GetTokenDetailsByContract(coin.Chain, coin.ContractAddress)
 	if err != nil {
 		e.logger.WithError(err).Error("Failed to fetch token details")
 		return models.CoinBase{}, fmt.Errorf("failed to fetch token details: %w", err)
