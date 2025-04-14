@@ -16,19 +16,14 @@ type PredefinedTokenDiscoveryService struct {
 	predefinedTokens []models.CoinBase
 }
 
-var predefinedDiscoverService PredefinedTokenDiscoveryService
 
 func NewPredefinedTokenService() AutoDiscoveryService {
-	return &predefinedDiscoverService
-}
-
-func init() {
 	var tokens []models.CoinBase
 	if err := json.Unmarshal([]byte(predefinedTokens), &tokens); err != nil {
 		panic(fmt.Errorf("failed to unmarshal predefined tokens: %w", err))
 	}
-	predefinedDiscoverService = PredefinedTokenDiscoveryService{
-		predefinedTokens: tokens,
+	return &PredefinedTokenDiscoveryService{
+		predefinedTokens: tokens ,
 	}
 }
 
