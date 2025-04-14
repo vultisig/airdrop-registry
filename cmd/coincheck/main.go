@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	_ "embed"
 
@@ -12,115 +12,106 @@ import (
 	"github.com/vultisig/airdrop-registry/internal/tokens"
 )
 
+func init() {
+	log.SetFormatter(&log.TextFormatter{
+		ForceColors:      true,
+		FullTimestamp:    true,
+		DisableColors:    false,
+		DisableTimestamp: false,
+	})
+}
+
+const yellow = "\033[33m"
+const red = "\033[31m"
+const green = "\033[32m"
+const reset = "\033[0m"
+
 func main() {
+
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("failed to load config: %v", err)
+		log.Fatalf("%s[FATAL] failed to load config: %v%s", red, err, reset)
 	}
 
 	storage, err := services.NewStorage(cfg)
 	if err != nil {
-		log.Fatalf("failed to initialize storage: %v", err)
+		log.Fatalf("%s[FATAL] failed to initialize storage: %v%s", red, err, reset)
 	}
+	defer func() {
+		if err := storage.Close(); err != nil {
+			log.Errorf("%s[ERROR] Failed to close storage: %v%s", red, err, reset)
+		}
+	}()
 
 	cmcService, err := tokens.NewCMCService()
 	if err != nil {
 		storage.Close()
-		log.Fatalf("failed to initialize CMC service: %v", err)
+		log.Fatalf("%s[FATAL] failed to initialize CMC service: %v%s", red, err, reset)
 	}
 	oneInchService := tokens.NewOneInchService()
 
-	// Initialize discovery services map
 	discoveryServices := map[common.Chain]tokens.AutoDiscoveryService{
-		// Native blockchain-specific implementations
 		common.Tron:   tokens.NewTRC20DiscoveryService(common.Tron, cmcService),
 		common.Solana: tokens.NewSPLDiscoveryService(cmcService),
 	}
-
-	// Add EVM-compatible chains
 	for _, chain := range common.EVMChains {
 		discoveryServices[chain] = tokens.NewERC20DiscoveryService(oneInchService, cmcService)
 	}
 
-	defer func() {
-		if err := storage.Close(); err != nil {
-			log.Printf("Failed to close storage: %v", err)
-		}
-	}()
-
+	predefinedService := tokens.NewPredefinedTokenService()
 	const batchSize = 1000
 	var currentID uint64
-	predefinedService := tokens.NewPredefinedTokenService()
+
 	for {
 		coins, err := storage.GetCoinsWithPage(currentID, batchSize)
 		if err != nil {
-			log.Fatalf("Failed to fetch coins: %v", err)
+			log.Fatalf("%s[FATAL] Failed to fetch coins: %v%s", red, err, reset)
 		}
 		if len(coins) == 0 {
-			log.Println("no more coins to process")
+			log.Infof("%s[INFO] no more coins to process%s", green, reset)
 			break
 		}
 		currentID = uint64(coins[len(coins)-1].ID)
+
 		for _, coin := range coins {
-
-			if coin.CMCId == 0 || coin.Decimals == 0 {
-				log.Printf("Invalid coin data - CMCId: %d, Decimals: %d, Chain: %s, Address: %s \n\n",
-					coin.CMCId, coin.Decimals, coin.Chain, coin.ContractAddress)
-
-				continue
-			}
-
-			// check in predefined tokens
-			predefinedCoin, err := predefinedService.Search(models.CoinBase{
-				Chain:           coin.Chain,
-				Address:         coin.Address,
-				ContractAddress: coin.ContractAddress,
-			},
-			)
-			if err == nil {
-				if predefinedCoin.CMCId != coin.CMCId || predefinedCoin.Decimals != coin.Decimals {
-					log.Printf("mismatch found in predefined tokens - System(CMCId: %d, Decimals: %d) vs User(CMCId: %d, Decimals: %d) for %s on %s \n\n",
-						coin.CMCId, coin.Decimals, predefinedCoin.CMCId, predefinedCoin.Decimals, coin.ContractAddress, coin.Chain)
-				} else {
-					log.Printf("Coin data matches in predefined tokens - CMCId: %d, Decimals: %d for %s on %s \n\n",
-						coin.CMCId, coin.Decimals, coin.ContractAddress, coin.Chain)
+			if coin.CMCId != 0 && coin.Decimals != 0 {
+				coinBase := models.CoinBase{
+					Chain:           coin.Chain,
+					Address:         coin.Address,
+					ContractAddress: coin.ContractAddress,
 				}
-				continue
+
+				predefinedCoin, err := predefinedService.Search(coinBase)
+				if err == nil {
+					if predefinedCoin.CMCId != coin.CMCId || predefinedCoin.Decimals != coin.Decimals {
+						log.Warnf("%s[WARN] Coin data mismatch - System(CMCId: %d, Decimals: %d) vs User(CMCId: %d, Decimals: %d) for contract address: %s on %s%s",
+							yellow, coin.CMCId, coin.Decimals, predefinedCoin.CMCId, predefinedCoin.Decimals, coin.ContractAddress, coin.Chain, reset)
+					} else {
+						log.Infof("%s[INFO] Coin data matches in predefined tokens - CMCId: %d, Decimals: %d for %s on %s%s",
+							green, coin.CMCId, coin.Decimals, coin.ContractAddress, coin.Chain, reset)
+					}
+				} else {
+					discoveryService, exists := discoveryServices[coin.Chain]
+					if exists {
+						coinData, err := discoveryService.Search(coinBase)
+						if err == nil {
+							if coinData.CMCId == coin.CMCId && coinData.Decimals == coin.Decimals {
+								log.Infof("%s[INFO] Coin data matches - CMCId: %d, Decimals: %d for %s on %s%s",
+									green, coin.CMCId, coin.Decimals, coin.ContractAddress, coin.Chain, reset)
+							} else {
+								log.Warnf("%s[WARN] Coin data mismatch - System(CMCId: %d, Decimals: %d) vs User(CMCId: %d, Decimals: %d) for contract address: %s on %s%s",
+									yellow, coin.CMCId, coin.Decimals, coinData.CMCId, coinData.Decimals, coin.ContractAddress, coin.Chain, reset)
+							}
+						} else {
+							log.Errorf("%s[ERROR] Error searching contract address %s on chain %s: %v%s", red, coin.ContractAddress, coin.Chain, err, reset)
+						}
+					} else {
+						log.Warnf("%s[WARN] No discovery service found for chain: %s%s", yellow, coin.Chain, reset)
+					}
+				}
 			} else {
-				log.Printf("Coin not found in predefined tokens - CMCId: %d, Decimals: %d for %s on %s \n\n",
-					coin.CMCId, coin.Decimals, coin.ContractAddress, coin.Chain)
-			}
-
-			discoveryService, exists := discoveryServices[coin.Chain]
-			if !exists {
-				// set colour to yellow
-
-				log.Printf("No discovery service found for chain: %s\n\n", coin.Chain)
-				continue
-			}
-			// if coin.ContractAddress == "" {
-			// 	coin.ContractAddress = coin.Address
-			// }
-			coinData, err := discoveryService.Search(models.CoinBase{
-				Chain:           coin.Chain,
-				Address:         coin.Address,
-				ContractAddress: coin.ContractAddress,
-			})
-			if err != nil {
-				log.Printf("Error searching coin %s on chain %s: %v \n\n", coin.ContractAddress, coin.Chain, err)
-				continue
-			}
-			if coinData.CMCId != coin.CMCId || coinData.Decimals != coin.Decimals {
-				log.Printf("mismatch found - System(CMCId: %d, Decimals: %d) vs User(CMCId: %d, Decimals: %d) for %s on %s \n\n",
-					coin.CMCId, coin.Decimals, coinData.CMCId, coinData.Decimals, coin.ContractAddress, coin.Chain)
-			}
-
-			if coinData.CMCId == coin.CMCId && coinData.Decimals == coin.Decimals {
-				log.Printf("Coin data matches - CMCId: %d, Decimals: %d for %s on %s \n\n",
-					coin.CMCId, coin.Decimals, coin.ContractAddress, coin.Chain)
-			} else {
-				log.Printf("Coin data mismatch - System(CMCId: %d, Decimals: %d) vs User(CMCId: %d, Decimals: %d) for %s on %s \n\n",
-					coin.CMCId, coin.Decimals, coinData.CMCId, coinData.Decimals, coin.ContractAddress, coin.Chain)
+				log.Warnf("%s[WARN] Invalid coin data - CMCId: %d, Decimals: %d, Chain: %s, Address: %s%s",
+					yellow, coin.CMCId, coin.Decimals, coin.Chain, coin.ContractAddress, reset)
 			}
 		}
 	}
