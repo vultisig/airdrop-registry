@@ -3,6 +3,7 @@ package tokens
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -47,7 +48,7 @@ func NewOneInchService() *oneInchService {
 
 	cache, err := lru.New[string, models.CoinBase](20000)
 	if err != nil {
-		logrus.Fatal(err)
+		log.Panic("failed to create LRU cache: ", err)
 	}
 	return &oneInchService{
 		logger:         logrus.WithField("module", "oneinch_service").Logger,

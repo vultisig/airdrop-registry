@@ -2,6 +2,7 @@ package tokens
 
 import (
 	_ "embed"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"time"
 
+	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 	"github.com/vultisig/airdrop-registry/internal/common"
@@ -38,9 +40,13 @@ func TestErcDiscovery(t *testing.T) {
 		logger:     logrus.WithField("module", "cmc_id_service").Logger,
 		cachedData: cache.New(10*time.Hour, 1*time.Hour),
 	}
+	lruCache, err := lru.New[string, models.CoinBase](20000)
+	if err != nil {
+		t.Errorf("failed to create LRU cache: %v", err)
+	}
 	oneInchService := &oneInchService{
 		logger:     logrus.WithField("module", "oneInch_service").Logger,
-		cachedData: cache.New(10*time.Hour, 1*time.Hour),
+		cachedData: lruCache,
 	}
 	dicoveryService := &ercDiscoveryService{
 		logger:         logrus.WithField("module", "oneInch_evm_base_service").Logger,
@@ -50,18 +56,18 @@ func TestErcDiscovery(t *testing.T) {
 	}
 	dicoveryService.oneInchService.oneInchBaseURL = mockServer.URL
 	dicoveryService.cmcService.cachedData.Set(cmcService.getCacheKey("Ethereum", "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"), 2396, cache.DefaultExpiration)
-	dicoveryService.oneInchService.cachedData.Set(oneInchService.getCacheKey("Ethereum", "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"), models.CoinBase{
+	dicoveryService.oneInchService.cachedData.Add(oneInchService.getCacheKey("Ethereum", "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"), models.CoinBase{
 		Decimals:        18,
 		Ticker:          "WETH",
 		ContractAddress: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-	}, cache.DefaultExpiration)
+	})
 
 	dicoveryService.cmcService.cachedData.Set(cmcService.getCacheKey("Ethereum", "0xdac17f958d2ee523a2206206994597c13d831ec7"), 825, cache.DefaultExpiration)
-	dicoveryService.oneInchService.cachedData.Set(oneInchService.getCacheKey("Ethereum", "0xdac17f958d2ee523a2206206994597c13d831ec7"), models.CoinBase{
+	dicoveryService.oneInchService.cachedData.Add(oneInchService.getCacheKey("Ethereum", "0xdac17f958d2ee523a2206206994597c13d831ec7"), models.CoinBase{
 		Decimals:        6,
 		Ticker:          "Tether",
 		ContractAddress: "0xdac17f958d2ee523a2206206994597c13d831ec7",
-	}, cache.DefaultExpiration)
+	})
 
 	res, err := dicoveryService.Discover("0x14F6Ed6CBb27b607b0E2A48551A988F1a19c89B6", common.Ethereum)
 	if err != nil {
@@ -203,9 +209,14 @@ func setupDiscoveryService(baseURL string) *ercDiscoveryService {
 		logger:     logrus.WithField("module", "cmc_id_service").Logger,
 		cachedData: cache.New(10*time.Hour, 1*time.Hour),
 	}
+	cache, err := lru.New[string, models.CoinBase](20000)
+	if err != nil {
+		log.Panic("failed to create LRU cache: ", err)
+	}
+
 	oneInchService := &oneInchService{
 		logger:     logrus.WithField("module", "oneInch_service").Logger,
-		cachedData: cache.New(10*time.Hour, 1*time.Hour),
+		cachedData: cache,
 	}
 	discovery := &ercDiscoveryService{
 		logger:         logrus.WithField("module", "oneInch_evm_base_service").Logger,
@@ -248,14 +259,14 @@ func setupTestCache(discovery *ercDiscoveryService) {
 			token.cmcId,
 			cache.DefaultExpiration,
 		)
-		discovery.oneInchService.cachedData.Set(
+		discovery.oneInchService.cachedData.Add(
 			discovery.oneInchService.getCacheKey("Ethereum", token.address),
 			models.CoinBase{
 				Decimals:        token.decimals,
 				Ticker:          token.ticker,
 				ContractAddress: token.address,
 			},
-			cache.DefaultExpiration,
+			
 		)
 	}
 }
