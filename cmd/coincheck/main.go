@@ -55,6 +55,10 @@ func main() {
 		common.Solana: tokens.NewSPLDiscoveryService(cmcService),
 	}
 	for _, chain := range common.EVMChains {
+		err := oneInchService.LoadOneInchTokens(chain)
+		if err != nil {
+			log.Fatalf("%s[FATAL] failed to load oneInch service: %v%s", red, err, reset)
+		}
 		discoveryServices[chain] = tokens.NewERC20DiscoveryService(oneInchService, cmcService)
 	}
 
