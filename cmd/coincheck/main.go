@@ -12,22 +12,18 @@ import (
 	"github.com/vultisig/airdrop-registry/internal/tokens"
 )
 
-func init() {
-	log.SetFormatter(&log.TextFormatter{
-		ForceColors:      true,
-		FullTimestamp:    true,
-		DisableColors:    false,
-		DisableTimestamp: false,
-	})
-}
-
 const yellow = "\033[33m"
 const red = "\033[31m"
 const green = "\033[32m"
 const reset = "\033[0m"
 
 func main() {
-
+	log.SetFormatter(&log.TextFormatter{
+		ForceColors:      true,
+		FullTimestamp:    true,
+		DisableColors:    false,
+		DisableTimestamp: false,
+	})
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("%s[FATAL] failed to load config: %v%s", red, err, reset)
