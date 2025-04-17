@@ -98,7 +98,7 @@ func (s *splDiscoveryService) fetchTokenAccounts(address string) ([]models.CoinB
 		cmcid, err := s.cmcService.GetCMCIDByContract("Solana", info.Mint)
 		if err != nil {
 			s.logger.WithError(err).WithField("contract", info.Mint).
-				Warn("failed to get CMCID for contract")
+				Error("failed to get CMCID for contract")
 			continue
 		}
 
@@ -159,13 +159,13 @@ func (s *splDiscoveryService) Search(coin models.CoinBase) (models.CoinBase, err
 	cmcId, err := s.cmcService.GetCMCIDByContract(chainName, coin.ContractAddress)
 	if err != nil {
 		s.logger.WithError(err).WithField("contract", coin.ContractAddress).
-			Warn("failed to get CMCID for contract")
+			Error("failed to get CMCID for contract")
 		return models.CoinBase{}, err
 	}
 	decimal, err := s.getCoinDecimal(coin.ContractAddress)
 	if err != nil {
 		s.logger.WithError(err).WithField("contract", coin.ContractAddress).
-			Warn("failed to get decimal for contract")
+			Error("failed to get decimal for contract")
 		return models.CoinBase{}, err
 	}
 	coin.CMCId = cmcId
@@ -200,6 +200,10 @@ func (s *splDiscoveryService) getCoinDecimal(address string) (int, error) {
 	var result SPLTokenInfoResp
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return 0, fmt.Errorf("error decoding response: %w", err)
+	}
+
+	if result.Result.Value.Data.Parsed.Info.Decimals == 0 {
+		return 0, fmt.Errorf("missing expected nested token info fields")
 	}
 	return result.Result.Value.Data.Parsed.Info.Decimals, nil
 }

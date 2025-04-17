@@ -3,7 +3,6 @@ package tokens
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -44,18 +43,18 @@ type oneInchService struct {
 	coinBase       []models.CoinBase
 }
 
-func NewOneInchService() *oneInchService {
+func NewOneInchService() (*oneInchService,error) {
 
 	cache, err := lru.New[string, models.CoinBase](20000)
 	if err != nil {
-		log.Panic("failed to create LRU cache: ", err)
+		return nil,fmt.Errorf("failed to create LRU cache")
 	}
 	return &oneInchService{
 		logger:         logrus.WithField("module", "oneinch_service").Logger,
 		oneInchBaseURL: "https://api.vultisig.com/1inch",
 		cachedData:     cache,
 		coinBase:       []models.CoinBase{},
-	}
+	},nil
 }
 
 func (o *oneInchService) LoadOneInchTokens(chain common.Chain) error {
