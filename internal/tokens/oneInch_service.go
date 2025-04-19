@@ -161,5 +161,5 @@ func (o *oneInchService) GetTokenDetailsByContract(chain common.Chain, contract 
 }
 
 func (o *oneInchService) getCacheKey(chain, contract string) string {
-	return fmt.Sprintf("%s_%s", chain, contract)
+	return fmt.Sprintf("%s_%s", chain, strings.ToLower(contract))
 }
