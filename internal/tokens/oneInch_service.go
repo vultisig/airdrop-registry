@@ -96,6 +96,7 @@ func (o *oneInchService) LoadOneInchTokens(chain common.Chain) error {
 		}
 		cacheKey := o.getCacheKey(chain.String(), token.Address)
 		o.cachedData.Add(cacheKey, models.CoinBase{
+			Chain:           chain,
 			Ticker:          token.Symbol,
 			ContractAddress: token.Address,
 			Decimals:        token.Decimals,
