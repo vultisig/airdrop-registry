@@ -1,9 +1,9 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
-
 	_ "embed"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/common"
@@ -12,40 +12,37 @@ import (
 	"github.com/vultisig/airdrop-registry/internal/tokens"
 )
 
-const yellow = "\033[33m"
-const red = "\033[31m"
-const green = "\033[32m"
-const reset = "\033[0m"
-
 func main() {
-	log.SetFormatter(&log.TextFormatter{
+	logrus.SetFormatter(&logrus.TextFormatter{
 		ForceColors:      true,
 		FullTimestamp:    true,
 		DisableColors:    false,
 		DisableTimestamp: false,
+		DisableLevelTruncation: true,
 	})
+
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("%s[FATAL] failed to load config: %v%s", red, err, reset)
+		logrus.WithError(err).Fatalf("Failed to load config")
 	}
 
 	storage, err := services.NewStorage(cfg)
 	if err != nil {
-		log.Fatalf("%s[FATAL] failed to initialize storage: %v%s", red, err, reset)
+		logrus.WithError(err).Fatalf("Failed to initialize storage")
 	}
 	defer func() {
 		if err := storage.Close(); err != nil {
-			log.Errorf("%s[ERROR] Failed to close storage: %v%s", red, err, reset)
+			logrus.WithError(err).Errorf("Failed to close storage")
 		}
 	}()
 
 	cmcService, err := tokens.NewCMCService()
 	if err != nil {
-		log.Fatalf("%s[FATAL] failed to initialize CMC service: %v%s", red, err, reset)
+		logrus.WithError(err).Fatalf("Failed to initialize CMC service")
 	}
 	oneInchService, err := tokens.NewOneInchService()
 	if err != nil {
-		log.Errorf("%s[ERROR] Failed to create OneInch service: %v%s", red, err, reset)
+		logrus.WithError(err).Fatalf("Failed to initialize OneInch service")
 	}
 
 	discoveryServices := map[common.Chain]tokens.AutoDiscoveryService{
@@ -53,9 +50,14 @@ func main() {
 		common.Solana: tokens.NewSPLDiscoveryService(cmcService),
 	}
 	for _, chain := range common.EVMChains {
+		//vultisig return not found for Blast and Cronos chain
+		//Zksync is no supported
+		if chain == common.Blast || chain == common.CronosChain ||chain == common.Zksync {
+			continue
+		}
 		err := oneInchService.LoadOneInchTokens(chain)
 		if err != nil {
-			log.Fatalf("%s[FATAL] failed to load oneInch service: %v%s", red, err, reset)
+			logrus.WithError(err).Fatalf("Failed to load oneInch service")
 		}
 		discoveryServices[chain] = tokens.NewERC20DiscoveryService(oneInchService, cmcService)
 	}
@@ -67,18 +69,18 @@ func main() {
 	for {
 		coins, err := storage.GetCoinsWithPage(currentID, batchSize)
 		if err != nil {
-			log.Errorf("%s[Error] Failed to fetch coins: %v%s", red, err, reset)
+			logrus.WithError(err).Errorf("Failed to fetch coins")
 		}
 		if len(coins) == 0 {
-			log.Infof("%s[INFO] no more coins to process%s", green, reset)
+			logrus.Infof("No more coins to process")
 			break
 		}
 		currentID = uint64(coins[len(coins)-1].ID)
 
 		for _, coin := range coins {
 			if coin.CMCId == 0 || coin.Decimals == 0 {
-				log.Warnf("%s[WARN] Invalid coin data - CMCId: %d, Decimals: %d, Chain: %s, Address: %s%s",
-					yellow, coin.CMCId, coin.Decimals, coin.Chain, coin.ContractAddress, reset)
+				logrus.Warnf("Invalid coin data - CMCId: %d, Decimals: %d, Chain: %s, Address: %s",
+					coin.CMCId, coin.Decimals, coin.Chain, coin.ContractAddress)
 				continue
 			}
 
@@ -91,28 +93,28 @@ func main() {
 			predefinedCoin, err := predefinedService.Search(coinBase)
 			if err == nil {
 				if predefinedCoin.CMCId != coin.CMCId || predefinedCoin.Decimals != coin.Decimals {
-					log.Warnf("%s[WARN] Coin data mismatch - System(CMCId: %d, Decimals: %d) vs User(CMCId: %d, Decimals: %d) for contract address: %s on %s%s",
-						yellow, coin.CMCId, coin.Decimals, predefinedCoin.CMCId, predefinedCoin.Decimals, coin.ContractAddress, coin.Chain, reset)
+					logrus.Warnf("Coin data mismatch - System(CMCId: %d, Decimals: %d) vs User(CMCId: %d, Decimals: %d) for contract address: %s on %s",
+						coin.CMCId, coin.Decimals, predefinedCoin.CMCId, predefinedCoin.Decimals, coin.ContractAddress, coin.Chain)
 				} else {
-					log.Infof("%s[INFO] Coin data matches in predefined tokens - CMCId: %d, Decimals: %d for %s on %s%s",
-						green, coin.CMCId, coin.Decimals, coin.ContractAddress, coin.Chain, reset)
+					logrus.Infof("Coin data matches in predefined tokens - CMCId: %d, Decimals: %d for %s on %s",
+						coin.CMCId, coin.Decimals, coin.ContractAddress, coin.Chain)
 				}
 			} else {
 				discoveryService, exists := discoveryServices[coin.Chain]
 				if !exists {
-					log.Warnf("%s[WARN] No discovery service found for chain: %s%s", yellow, coin.Chain, reset)
+					logrus.Warnf("No discovery service found for chain: %s", coin.Chain)
 					continue
 				}
 				coinData, err := discoveryService.Search(coinBase)
 				if err != nil {
-					log.Errorf("%s[ERROR] Error searching contract address %s on chain %s: %v%s", red, coin.ContractAddress, coin.Chain, err, reset)
+					logrus.Errorf("Error searching contract address %s on chain %s: %v", coin.ContractAddress, coin.Chain, err)
 				}
 				if coinData.CMCId == coin.CMCId && coinData.Decimals == coin.Decimals {
-					log.Infof("%s[INFO] Coin data matches - CMCId: %d, Decimals: %d for %s on %s%s",
-						green, coin.CMCId, coin.Decimals, coin.ContractAddress, coin.Chain, reset)
+					logrus.Infof("Coin data matches - CMCId: %d, Decimals: %d for %s on %s",
+						coin.CMCId, coin.Decimals, coin.ContractAddress, coin.Chain)
 				} else {
-					log.Warnf("%s[WARN] Coin data mismatch - System(CMCId: %d, Decimals: %d) vs User(CMCId: %d, Decimals: %d) for contract address: %s on %s%s",
-						yellow, coin.CMCId, coin.Decimals, coinData.CMCId, coinData.Decimals, coin.ContractAddress, coin.Chain, reset)
+					logrus.Warnf("Coin data mismatch - System(CMCId: %d, Decimals: %d) vs User(CMCId: %d, Decimals: %d) for contract address: %s on %s",
+						coin.CMCId, coin.Decimals, coinData.CMCId, coinData.Decimals, coin.ContractAddress, coin.Chain)
 				}
 			}
 		}
