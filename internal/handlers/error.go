@@ -21,6 +21,7 @@ var (
 	errFailedToExitRegistry    = errors.New("FAIL_TO_EXIT_REGISTRY")
 	errForbiddenAccess         = errors.New("FORBIDDEN_ACCESS")
 	errFailedToGetAddress      = errors.New("FAIL_TO_GET_ADDRESS")
+	errFailedToFetchFromBotApi = errors.New("FAIL_TO_FETCH_FROM_BOT_API")
 	errAddressNotMatch         = errors.New("ADDRESS_NOT_MATCH")
 	errFailedToAddCoin         = errors.New("FAIL_TO_ADD_COIN")
 	errFailedToDeleteCoin      = errors.New("FAIL_TO_DELETE_COIN")
@@ -31,6 +32,7 @@ var (
 	errFailedToGetCollection   = errors.New("FAIL_TO_GET_COLLECTION")
 )
 
+// ErrorHandler returns a Gin middleware that intercepts errors from request handlers and responds with an appropriate HTTP status code and error message based on the error type.
 func ErrorHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
@@ -62,6 +64,7 @@ func ErrorHandler() gin.HandlerFunc {
 				errors.Is(err, errFailedToDeleteCoin),
 				errors.Is(err, errFailedToDerivePublicKey),
 				errors.Is(err, errFailedToSetTheme),
+				errors.Is(err, errFailedToFetchFromBotApi),
 				errors.Is(err, errFailedToGetTheme):
 				errors.Is(err, errFailedToGetCollection)
 				statusCode = http.StatusInternalServerError

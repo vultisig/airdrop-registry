@@ -30,8 +30,14 @@ type Config struct {
 	OpenSea struct {
 		APIKey string `mapstructure:"api_key"`
 	}
+	Vultiref struct {
+		APIKey      string `mapstructure:"api_key"`
+		BaseAddress string `mapstructure:"base_address"`
+	}
 }
 
+// LoadConfig loads application configuration from a YAML file, environment variables, and default values.
+// It returns a populated Config struct or an error if unmarshaling fails. If the config file is missing, environment variables and defaults are used.
 func LoadConfig() (*Config, error) {
 	var cfg Config
 	viper.SetConfigName("config")
