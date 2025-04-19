@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
+	"strings"
 
-	"github.com/patrickmn/go-cache"
+	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/vultisig/airdrop-registry/internal/common"
 	"github.com/vultisig/airdrop-registry/internal/models"
@@ -24,64 +24,79 @@ type tokensResponse struct {
 	Tokens map[string]token `json:"tokens"`
 }
 
-var chainIDs = map[common.Chain]int{
-	common.Ethereum:    1,
-	common.Avalanche:   43114,
-	common.Base:        8453,
-	common.Blast:       81457,
-	common.Arbitrum:    42161,
-	common.Polygon:     137,
-	common.Optimism:    10,
-	common.BscChain:    56,
-	common.CronosChain: 25,
+var chainIDs map[common.Chain]int = map[common.Chain]int{
+	common.Ethereum:  1,
+	common.Avalanche: 43114,
+	common.Base:      8453,
+	//common.Blast:       81457,
+	common.Arbitrum: 42161,
+	common.Polygon:  137,
+	common.Optimism: 10,
+	common.BscChain: 56,
+	//common.CronosChain: 25,
 }
 
 type oneInchService struct {
 	logger         *logrus.Logger
 	oneInchBaseURL string
-	cachedData     *cache.Cache
+	cachedData     *lru.Cache[string, models.CoinBase]
 	coinBase       []models.CoinBase
 }
 
-func NewOneInchService() *oneInchService {
+func NewOneInchService() (*oneInchService, error) {
+
+	cache, err := lru.New[string, models.CoinBase](20000)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create LRU cache")
+	}
 	return &oneInchService{
 		logger:         logrus.WithField("module", "oneinch_service").Logger,
 		oneInchBaseURL: "https://api.vultisig.com/1inch",
-		cachedData:     cache.New(10*time.Hour, 10*time.Hour),
+		cachedData:     cache,
 		coinBase:       []models.CoinBase{},
+	}, nil
+}
+func (o *oneInchService) IsChainSupported(chain common.Chain) bool {
+	if _, ok := chainIDs[chain]; ok {
+		return true
 	}
+	return false
 }
 
-func (o *oneInchService) LoadOneInchTokens(chain common.Chain) ([]models.Coin, error) {
+func (o *oneInchService) LoadOneInchTokens(chain common.Chain) error {
 	if _, ok := chainIDs[chain]; !ok {
-		return nil, fmt.Errorf("chain: %s is not supported", chain)
+		return fmt.Errorf("chain: %s is not supported", chain)
 	}
-	if cachedData, found := o.cachedData.Get(chain.String()); found {
-		if coins, ok := cachedData.([]models.Coin); ok {
-			return coins, nil
+
+	keys := o.cachedData.Keys()
+	chainPrefix := chain.String() + "_"
+	for _, key := range keys {
+		if strings.HasPrefix(key, chainPrefix) {
+			return nil
 		}
 	}
 	url := fmt.Sprintf("%s/swap/v6.0/%d/tokens", o.oneInchBaseURL, chainIDs[chain])
 	resp, err := http.Get(url)
 	if err != nil {
 		o.logger.Error(err)
-		return nil, fmt.Errorf("fail to get tokens from, err %s: %w", url, err)
+		return fmt.Errorf("fail to get tokens from, err %s: %w", url, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error fetching tokens from %s: %s", url, resp.Status)
+		return fmt.Errorf("error fetching tokens from %s: %s", url, resp.Status)
 	}
 	var tokensResponse tokensResponse
 	if err := json.NewDecoder(resp.Body).Decode(&tokensResponse); err != nil {
-		return nil, fmt.Errorf("error unmarshalling response: %w", err)
+		return fmt.Errorf("error unmarshalling response: %w", err)
 	}
-	coins := make([]models.Coin, 0, len(tokensResponse.Tokens))
 	for _, token := range tokensResponse.Tokens {
 		isNative := false
 		if token.Address == ethereum {
 			isNative = true
 		}
-		coins = append(coins, models.Coin{
+		cacheKey := o.getCacheKey(chain.String(), token.Address)
+		o.cachedData.Add(cacheKey, models.CoinBase{
+			Chain:           chain,
 			Ticker:          token.Symbol,
 			ContractAddress: token.Address,
 			Decimals:        token.Decimals,
@@ -89,18 +104,19 @@ func (o *oneInchService) LoadOneInchTokens(chain common.Chain) ([]models.Coin, e
 			Logo:            token.LogoURI,
 		})
 	}
-
-	o.cachedData.Set(o.getCacheKey(chain.String(), ""), coins, 10*time.Hour)
-	return coins, nil
+	return nil
 }
 
-func (o *oneInchService) GetTokenDetailsByContract(chain, contract string) (models.CoinBase, error) {
-	if cachedData, found := o.cachedData.Get(o.getCacheKey(chain, contract)); found {
-		if coin, ok := cachedData.(models.CoinBase); ok {
-			return coin, nil
-		}
+func (o *oneInchService) GetTokenDetailsByContract(chain common.Chain, contract string) (models.CoinBase, error) {
+	chainID, ok := chainIDs[chain]
+	if !ok {
+		return models.CoinBase{}, fmt.Errorf("chain: %s is not supported", chain)
 	}
-	url := fmt.Sprintf("%s/token-details/v1.0/details/%s/%s", o.oneInchBaseURL, chain, contract)
+	cacheKey := o.getCacheKey(chain.String(), contract)
+	if cachedData, found := o.cachedData.Get(cacheKey); found {
+		return cachedData, nil
+	}
+	url := fmt.Sprintf("%s/token-details/v1.0/details/%d/%s", o.oneInchBaseURL, chainID, contract)
 	resp, err := http.Get(url)
 	if err != nil {
 		o.logger.WithFields(logrus.Fields{
@@ -140,10 +156,10 @@ func (o *oneInchService) GetTokenDetailsByContract(chain, contract string) (mode
 		"decimals":     tokenData.Assets.Decimals,
 		"tokenName":    tokenData.Assets.Name,
 	}).Debug("Token details retrieved successfully")
-	o.cachedData.Set(o.getCacheKey(chain, contract), coin, 10*time.Hour)
+	o.cachedData.Add(cacheKey, coin)
 	return coin, nil
 }
 
 func (o *oneInchService) getCacheKey(chain, contract string) string {
-	return fmt.Sprintf("%s_%s", chain, contract)
+	return fmt.Sprintf("%s_%s", chain, strings.ToLower(contract))
 }

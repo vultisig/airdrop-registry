@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/vultisig/airdrop-registry/internal/common"
 	"github.com/vultisig/airdrop-registry/internal/models"
+	"github.com/vultisig/airdrop-registry/internal/utils"
 )
 
 const (
@@ -97,7 +98,7 @@ func (s *splDiscoveryService) fetchTokenAccounts(address string) ([]models.CoinB
 		cmcid, err := s.cmcService.GetCMCIDByContract("Solana", info.Mint)
 		if err != nil {
 			s.logger.WithError(err).WithField("contract", info.Mint).
-				Warn("failed to get CMCID for contract")
+				Error("failed to get CMCID for contract")
 			continue
 		}
 
@@ -140,7 +141,7 @@ type (
 			Program string `json:"program"`
 		} `json:"data"`
 		Owner     string `json:"owner"`
-		RentEpoch int64  `json:"rentEpoch"`
+		RentEpoch uint64 `json:"rentEpoch"`
 	}
 	tokenAmount struct {
 		Amount         string  `json:"amount"`
@@ -149,3 +150,92 @@ type (
 		UIAmountString string  `json:"uiAmountString"`
 	}
 )
+
+func (s *splDiscoveryService) Search(coin models.CoinBase) (models.CoinBase, error) {
+	chainName, exists := cmcChainMap[coin.Chain]
+	if !exists {
+		return models.CoinBase{}, fmt.Errorf("unsupported chain: %v", coin.Chain)
+	}
+	cmcId, err := s.cmcService.GetCMCIDByContract(chainName, coin.ContractAddress)
+	if err != nil {
+		s.logger.WithError(err).WithField("contract", coin.ContractAddress).
+			Error("failed to get CMCID for contract")
+		return models.CoinBase{}, err
+	}
+	decimal, err := s.getCoinDecimal(coin.ContractAddress)
+	if err != nil {
+		s.logger.WithError(err).WithField("contract", coin.ContractAddress).
+			Error("failed to get decimal for contract")
+		return models.CoinBase{}, err
+	}
+	coin.CMCId = cmcId
+	coin.Decimals = decimal
+	return coin, nil
+}
+
+func (s *splDiscoveryService) getCoinDecimal(address string) (int, error) {
+	parmas := []interface{}{
+		address,
+		map[string]string{
+			"encoding": "jsonParsed",
+		},
+	}
+	rpcRequest := utils.NewJsonRPCRequest("getAccountInfo", parmas, 1)
+	buf, err := json.Marshal(rpcRequest)
+	if err != nil {
+		return 0, fmt.Errorf("error marshalling RPC request: %w", err)
+	}
+	resp, err := http.Post(s.baseAddress, "application/json", bytes.NewBuffer(buf))
+	if err != nil {
+		return 0, fmt.Errorf("error fetching balance of address %s: %w", address, err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusTooManyRequests {
+		// rate limited, need to backoff and then retry
+		return 0, fmt.Errorf("rate limited while fetching balance of address %s", address)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("error fetching balance of address %s: %s", address, resp.Status)
+	}
+	var result SPLTokenInfoResp
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return 0, fmt.Errorf("error decoding response: %w", err)
+	}
+
+	if result.Result.Value.Data.Parsed.Info.Decimals == 0 {
+		return 0, fmt.Errorf("missing expected nested token info fields")
+	}
+	return result.Result.Value.Data.Parsed.Info.Decimals, nil
+}
+
+type SPLTokenInfoResp struct {
+	Jsonrpc string `json:"jsonrpc"`
+	Result  struct {
+		Context struct {
+			APIVersion string `json:"apiVersion"`
+			Slot       int    `json:"slot"`
+		} `json:"context"`
+		Value struct {
+			Data struct {
+				Parsed struct {
+					Info struct {
+						Decimals        int    `json:"decimals"`
+						FreezeAuthority string `json:"freezeAuthority"`
+						IsInitialized   bool   `json:"isInitialized"`
+						MintAuthority   string `json:"mintAuthority"`
+						Supply          string `json:"supply"`
+					} `json:"info"`
+					Type string `json:"type"`
+				} `json:"parsed"`
+				Program string `json:"program"`
+				Space   int    `json:"space"`
+			} `json:"data"`
+			Executable bool   `json:"executable"`
+			Lamports   int64  `json:"lamports"`
+			Owner      string `json:"owner"`
+			RentEpoch  uint64 `json:"rentEpoch"`
+			Space      int    `json:"space"`
+		} `json:"value"`
+	} `json:"result"`
+	ID int `json:"id"`
+}

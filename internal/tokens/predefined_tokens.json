@@ -1,0 +1,782 @@
+[
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 1027,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 29814,
+    "contract_address": "0x7189fb5b6504bbff6a852b13b7b82a3c118fdc27",
+    "decimals": 18
+  },
+  {
+    "chain": "Avalanche",
+    "cmc_id": 5805,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Base",
+    "cmc_id": 1027,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Bitcoin",
+    "cmc_id": 1,
+    "contract_address": "",
+    "decimals": 8
+  },
+  {
+    "chain": "BitcoinCash",
+    "cmc_id": 1831,
+    "contract_address": "",
+    "decimals": 8
+  },
+  {
+    "chain": "Blast",
+    "cmc_id": 1027,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "BSC",
+    "cmc_id": 1839,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "CronosChain",
+    "cmc_id": 3635,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Dogecoin",
+    "cmc_id": 74,
+    "contract_address": "",
+    "decimals": 8
+  },
+  {
+    "chain": "Dydx",
+    "cmc_id": 28324,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Dash",
+    "cmc_id": 131,
+    "contract_address": "",
+    "decimals": 8
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 1027,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Cosmos",
+    "cmc_id": 3794,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "Kujira",
+    "cmc_id": 15185,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "Litecoin",
+    "cmc_id": 2,
+    "contract_address": "",
+    "decimals": 8
+  },
+  {
+    "chain": "MayaChain",
+    "cmc_id": 0,
+    "contract_address": "",
+    "decimals": 10
+  },
+  {
+    "chain": "Noble",
+    "cmc_id": 0,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "Optimism",
+    "cmc_id": 1027,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Osmosis",
+    "cmc_id": 12220,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "Polkadot",
+    "cmc_id": 6636,
+    "contract_address": "",
+    "decimals": 10
+  },
+  {
+    "chain": "Polygon",
+    "cmc_id": 3890,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Solana",
+    "cmc_id": 5426,
+    "contract_address": "",
+    "decimals": 9
+  },
+  {
+    "chain": "Sui",
+    "cmc_id": 20947,
+    "contract_address": "",
+    "decimals": 9
+  },
+  {
+    "chain": "Terra",
+    "cmc_id": 20314,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "TerraClassic",
+    "cmc_id": 4172,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "THORChain",
+    "cmc_id": 4157,
+    "contract_address": "",
+    "decimals": 8
+  },
+  {
+    "chain": "TON",
+    "cmc_id": 11419,
+    "contract_address": "",
+    "decimals": 9
+  },
+  {
+    "chain": "Tron",
+    "cmc_id": 1958,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "XRP",
+    "cmc_id": 52,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "Zksync",
+    "cmc_id": 24091,
+    "contract_address": "",
+    "decimals": 18
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 11841,
+    "contract_address": "0x912CE59144191C1204E64559FE8253a0e49E6548",
+    "decimals": 18
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 16049,
+    "contract_address": "0x429fEd88f10285E61b12BDF00848315fbDfCC341",
+    "decimals": 18
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 8200,
+    "contract_address": "0xf929de51D91C77E42f5090069E0AD7A09e513c73",
+    "decimals": 18
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 825,
+    "contract_address": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+    "decimals": 6
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 18852,
+    "contract_address": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+    "decimals": 6
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 3408,
+    "contract_address": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+    "decimals": 6
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 3717,
+    "contract_address": "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+    "decimals": 8
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 1975,
+    "contract_address": "0xf97f4df75117a78c1A5a0DBb814Af92458539FB4",
+    "decimals": 18
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 4943,
+    "contract_address": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+    "decimals": 18
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 7083,
+    "contract_address": "0xFa7F8980b0f1E64A2062791cc3b0871572f1F7f0",
+    "decimals": 18
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 6719,
+    "contract_address": "0x9623063377AD1B27544C965cCd7342f7EA7e88C7",
+    "decimals": 18
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 29520,
+    "contract_address": "0x2416092f143378750bb29b79eD961ab195CcEea5",
+    "decimals": 18
+  },
+  {
+    "chain": "Arbitrum",
+    "cmc_id": 8000,
+    "contract_address": "0x13Ad51ed4F1B7e9Dc168d8a00cB3f4dDD85EfA60",
+    "decimals": 18
+  },
+  {
+    "chain": "Avalanche",
+    "cmc_id": 3408,
+    "contract_address": "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e",
+    "decimals": 6
+  },
+  {
+    "chain": "Avalanche",
+    "cmc_id": 825,
+    "contract_address": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+    "decimals": 6
+  },
+  {
+    "chain": "Avalanche",
+    "cmc_id": 20721,
+    "contract_address": "0x152b9d0FdC40C096757F570A51E494bd4b943E50",
+    "decimals": 8
+  },
+  {
+    "chain": "Avalanche",
+    "cmc_id": 18523,
+    "contract_address": "0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE",
+    "decimals": 18
+  },
+  {
+    "chain": "Avalanche",
+    "cmc_id": 11396,
+    "contract_address": "0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd",
+    "decimals": 18
+  },
+  {
+    "chain": "Avalanche",
+    "cmc_id": 8422,
+    "contract_address": "0x60781C2586D68229fde47564546784ab3fACA982",
+    "decimals": 18
+  },
+  {
+    "chain": "Avalanche",
+    "cmc_id": 9462,
+    "contract_address": "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+    "decimals": 18
+  },
+  {
+    "chain": "Avalanche",
+    "cmc_id": 31629,
+    "contract_address": "0x46B9144771Cb3195D66e4EDA643a7493fADCAF9D",
+    "decimals": 18
+  },
+  {
+    "chain": "Base",
+    "cmc_id": 32343,
+    "contract_address": "0x6b9bb36519538e0C073894E964E90172E1c0B41F",
+    "decimals": 18
+  },
+  {
+    "chain": "Base",
+    "cmc_id": 3408,
+    "contract_address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+    "decimals": 6
+  },
+  {
+    "chain": "Base",
+    "cmc_id": 4943,
+    "contract_address": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
+    "decimals": 18
+  },
+  {
+    "chain": "Base",
+    "cmc_id": 29520,
+    "contract_address": "0x2416092f143378750bb29b79eD961ab195CcEea5",
+    "decimals": 18
+  },
+  {
+    "chain": "Base",
+    "cmc_id": 29587,
+    "contract_address": "0xB0fFa8000886e57F86dd5264b9582b2Ad87b2b91",
+    "decimals": 18
+  },
+  {
+    "chain": "Base",
+    "cmc_id": 21535,
+    "contract_address": "0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22",
+    "decimals": 18
+  },
+  {
+    "chain": "Base",
+    "cmc_id": 2586,
+    "contract_address": "0x22e6966B799c4D5B13BE962E1D117b56327FDa66",
+    "decimals": 18
+  },
+  {
+    "chain": "Blast",
+    "cmc_id": 2396,
+    "contract_address": "0x4300000000000000000000000000000000000004",
+    "decimals": 18
+  },
+  {
+    "chain": "Blast",
+    "cmc_id": 3717,
+    "contract_address": "0xF7bc58b8D8f97ADC129cfC4c9f45Ce3C0E1D2692",
+    "decimals": 8
+  },
+  {
+    "chain": "Blast",
+    "cmc_id": 29599,
+    "contract_address": "0x4300000000000000000000000000000000000003",
+    "decimals": 18
+  },
+  {
+    "chain": "Blast",
+    "cmc_id": 28480,
+    "contract_address": "0xb1a5700fA2358173Fe465e6eA4Ff52E36e88E2ad",
+    "decimals": 18
+  },
+  {
+    "chain": "Blast",
+    "cmc_id": 28827,
+    "contract_address": "0x9e20461bc2c4c980f62f1B279D71734207a6A356",
+    "decimals": 18
+  },
+  {
+    "chain": "Blast",
+    "cmc_id": 26979,
+    "contract_address": "0x47C337Bd5b9344a6F3D6f58C474D9D8cd419D8cA",
+    "decimals": 18
+  },
+  {
+    "chain": "BSC",
+    "cmc_id": 825,
+    "contract_address": "0x55d398326f99059fF775485246999027B3197955",
+    "decimals": 18
+  },
+  {
+    "chain": "BSC",
+    "cmc_id": 3408,
+    "contract_address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+    "decimals": 18
+  },
+  {
+    "chain": "BSC",
+    "cmc_id": 4943,
+    "contract_address": "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3",
+    "decimals": 18
+  },
+  {
+    "chain": "BSC",
+    "cmc_id": 2396,
+    "contract_address": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+    "decimals": 18
+  },
+  {
+    "chain": "BSC",
+    "cmc_id": 7278,
+    "contract_address": "0xfb6115445bff7b52feb98650c87f44907e58f802",
+    "decimals": 18
+  },
+  {
+    "chain": "BSC",
+    "cmc_id": 5692,
+    "contract_address": "0x52ce071bd9b1c4b00a0b92d298c512478cad67e8",
+    "decimals": 18
+  },
+  {
+    "chain": "BSC",
+    "cmc_id": 6758,
+    "contract_address": "0x947950bcc74888a40ffa2593c5798f11fc9124c4",
+    "decimals": 18
+  },
+  {
+    "chain": "BSC",
+    "cmc_id": 9444,
+    "contract_address": "0xfe56d5892bdffc7bf58f2e84be1b2c32d21c308b",
+    "decimals": 18
+  },
+  {
+    "chain": "BSC",
+    "cmc_id": 24478,
+    "contract_address": "0x25d887ce7a35172c62febfd67a1856f20faebb00",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 3408,
+    "contract_address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "decimals": 6
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 825,
+    "contract_address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "decimals": 6
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 7083,
+    "contract_address": "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 3890,
+    "contract_address": "0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 3717,
+    "contract_address": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+    "decimals": 8
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 1975,
+    "contract_address": "0x514910771af9ca656af840dff83e8264ecf986ca",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 13268,
+    "contract_address": "0x826180541412d574cf1336d22c0c0a287822678a",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 16049,
+    "contract_address": "0x108a850856Db3f85d0269a2693D896B394C80325",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 8200,
+    "contract_address": "0xc770eefad204b5180df6a14ee197d99d808ee52d",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 4943,
+    "contract_address": "0x6b175474e89094c44da98b954eedeac495271d0f",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 2396,
+    "contract_address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 5864,
+    "contract_address": "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 7278,
+    "contract_address": "0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 5692,
+    "contract_address": "0xc00e94cb662c3520282e6f5717214004a7f26888",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 1697,
+    "contract_address": "0x0d8775f648430679a709e98d2b0cb6250d2887ef",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 2586,
+    "contract_address": "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 5728,
+    "contract_address": "0xba100000625a3754423978a60c9317c58a424e3d",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 6758,
+    "contract_address": "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 1518,
+    "contract_address": "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 9444,
+    "contract_address": "0xdefa4e8a7bcba345f687a2f1456f5edd9ce97202",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 6719,
+    "contract_address": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 24478,
+    "contract_address": "0x6982508145454ce325ddbe47a25d4ec3d2311933",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 0,
+    "contract_address": "0x815C23eCA83261b6Ec689b60Cc4a58b54BC24D8D",
+    "decimals": 18
+  },
+  {
+    "chain": "Ethereum",
+    "cmc_id": 12942,
+    "contract_address": "0xa5f2211B9b8170F694421f2046281775E8468044",
+    "decimals": 18
+  },
+  {
+    "chain": "MAYACHAIN",
+    "cmc_id": 0,
+    "contract_address": "",
+    "decimals": 4
+  },
+  {
+    "chain": "Noble",
+    "cmc_id": 3408,
+    "contract_address": "",
+    "decimals": 6
+  },
+  {
+    "chain": "Optimism",
+    "cmc_id": 11840,
+    "contract_address": "0x4200000000000000000000000000000000000042",
+    "decimals": 18
+  },
+  {
+    "chain": "Optimism",
+    "cmc_id": 8200,
+    "contract_address": "0xf1a0da3367bc7aa04f8d94ba57b862ff37ced174",
+    "decimals": 18
+  },
+  {
+    "chain": "Optimism",
+    "cmc_id": 825,
+    "contract_address": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+    "decimals": 6
+  },
+  {
+    "chain": "Optimism",
+    "cmc_id": 3408,
+    "contract_address": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+    "decimals": 6
+  },
+  {
+    "chain": "Optimism",
+    "cmc_id": 18852,
+    "contract_address": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
+    "decimals": 6
+  },
+  {
+    "chain": "Optimism",
+    "cmc_id": 3717,
+    "contract_address": "0x68f180fcCe6836688e9084f035309E29Bf0A2095",
+    "decimals": 8
+  },
+  {
+    "chain": "Optimism",
+    "cmc_id": 1975,
+    "contract_address": "0x350a791Bfc2C21F9Ed5d10980Dad2e2638ffa7f6",
+    "decimals": 18
+  },
+  {
+    "chain": "Optimism",
+    "cmc_id": 4943,
+    "contract_address": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+    "decimals": 18
+  },
+  {
+    "chain": "Optimism",
+    "cmc_id": 29520,
+    "contract_address": "0x2416092f143378750bb29b79eD961ab195CcEea5",
+    "decimals": 18
+  },
+  {
+    "chain": "Optimism",
+    "cmc_id": 8000,
+    "contract_address": "0xFdb794692724153d1488CcdBE0C56c252596735F",
+    "decimals": 18
+  },
+  {
+    "chain": "Polygon",
+    "cmc_id": 2396,
+    "contract_address": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+    "decimals": 18
+  },
+  {
+    "chain": "Polygon",
+    "cmc_id": 8200,
+    "contract_address": "0x65a05db8322701724c197af82c9cae41195b0aa8",
+    "decimals": 18
+  },
+  {
+    "chain": "Polygon",
+    "cmc_id": 825,
+    "contract_address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+    "decimals": 6
+  },
+  {
+    "chain": "Polygon",
+    "cmc_id": 1839,
+    "contract_address": "0x3BA4c387f786bFEE076A58914F5Bd38d668B42c3",
+    "decimals": 18
+  },
+  {
+    "chain": "Polygon",
+    "cmc_id": 5426,
+    "contract_address": "0xd93f7E271cB87c23AaA73edC008A79646d1F9912",
+    "decimals": 9
+  },
+  {
+    "chain": "Polygon",
+    "cmc_id": 3408,
+    "contract_address": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+    "decimals": 6
+  },
+  {
+    "chain": "Polygon",
+    "cmc_id": 18852,
+    "contract_address": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    "decimals": 6
+  },
+  {
+    "chain": "Polygon",
+    "cmc_id": 3717,
+    "contract_address": "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
+    "decimals": 8
+  },
+  {
+    "chain": "Polygon",
+    "cmc_id": 5805,
+    "contract_address": "0x2C89bbc92BD86F8075d1DEcc58C7F4E0107f286b",
+    "decimals": 18
+  },
+  {
+    "chain": "Polygon",
+    "cmc_id": 1975,
+    "contract_address": "0xb0897686c545045aFc77CF20eC7A532E3120E0F1",
+    "decimals": 18
+  },
+  {
+    "chain": "Solana",
+    "cmc_id": 0,
+    "contract_address": "FgWto1nfArQTpg3o74sYkti753caPfHNXHG8CkedDpMg",
+    "decimals": 9
+  },
+  {
+    "chain": "Solana",
+    "cmc_id": 29210,
+    "contract_address": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "decimals": 6
+  },
+  {
+    "chain": "Solana",
+    "cmc_id": 0,
+    "contract_address": "DEf93bSt8dx58gDFCcz4CwbjYZzjwaRBYAciJYLfdCA9",
+    "decimals": 6
+  },
+  {
+    "chain": "Solana",
+    "cmc_id": 28177,
+    "contract_address": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
+    "decimals": 6
+  },
+  {
+    "chain": "Solana",
+    "cmc_id": 8526,
+    "contract_address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+    "decimals": 6
+  },
+  {
+    "chain": "Solana",
+    "cmc_id": 5690,
+    "contract_address": "rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof",
+    "decimals": 8
+  },
+  {
+    "chain": "Solana",
+    "cmc_id": 3408,
+    "contract_address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "decimals": 6
+  },
+  {
+    "chain": "Solana",
+    "cmc_id": 825,
+    "contract_address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+    "decimals": 6
+  },
+  {
+    "chain": "Solana",
+    "cmc_id": 28752,
+    "contract_address": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+    "decimals": 6
+  },
+  {
+    "chain": "Tron",
+    "cmc_id": 825,
+    "contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+    "decimals": 6
+  }
+]

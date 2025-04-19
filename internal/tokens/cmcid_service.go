@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -124,6 +125,9 @@ func (c *CMCService) GetCMCIDByContract(chain, contract string) (int, error) {
 			return cmcID, nil
 		}
 	}
+	if contract == "" {
+		return 0, fmt.Errorf("empty contract address provided")
+	}
 	url := fmt.Sprintf("%s/info?address=%s&skip_invalid=true&aux=status", c.baseURL, contract)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -139,7 +143,7 @@ func (c *CMCService) GetCMCIDByContract(chain, contract string) (int, error) {
 	}
 	for _, v := range cmcContractModel.Data {
 		for _, ca := range v.ContractAddresses {
-			if ca.ContractAddress == contract && ca.Platform.Coin.Name == chain {
+			if strings.EqualFold(ca.ContractAddress, contract) && ca.Platform.Coin.Name == chain {
 				c.cachedData.Set(c.getCacheKey(ca.Platform.Name, contract), v.ID, cache.DefaultExpiration)
 				return v.ID, nil
 			}
