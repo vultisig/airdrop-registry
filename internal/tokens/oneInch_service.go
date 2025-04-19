@@ -47,7 +47,7 @@ func NewOneInchService() (*oneInchService, error) {
 
 	cache, err := lru.New[string, models.CoinBase](20000)
 	if err != nil {
-		return nil,fmt.Errorf("failed to create LRU cache")
+		return nil, fmt.Errorf("failed to create LRU cache")
 	}
 	return &oneInchService{
 		logger:         logrus.WithField("module", "oneinch_service").Logger,
@@ -72,7 +72,7 @@ func (o *oneInchService) LoadOneInchTokens(chain common.Chain) error {
 	chainPrefix := chain.String() + "_"
 	for _, key := range keys {
 		if strings.HasPrefix(key, chainPrefix) {
-			return nil 
+			return nil
 		}
 	}
 	url := fmt.Sprintf("%s/swap/v6.0/%d/tokens", o.oneInchBaseURL, chainIDs[chain])
