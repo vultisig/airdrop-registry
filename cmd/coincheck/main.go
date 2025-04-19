@@ -50,9 +50,7 @@ func main() {
 		common.Solana: tokens.NewSPLDiscoveryService(cmcService),
 	}
 	for _, chain := range common.EVMChains {
-		//vultisig return not found for Blast and Cronos chain
-		//Zksync is no supported
-		if chain == common.Blast || chain == common.CronosChain ||chain == common.Zksync {
+		if !oneInchService.IsChainSupported(chain) { 
 			continue
 		}
 		err := oneInchService.LoadOneInchTokens(chain)

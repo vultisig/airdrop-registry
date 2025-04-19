@@ -25,15 +25,15 @@ type tokensResponse struct {
 }
 
 var chainIDs map[common.Chain]int = map[common.Chain]int{
-	common.Ethereum:    1,
-	common.Avalanche:   43114,
-	common.Base:        8453,
-	common.Blast:       81457,
-	common.Arbitrum:    42161,
-	common.Polygon:     137,
-	common.Optimism:    10,
-	common.BscChain:    56,
-	common.CronosChain: 25,
+	common.Ethereum:  1,
+	common.Avalanche: 43114,
+	common.Base:      8453,
+	//common.Blast:       81457,
+	common.Arbitrum: 42161,
+	common.Polygon:  137,
+	common.Optimism: 10,
+	common.BscChain: 56,
+	//common.CronosChain: 25,
 }
 
 type oneInchService struct {
@@ -43,7 +43,7 @@ type oneInchService struct {
 	coinBase       []models.CoinBase
 }
 
-func NewOneInchService() (*oneInchService,error) {
+func NewOneInchService() (*oneInchService, error) {
 
 	cache, err := lru.New[string, models.CoinBase](20000)
 	if err != nil {
@@ -54,7 +54,13 @@ func NewOneInchService() (*oneInchService,error) {
 		oneInchBaseURL: "https://api.vultisig.com/1inch",
 		cachedData:     cache,
 		coinBase:       []models.CoinBase{},
-	},nil
+	}, nil
+}
+func (o *oneInchService) IsChainSupported(chain common.Chain) bool {
+	if _, ok := chainIDs[chain]; ok {
+		return true
+	}
+	return false
 }
 
 func (o *oneInchService) LoadOneInchTokens(chain common.Chain) error {
