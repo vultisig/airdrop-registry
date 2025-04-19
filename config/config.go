@@ -30,6 +30,10 @@ type Config struct {
 	OpenSea struct {
 		APIKey string `mapstructure:"api_key"`
 	}
+	Vultiref struct {
+		APIKey      string `mapstructure:"api_key"`
+		BaseAddress string `mapstructure:"base_address"`
+	}
 }
 
 func LoadConfig() (*Config, error) {

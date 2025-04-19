@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -398,4 +400,66 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 		vaultsResp.Vaults = append(vaultsResp.Vaults, vaultResp)
 	}
 	c.JSON(http.StatusOK, vaultsResp)
+}
+
+func (a *Api) getUserReferrals(c *gin.Context) {
+	var vault models.VaultRequest
+	if err := c.ShouldBindJSON(&vault); err != nil {
+		a.logger.Error(err)
+		c.Error(errInvalidRequest)
+		return
+	}
+	v, err := a.s.GetVault(vault.PublicKeyECDSA, vault.PublicKeyEDDSA)
+	if err != nil {
+		a.logger.Error(err)
+		c.Error(errFailedToGetVault)
+		return
+
+	}
+
+	if v == nil {
+		c.Error(errVaultNotFound)
+		return
+	}
+
+	var userReferrals models.ReferralsAPIResponse
+	var referralSummary models.ReferralSummary
+	if v.HexChainCode == vault.HexChainCode && v.Uid == vault.Uid {
+		url := fmt.Sprintf("%s/user/referrals?user=%d&apiKey=%s", a.cfg.Vultiref.BaseAddress, v.ID, a.cfg.Vultiref.APIKey)
+
+		resp, err := http.Get(url)
+		if err != nil {
+			a.logger.WithError(err)
+			c.Error(errFailedToFetchFromBotApi)
+			return
+		}
+		defer resp.Body.Close()
+
+		if err := json.NewDecoder(resp.Body).Decode(&userReferrals); err != nil {
+			a.logger.WithError(err)
+			c.Error(errUnknown)
+			return
+		}
+
+		for _, userReferral := range userReferrals.Items {
+			referralSummary.TotalReferrals = userReferrals.Total
+			if userReferral.WalletPublicKeyEcdsa == nil || userReferral.WalletPublicKeyEddsa == nil {
+				continue
+			}
+			referral, err := a.s.GetVault(*userReferral.WalletPublicKeyEcdsa, *userReferral.WalletPublicKeyEddsa)
+
+			if err != nil {
+				a.logger.Error(err)
+				c.Error(errFailedToGetVault)
+				return
+
+			}
+
+			if referral.Balance > 50 {
+				referralSummary.ValidReferrals++
+			}
+		}
+
+	}
+	c.JSON(http.StatusOK, referralSummary)
 }
