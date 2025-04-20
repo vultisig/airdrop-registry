@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -405,13 +404,13 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 }
 
 func (a *Api) getUserReferrals(c *gin.Context) {
-	var vault models.VaultRequest
-	if err := c.ShouldBindJSON(&vault); err != nil {
+	var requestedVault models.VaultRequest
+	if err := c.ShouldBindJSON(&requestedVault); err != nil {
 		a.logger.Error(err)
 		_ = c.Error(errInvalidRequest)
 		return
 	}
-	v, err := a.s.GetVault(vault.PublicKeyECDSA, vault.PublicKeyEDDSA)
+	refferer, err := a.s.GetVault(requestedVault.PublicKeyECDSA, requestedVault.PublicKeyEDDSA)
 	if err != nil {
 		a.logger.Error(err)
 		_ = c.Error(errFailedToGetVault)
@@ -419,21 +418,21 @@ func (a *Api) getUserReferrals(c *gin.Context) {
 
 	}
 
-	if v == nil {
+	if refferer == nil {
 		c.Error(errVaultNotFound)
 		return
 	}
 
-	var userReferrals models.ReferralsAPIResponse
-	var referralSummary models.ReferralSummary
-	if v.HexChainCode == vault.HexChainCode && v.Uid == vault.Uid {
-		url := fmt.Sprintf("%s/user/referrals?user=%d&apiKey=%s", a.cfg.Vultiref.BaseAddress, v.ID, a.cfg.Vultiref.APIKey)
+	var apiResponse models.ReferralsAPIResponse
+	var summary models.ReferralsSummary
+	if refferer.HexChainCode == requestedVault.HexChainCode && refferer.Uid == requestedVault.Uid {
+		url := fmt.Sprintf("%s/user/referrals?eddsaKey=%s&ecdsaKey=%s&apiKey=%s",
+			a.cfg.Vultiref.BaseAddress,
+			refferer.EDDSA,
+			refferer.ECDSA,
+			a.cfg.Vultiref.APIKey)
 
-		client := &http.Client{
-			Timeout: 10 * time.Second,
-		}
-
-		resp, err := client.Get(url)
+		resp, err := http.Get(url)
 		if err != nil {
 			a.logger.WithError(err).Error("Failed to fetch referrals from API")
 			c.Error(errFailedToFetchFromBotApi)
@@ -447,36 +446,34 @@ func (a *Api) getUserReferrals(c *gin.Context) {
 
 		defer resp.Body.Close()
 
-		if err := json.NewDecoder(resp.Body).Decode(&userReferrals); err != nil {
+		if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
 			a.logger.WithError(err).Error("Failed to fetch referrals from API")
 			c.Error(errUnknown)
 			return
 		}
-
-		referralSummary.TotalReferrals = userReferrals.Total
-		for _, userReferral := range userReferrals.Items {
-			if userReferral.WalletPublicKeyEcdsa == nil || userReferral.WalletPublicKeyEddsa == nil {
+		summary.TotalReferrals = apiResponse.Total
+		for _, referral := range apiResponse.Items {
+			if referral.WalletPublicKeyEcdsa == "" || referral.WalletPublicKeyEddsa == "" {
 				continue
 			}
-			referral, err := a.s.GetVault(*userReferral.WalletPublicKeyEcdsa, *userReferral.WalletPublicKeyEddsa)
-			if referral == nil {
+			referralVault, err := a.s.GetVault(referral.WalletPublicKeyEcdsa, referral.WalletPublicKeyEddsa)
+			if err != nil || referralVault == nil {
 				a.logger.Warnf("Referral vault not found for ECDSA: %s, EDDSA: %s",
-					*userReferral.WalletPublicKeyEcdsa, *userReferral.WalletPublicKeyEddsa)
+					referral.WalletPublicKeyEcdsa, referral.WalletPublicKeyEddsa)
 				continue
 			}
 
-			if err != nil {
-				a.logger.Error(err)
-				c.Error(errFailedToGetVault)
-				return
-
+			//User can not refer himself
+			if refferer.EDDSA == referralVault.EDDSA && refferer.ECDSA == referralVault.ECDSA {
+				continue
 			}
 
-			if referral.Balance >= MinBalanceForValidReferral {
-				referralSummary.ValidReferrals++
+			if referralVault.Balance+referralVault.LPValue+referralVault.NFTValue >= MinBalanceForValidReferral {
+				summary.ValidReferrals++
 			}
 		}
-
+		c.JSON(http.StatusOK, summary)
+	} else {
+		c.Error(errForbiddenAccess)
 	}
-	c.JSON(http.StatusOK, referralSummary)
 }
