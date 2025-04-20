@@ -6,8 +6,8 @@ type ReferralsAPIResponse struct {
 }
 
 type Referral struct {
-	Id                   string  `json:"id"`
-	UUId                 string  `json:"uuid"`
+	ID                   string  `json:"id"`
+	UUID                 string  `json:"uuid"`
 	FirstName            string  `json:"first_name"`
 	Username             string  `json:"username"`
 	ReferralsCount       int     `json:"referrals_count"`

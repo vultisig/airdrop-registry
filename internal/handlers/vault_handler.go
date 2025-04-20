@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -13,6 +14,7 @@ import (
 )
 
 const MaxPageSize = 100
+const MinBalanceForValidReferral = 50
 
 func (a *Api) registerVaultHandler(c *gin.Context) {
 	var vault models.VaultRequest
@@ -406,13 +408,13 @@ func (a *Api) getUserReferrals(c *gin.Context) {
 	var vault models.VaultRequest
 	if err := c.ShouldBindJSON(&vault); err != nil {
 		a.logger.Error(err)
-		c.Error(errInvalidRequest)
+		_ = c.Error(errInvalidRequest)
 		return
 	}
 	v, err := a.s.GetVault(vault.PublicKeyECDSA, vault.PublicKeyEDDSA)
 	if err != nil {
 		a.logger.Error(err)
-		c.Error(errFailedToGetVault)
+		_ = c.Error(errFailedToGetVault)
 		return
 
 	}
@@ -427,26 +429,41 @@ func (a *Api) getUserReferrals(c *gin.Context) {
 	if v.HexChainCode == vault.HexChainCode && v.Uid == vault.Uid {
 		url := fmt.Sprintf("%s/user/referrals?user=%d&apiKey=%s", a.cfg.Vultiref.BaseAddress, v.ID, a.cfg.Vultiref.APIKey)
 
-		resp, err := http.Get(url)
+		client := &http.Client{
+			Timeout: 10 * time.Second,
+		}
+
+		resp, err := client.Get(url)
 		if err != nil {
-			a.logger.WithError(err)
+			a.logger.WithError(err).Error("Failed to fetch referrals from API")
 			c.Error(errFailedToFetchFromBotApi)
 			return
 		}
+		if resp.StatusCode != http.StatusOK {
+			a.logger.Errorf("API returned non-200 status code: %d", resp.StatusCode)
+			_ = c.Error(errFailedToFetchFromBotApi)
+			return
+		}
+
 		defer resp.Body.Close()
 
 		if err := json.NewDecoder(resp.Body).Decode(&userReferrals); err != nil {
-			a.logger.WithError(err)
+			a.logger.WithError(err).Error("Failed to fetch referrals from API")
 			c.Error(errUnknown)
 			return
 		}
 
+		referralSummary.TotalReferrals = userReferrals.Total
 		for _, userReferral := range userReferrals.Items {
-			referralSummary.TotalReferrals = userReferrals.Total
 			if userReferral.WalletPublicKeyEcdsa == nil || userReferral.WalletPublicKeyEddsa == nil {
 				continue
 			}
 			referral, err := a.s.GetVault(*userReferral.WalletPublicKeyEcdsa, *userReferral.WalletPublicKeyEddsa)
+			if referral == nil {
+				a.logger.Warnf("Referral vault not found for ECDSA: %s, EDDSA: %s",
+					*userReferral.WalletPublicKeyEcdsa, *userReferral.WalletPublicKeyEddsa)
+				continue
+			}
 
 			if err != nil {
 				a.logger.Error(err)
@@ -455,7 +472,7 @@ func (a *Api) getUserReferrals(c *gin.Context) {
 
 			}
 
-			if referral.Balance > 50 {
+			if referral.Balance >= MinBalanceForValidReferral {
 				referralSummary.ValidReferrals++
 			}
 		}
