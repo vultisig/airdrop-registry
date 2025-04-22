@@ -39,7 +39,7 @@ func (v *VultibotService) GetReferrals(eddsaKey string, ecdsaKey string) ([]mode
 	}
 	if resp.StatusCode != http.StatusOK {
 		v.logger.Errorf("API returned non-200 status code: %d", resp.StatusCode)
-		return nil, err
+		return nil, fmt.Errorf("API returned non-200 status code: %d", resp.StatusCode)
 	}
 
 	defer resp.Body.Close()
@@ -52,7 +52,7 @@ func (v *VultibotService) GetReferrals(eddsaKey string, ecdsaKey string) ([]mode
 	return apiResponse.Items, nil
 }
 
-func (v *VultibotService) GetAllAchivements(achievementsRequest models.AchievementsRequest) ([]models.AchievementsResponse, error) {
+func (v *VultibotService) GetAllAchievements(achievementsRequest models.AchievementsRequest) ([]models.AchievementsResponse, error) {
 	url := fmt.Sprintf("%s/achievements/list",
 		v.baseAddress,
 	)
@@ -75,7 +75,8 @@ func (v *VultibotService) GetAllAchivements(achievementsRequest models.Achieveme
 
 	var response []models.AchievementsResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("error decoding RPC response: %w", err)
+		v.logger.WithError(err).Error("Failed to decode achievements from API")
+		return nil, fmt.Errorf("error decoding achievements response: %w", err)
 	}
 
 	return response, nil
