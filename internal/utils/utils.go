@@ -18,6 +18,10 @@ func IsValidHex(s string) bool {
 	re := regexp.MustCompile(`^[0-9a-fA-F]{64,66}$`)
 	return re.MatchString(s)
 }
+func IsETHAddress(s string) bool {
+	re := regexp.MustCompile(`^0x[a-fA-F0-9]{40}$`)
+	return re.MatchString(s)
+}
 
 func HexToFloat64(hexStr string, decimals int64) (float64, error) {
 	if strings.HasPrefix(hexStr, "0x") {
