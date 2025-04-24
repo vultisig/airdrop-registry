@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/mr-tron/base58"
@@ -19,8 +20,7 @@ func IsValidHex(s string) bool {
 	return re.MatchString(s)
 }
 func IsETHAddress(s string) bool {
-	re := regexp.MustCompile(`^0x[a-fA-F0-9]{40}$`)
-	return re.MatchString(s)
+	return common.IsHexAddress(s)
 }
 
 func HexToFloat64(hexStr string, decimals int64) (float64, error) {
