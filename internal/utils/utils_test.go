@@ -59,19 +59,61 @@ func TestHexToFloat64(t *testing.T) {
 }
 
 func TestEIP55(t *testing.T) {
-	contracts := make([]string, 0)
-	contracts = append(contracts, "0x0b3e328455c4059eeb9e3f84b5543f74e24e7e1b",
-		"0x5947bb275c521040051d82396192181b413227a3",
-		"0x23ee2343b892b1bb63503a4fabc840e0e2c6810f",
-		"tr7nhqjekqxgtci8q8zy4pl8otszgjlj6t",
-		"0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
-		"es9vmfrzacermjfrf4h2fyd4kconky11mcce8benwnyb",
-	)
+	testCases := []struct {
+		name           string
+		input          string
+		expectedOutput string
+		expectError    bool
+	}{
+		{
+			name:           "Valid lowercase address",
+			input:          "0x5aeda56215b167893e80b4fe645ba6d5bab767de",
+			expectedOutput: "0x5AEDA56215b167893e80B4fE645BA6d5Bab767DE",
+			expectError:    false,
+		},
+		{
+			name:           "Valid uppercase address",
+			input:          "0X5AEDA56215B167893E80B4FE645BA6D5BAB767DE",
+			expectedOutput: "0x5AEDA56215b167893e80B4fE645BA6d5Bab767DE",
+			expectError:    false,
+		},
+		{
+			name:           "Address with mixed case",
+			input:          "0x5aeDa56215b167893e80B4fE645BA6d5Bab767DE",
+			expectedOutput: "0x5AEDA56215b167893e80B4fE645BA6d5Bab767DE",
+			expectError:    false,
+		},
+		{
+			name:        "Invalid address - too short",
+			input:       "0x5aeda56215b167",
+			expectError: true,
+		},
+		{
+			name:        "Invalid address - non-hex characters",
+			input:       "0xZZeda56215b167893e80b4fe645ba6d5bab767de",
+			expectError: true,
+		},
+	}
 
-	for _, contract := range contracts {
-		_, err := EIP55Checksum(contract)
-		if err != nil {
-			t.Errorf("Failed to get EIP55 checksum for %s: %v", contract, err)
-		}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := EIP55Checksum(tc.input)
+
+			if tc.expectError {
+				if err == nil {
+					t.Errorf("Expected error for input %s, but got none", tc.input)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Did not expect error for input %s, but got: %v", tc.input, err)
+				return
+			}
+
+			if actual != tc.expectedOutput {
+				t.Errorf("For input %s, expected output %s, but got %s", tc.input, tc.expectedOutput, actual)
+			}
+		})
 	}
 }
