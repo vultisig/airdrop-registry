@@ -131,7 +131,7 @@ func (c *CMCService) GetCMCIDByContract(chainName, contract string) (int, error)
 	}
 
 	//if chain is EVM, then convert to checksum address
-	if utils.IsETHAddress(strings.TrimPrefix(contract, "0x")) {
+	if utils.IsETHAddress(contract) {
 		contractEIP55, err := utils.EIP55Checksum(contract)
 		if err != nil {
 			return -1, fmt.Errorf("failed to convert contract address to EIP55 checksum: %w", err)
