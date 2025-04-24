@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/vultisig/airdrop-registry/internal/common"
 	"github.com/vultisig/airdrop-registry/internal/models"
+	"github.com/vultisig/airdrop-registry/internal/utils"
 )
 
 var cmcChainMap map[common.Chain]string = map[common.Chain]string{
@@ -119,8 +120,8 @@ func (c *CMCService) GetCMCID(chain common.Chain, coin models.Coin) (int, error)
 	return c.GetCMCIDByContract(cmcChainMap[chain], coin.ContractAddress)
 }
 
-func (c *CMCService) GetCMCIDByContract(chain, contract string) (int, error) {
-	if cachedData, found := c.cachedData.Get(c.getCacheKey(chain, contract)); found {
+func (c *CMCService) GetCMCIDByContract(chainName, contract string) (int, error) {
+	if cachedData, found := c.cachedData.Get(c.getCacheKey(chainName, contract)); found {
 		if cmcID, ok := cachedData.(int); ok {
 			return cmcID, nil
 		}
@@ -128,6 +129,16 @@ func (c *CMCService) GetCMCIDByContract(chain, contract string) (int, error) {
 	if contract == "" {
 		return 0, fmt.Errorf("empty contract address provided")
 	}
+
+	//if chain is EVM, then convert to checksum address
+	if utils.IsETHAddress(contract) {
+		contractEIP55, err := utils.EIP55Checksum(contract)
+		if err != nil {
+			return -1, fmt.Errorf("failed to convert contract address to EIP55 checksum: %w", err)
+		}
+		contract = contractEIP55
+	}
+
 	url := fmt.Sprintf("%s/info?address=%s&skip_invalid=true&aux=status", c.baseURL, contract)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -143,7 +154,7 @@ func (c *CMCService) GetCMCIDByContract(chain, contract string) (int, error) {
 	}
 	for _, v := range cmcContractModel.Data {
 		for _, ca := range v.ContractAddresses {
-			if strings.EqualFold(ca.ContractAddress, contract) && ca.Platform.Coin.Name == chain {
+			if strings.EqualFold(ca.ContractAddress, contract) && ca.Platform.Coin.Name == chainName {
 				c.cachedData.Set(c.getCacheKey(ca.Platform.Name, contract), v.ID, cache.DefaultExpiration)
 				return v.ID, nil
 			}
