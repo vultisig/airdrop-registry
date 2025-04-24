@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/mr-tron/base58"
 )
 
@@ -76,4 +77,27 @@ func NewJsonRPCRequest(method string, params interface{}, id int) map[string]int
 		"params":  params,
 		"id":      id,
 	}
+}
+
+func EIP55Checksum(address string) (string, error) {
+	address = strings.ToLower(strings.TrimPrefix(address, "0x"))
+	hash := crypto.Keccak256Hash([]byte(address)).Hex()[2:] // remove '0x' from hash
+
+	var result strings.Builder
+	result.WriteString("0x")
+
+	for i := 0; i < len(address); i++ {
+		char := address[i]
+		hashChar := hash[i]
+
+		if char >= '0' && char <= '9' {
+			result.WriteByte(char)
+		} else if hashChar >= '8' {
+			result.WriteByte(byte(strings.ToUpper(string(char))[0]))
+		} else {
+			result.WriteByte(char)
+		}
+	}
+
+	return result.String(), nil
 }

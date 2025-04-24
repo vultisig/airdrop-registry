@@ -57,3 +57,21 @@ func TestHexToFloat64(t *testing.T) {
 		}
 	}
 }
+
+func TestEIP55(t *testing.T) {
+	contracts := make([]string, 0)
+	contracts = append(contracts, "0x0b3e328455c4059eeb9e3f84b5543f74e24e7e1b",
+		"0x5947bb275c521040051d82396192181b413227a3",
+		"0x23ee2343b892b1bb63503a4fabc840e0e2c6810f",
+		"tr7nhqjekqxgtci8q8zy4pl8otszgjlj6t",
+		"0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+		"es9vmfrzacermjfrf4h2fyd4kconky11mcce8benwnyb",
+	)
+
+	for _, contract := range contracts {
+		_, err := EIP55Checksum(contract)
+		if err != nil {
+			t.Errorf("Failed to get EIP55 checksum for %s: %v", contract, err)
+		}
+	}
+}
