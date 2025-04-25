@@ -21,6 +21,7 @@ var (
 	errFailedToExitRegistry    = errors.New("FAIL_TO_EXIT_REGISTRY")
 	errForbiddenAccess         = errors.New("FORBIDDEN_ACCESS")
 	errFailedToGetAddress      = errors.New("FAIL_TO_GET_ADDRESS")
+	errFailedToFetchFromBotApi = errors.New("FAIL_TO_FETCH_FROM_BOT_API")
 	errAddressNotMatch         = errors.New("ADDRESS_NOT_MATCH")
 	errFailedToAddCoin         = errors.New("FAIL_TO_ADD_COIN")
 	errFailedToDeleteCoin      = errors.New("FAIL_TO_DELETE_COIN")
@@ -62,8 +63,9 @@ func ErrorHandler() gin.HandlerFunc {
 				errors.Is(err, errFailedToDeleteCoin),
 				errors.Is(err, errFailedToDerivePublicKey),
 				errors.Is(err, errFailedToSetTheme),
-				errors.Is(err, errFailedToGetTheme):
-				errors.Is(err, errFailedToGetCollection)
+				errors.Is(err, errFailedToFetchFromBotApi),
+				errors.Is(err, errFailedToGetTheme),
+				errors.Is(err, errFailedToGetCollection):
 				statusCode = http.StatusInternalServerError
 			default:
 				statusCode = http.StatusInternalServerError

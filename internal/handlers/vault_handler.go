@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -11,6 +13,7 @@ import (
 )
 
 const MaxPageSize = 100
+const MinBalanceForValidReferral = 50
 
 func (a *Api) registerVaultHandler(c *gin.Context) {
 	var vault models.VaultRequest
@@ -398,4 +401,79 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 		vaultsResp.Vaults = append(vaultsResp.Vaults, vaultResp)
 	}
 	c.JSON(http.StatusOK, vaultsResp)
+}
+
+func (a *Api) getUserReferrals(c *gin.Context) {
+	var requestedVault models.VaultRequest
+	if err := c.ShouldBindJSON(&requestedVault); err != nil {
+		a.logger.Error(err)
+		_ = c.Error(errInvalidRequest)
+		return
+	}
+	refferer, err := a.s.GetVault(requestedVault.PublicKeyECDSA, requestedVault.PublicKeyEDDSA)
+	if err != nil {
+		a.logger.Error(err)
+		_ = c.Error(errFailedToGetVault)
+		return
+
+	}
+
+	if refferer == nil {
+		c.Error(errVaultNotFound)
+		return
+	}
+
+	var apiResponse models.ReferralsAPIResponse
+	var summary models.ReferralsSummary
+	if refferer.HexChainCode == requestedVault.HexChainCode && refferer.Uid == requestedVault.Uid {
+		url := fmt.Sprintf("%s/user/referrals?eddsaKey=%s&ecdsaKey=%s&apiKey=%s",
+			a.cfg.Vultiref.BaseAddress,
+			refferer.EDDSA,
+			refferer.ECDSA,
+			a.cfg.Vultiref.APIKey)
+
+		resp, err := http.Get(url)
+		if err != nil {
+			a.logger.WithError(err).Error("Failed to fetch referrals from API")
+			c.Error(errFailedToFetchFromBotApi)
+			return
+		}
+		if resp.StatusCode != http.StatusOK {
+			a.logger.Errorf("API returned non-200 status code: %d", resp.StatusCode)
+			_ = c.Error(errFailedToFetchFromBotApi)
+			return
+		}
+
+		defer resp.Body.Close()
+
+		if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
+			a.logger.WithError(err).Error("Failed to fetch referrals from API")
+			c.Error(errUnknown)
+			return
+		}
+		summary.TotalReferrals = apiResponse.Total
+		for _, referral := range apiResponse.Items {
+			if referral.WalletPublicKeyEcdsa == "" || referral.WalletPublicKeyEddsa == "" {
+				continue
+			}
+			referralVault, err := a.s.GetVault(referral.WalletPublicKeyEcdsa, referral.WalletPublicKeyEddsa)
+			if err != nil || referralVault == nil {
+				a.logger.Warnf("Referral vault not found for ECDSA: %s, EDDSA: %s",
+					referral.WalletPublicKeyEcdsa, referral.WalletPublicKeyEddsa)
+				continue
+			}
+
+			//User can not refer himself
+			if refferer.EDDSA == referralVault.EDDSA && refferer.ECDSA == referralVault.ECDSA {
+				continue
+			}
+
+			if referralVault.Balance+referralVault.LPValue+referralVault.NFTValue >= MinBalanceForValidReferral {
+				summary.ValidReferrals++
+			}
+		}
+		c.JSON(http.StatusOK, summary)
+	} else {
+		c.Error(errForbiddenAccess)
+	}
 }
