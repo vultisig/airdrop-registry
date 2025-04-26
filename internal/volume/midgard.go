@@ -15,17 +15,10 @@ type midgardTracker struct {
 	logger  *logrus.Logger
 }
 
-func NewTCMidgardTracker() IVolumeTracker {
+func NewMidgardVolumeTracker(baseAddress string) IVolumeTracker {
 	return &midgardTracker{
-		baseUrl: "https://midgard.ninerealms.com/v2/actions",
-		logger:  logrus.WithField("module", "thorchain_volume_tracker").Logger,
-	}
-}
-
-func NewMayaMidgardTracker() IVolumeTracker {
-	return &midgardTracker{
-		baseUrl: "https://midgard.mayachain.info/v2/actions",
-		logger:  logrus.WithField("module", "mayachain_volume_tracker").Logger,
+		baseUrl: fmt.Sprintf("%s/v2/actions", baseAddress),
+		logger:  logrus.WithField("module", "midgard_tracker").Logger,
 	}
 }
 

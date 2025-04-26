@@ -10,6 +10,7 @@ import (
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/balance"
 	"github.com/vultisig/airdrop-registry/internal/services"
+	"github.com/vultisig/airdrop-registry/internal/volume"
 )
 
 func main() {
@@ -34,6 +35,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	volumeTracker, err := volume.NewVolumeResolver(cfg)
+	if err != nil {
+		panic(err)
+	}
+	_ = volumeTracker
 	pointWorker, err := services.NewPointWorker(cfg, storage, priceResolver, balanceResolver)
 	if err != nil {
 		panic(err)
