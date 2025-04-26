@@ -57,3 +57,63 @@ func TestHexToFloat64(t *testing.T) {
 		}
 	}
 }
+
+func TestEIP55(t *testing.T) {
+	testCases := []struct {
+		name           string
+		input          string
+		expectedOutput string
+		expectError    bool
+	}{
+		{
+			name:           "Valid lowercase address",
+			input:          "0x5aeda56215b167893e80b4fe645ba6d5bab767de",
+			expectedOutput: "0x5AEDA56215b167893e80B4fE645BA6d5Bab767DE",
+			expectError:    false,
+		},
+		{
+			name:           "Valid uppercase address",
+			input:          "0X5AEDA56215B167893E80B4FE645BA6D5BAB767DE",
+			expectedOutput: "0x5AEDA56215b167893e80B4fE645BA6d5Bab767DE",
+			expectError:    false,
+		},
+		{
+			name:           "Address with mixed case",
+			input:          "0x5aeDa56215b167893e80B4fE645BA6d5Bab767DE",
+			expectedOutput: "0x5AEDA56215b167893e80B4fE645BA6d5Bab767DE",
+			expectError:    false,
+		},
+		{
+			name:        "Invalid address - too short",
+			input:       "0x5aeda56215b167",
+			expectError: true,
+		},
+		{
+			name:        "Invalid address - non-hex characters",
+			input:       "0xZZeda56215b167893e80b4fe645ba6d5bab767de",
+			expectError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := EIP55Checksum(tc.input)
+
+			if tc.expectError {
+				if err == nil {
+					t.Errorf("Expected error for input %s, but got none", tc.input)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Did not expect error for input %s, but got: %v", tc.input, err)
+				return
+			}
+
+			if actual != tc.expectedOutput {
+				t.Errorf("For input %s, expected output %s, but got %s", tc.input, tc.expectedOutput, actual)
+			}
+		})
+	}
+}

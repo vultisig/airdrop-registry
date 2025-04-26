@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/mr-tron/base58"
 )
@@ -16,6 +17,9 @@ func IsValidHex(s string) bool {
 	// hex 64-66 characters
 	re := regexp.MustCompile(`^[0-9a-fA-F]{64,66}$`)
 	return re.MatchString(s)
+}
+func IsETHAddress(s string) bool {
+	return common.IsHexAddress(s)
 }
 
 func HexToFloat64(hexStr string, decimals int64) (float64, error) {
@@ -76,4 +80,12 @@ func NewJsonRPCRequest(method string, params interface{}, id int) map[string]int
 		"params":  params,
 		"id":      id,
 	}
+}
+
+func EIP55Checksum(address string) (string, error) {
+	if !IsETHAddress(address) {
+		return "", fmt.Errorf("invalid address")
+	}
+	addr := common.HexToAddress(address)
+	return addr.Hex(), nil
 }
