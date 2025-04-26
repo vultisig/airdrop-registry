@@ -435,7 +435,7 @@ func (a *Api) getVaultsByVolumeHandler(c *gin.Context) {
 		_ = c.Error(errFailedToGetVault)
 		return
 	}
-	vaults, err := a.s.GetSwapLeaderVaults(from, limit)
+	vaults, err := a.s.GetLeaderVaults(from, limit)
 	if err != nil {
 		a.logger.Errorf("failed to get leader vaults: %v", err)
 		_ = c.Error(errFailedToGetVault)
