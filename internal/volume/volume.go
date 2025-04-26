@@ -12,12 +12,14 @@ type IVolumeTracker interface {
 }
 
 type VolumeResolver struct {
-	trackers []IVolumeTracker
-	volume   map[string]float64
+	trackers  []IVolumeTracker
+	volume    map[string]float64
+	affiliate []string
 }
 
 func NewVolumeResolver(cfg *config.Config) (*VolumeResolver, error) {
 	pr := &VolumeResolver{
+		affiliate: cfg.VolumeTrackingAPI.AffiliateAddress,
 		trackers: []IVolumeTracker{
 			NewMidgardVolumeTracker(cfg.VolumeTrackingAPI.TCMidgardBaseURL),
 			NewMidgardVolumeTracker(cfg.VolumeTrackingAPI.MayaMidgardBaseURL),
@@ -29,9 +31,9 @@ func NewVolumeResolver(cfg *config.Config) (*VolumeResolver, error) {
 	return pr, nil
 }
 
-func (v *VolumeResolver) LoadVolume(from, to int64, affiliate []string) error {
+func (v *VolumeResolver) LoadVolume(from, to int64) error {
 	res := make(map[string]float64)
-	for _, aff := range affiliate {
+	for _, aff := range v.affiliate {
 		for _, tracker := range v.trackers {
 			vol, err := tracker.FetchVolume(from, to, aff)
 			if err != nil {

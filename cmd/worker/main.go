@@ -39,8 +39,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	_ = volumeTracker
-	pointWorker, err := services.NewPointWorker(cfg, storage, priceResolver, balanceResolver)
+	pointWorker, err := services.NewPointWorker(cfg, storage, priceResolver, balanceResolver, volumeTracker)
 	if err != nil {
 		panic(err)
 	}
