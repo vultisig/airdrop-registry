@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"math/big"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
+	"github.com/vultisig/airdrop-registry/internal/utils"
 )
 
 type oneInchVolumeTracker struct {
@@ -35,6 +37,11 @@ func (o *oneInchVolumeTracker) SafeClose(closer io.Closer) {
 
 // TODO: add from/to filter to etherscan request
 func (o *oneInchVolumeTracker) FetchVolume(from, to int64, affiliate string) (map[string]float64, error) {
+	res := make(map[string]float64)
+	//ignore invalid affiliate
+	if !o.isValidAffiliate(affiliate) {
+		return res, nil
+	}
 	// #TODO check api for from & to parameters
 	url := fmt.Sprintf("%s/v2/api?chainid=1&module=account&action=txlistinternal&address=%s&apikey=%s", o.etherscanbaseUrl, affiliate, o.etherscanApiKey)
 	resp, err := http.Get(url)
@@ -61,7 +68,7 @@ func (o *oneInchVolumeTracker) FetchVolume(from, to int64, affiliate string) (ma
 		}
 		txHashes = append(txHashes, item.Hash)
 	}
-	res := make(map[string]float64)
+
 	for _, tx := range txHashes {
 		url = fmt.Sprintf("%s/getTxInfo/%s?apiKey=%s", o.ethplorerBaseUrl, tx, o.ethplorerApiKey)
 		resp, err := http.Get(url)
@@ -84,13 +91,24 @@ func (o *oneInchVolumeTracker) FetchVolume(from, to int64, affiliate string) (ma
 			if err != nil {
 				return nil, fmt.Errorf("error converting map to struct: %w", err)
 			}
-			dynamicVal := float64(lastOperation.Value) / math.Pow(10, float64(lastOperation.TokenInfo.Decimals))
-			res[lastOperation.To] += dynamicVal * priceData.Rate
+			bigIntValue, ok := new(big.Int).SetString(lastOperation.Value, 10)
+			if !ok {
+				return nil, fmt.Errorf("error converting string to big int: %s", lastOperation.Value)
+			}
+			floatValue := new(big.Float).SetInt(bigIntValue)
+			scale := new(big.Float).SetFloat64(math.Pow10(lastOperation.TokenInfo.Decimals))
+			amount, _ := new(big.Float).Quo(floatValue, scale).Float64()
+			res[lastOperation.To] += amount * priceData.Rate
 		} else {
 			res[lastOperation.To] = 0
 		}
 	}
 	return res, nil
+}
+
+// Affilaite should be eth address
+func (o *oneInchVolumeTracker) isValidAffiliate(affiliate string) bool {
+	return utils.IsETHAddress(affiliate)
 }
 
 func mapToStruct(m map[string]any, result any) error {
@@ -119,7 +137,7 @@ type ethplorerTokenInfo struct {
 	Price    any `json:"price"`
 }
 type ethplorerOperation struct {
-	Value     int64              `json:"value,string"`
+	Value     string             `json:"value"`
 	To        string             `json:"to"`
 	TokenInfo ethplorerTokenInfo `json:"tokenInfo"`
 }
