@@ -21,8 +21,8 @@ func NewVolumeResolver(cfg *config.Config) (*VolumeResolver, error) {
 	pr := &VolumeResolver{
 		affiliate: cfg.VolumeTrackingAPI.AffiliateAddress,
 		trackers: []IVolumeTracker{
-			NewMidgardVolumeTracker(cfg.VolumeTrackingAPI.TCMidgardBaseURL),
-			NewMidgardVolumeTracker(cfg.VolumeTrackingAPI.MayaMidgardBaseURL),
+			NewMidgardVolumeTracker(cfg.VolumeTrackingAPI.TCMidgardBaseURL, 8),
+			NewMidgardVolumeTracker(cfg.VolumeTrackingAPI.MayaMidgardBaseURL, 10),
 			NewLifiVolumeTracker(),
 			NewOneInchVolumeTracker(cfg.VolumeTrackingAPI.EtherscanAPIKey, cfg.VolumeTrackingAPI.EthplorerAPIKey),
 		},
