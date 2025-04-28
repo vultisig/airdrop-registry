@@ -63,9 +63,6 @@ func (v *midgardTracker) processVolumeWithToken(from, to int64, affiliate, nextP
 				continue
 			}
 			for _, outCoin := range out.OutCoins {
-				if err != nil {
-					return nil, fmt.Errorf("error parsing out coin amount: %w", err)
-				}
 				res[out.Address] += float64(outCoin.Amount) * math.Pow10(-v.chainDecimal) * action.Metadata.Swap.OutPriceUSD
 			}
 		}
