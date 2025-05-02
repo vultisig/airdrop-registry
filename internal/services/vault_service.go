@@ -111,6 +111,16 @@ func (s *Storage) GetLeaderVaults(fromRank int64, limit int) ([]models.Vault, er
 	return vaults, nil
 }
 
+// TODO: rename the function to GetRankLeaderVaults
+func (s *Storage) GetSwapLeaderVaults(fromRank int64, limit int) ([]models.Vault, error) {
+	var vaults []models.Vault
+	// where rank is not null and rank > fromRank
+	if err := s.db.Where("`rank` is not null and `rank` > ?  and join_airdrop = 1", fromRank).Order("`swap_volume` desc").Limit(limit).Find(&vaults).Error; err != nil {
+		return nil, fmt.Errorf("failed to get leader vaults: %w", err)
+	}
+	return vaults, nil
+}
+
 func (s *Storage) GetLeaderVaultCount() (int64, error) {
 	var count int64
 	if err := s.db.Model(&models.Vault{}).Where("`rank` is not null and `rank` > 0  and join_airdrop = 1").Count(&count).Error; err != nil {
@@ -141,7 +151,9 @@ func (s *Storage) GetLeaderVaultTotalBalance() (int64, error) {
 func (s *Storage) GetLeaderVaultTotalVolume() (float64, error) {
 	//return sum of volume of all leader vaults
 	var totalVolume float64
-	if err := s.db.Model(&models.Vault{}).Select("sum(swap_volume)").Row().Scan(&totalVolume); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := s.db.WithContext(ctx).Model(&models.Vault{}).Select("sum(swap_volume)").Row().Scan(&totalVolume); err != nil {
 		return 0, fmt.Errorf("failed to get leader vault total volume: %w", err)
 	}
 	return totalVolume, nil
