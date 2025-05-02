@@ -62,8 +62,8 @@ func ErrorHandler() gin.HandlerFunc {
 				errors.Is(err, errFailedToDeleteCoin),
 				errors.Is(err, errFailedToDerivePublicKey),
 				errors.Is(err, errFailedToSetTheme),
-				errors.Is(err, errFailedToGetTheme):
-				errors.Is(err, errFailedToGetCollection)
+				errors.Is(err, errFailedToGetTheme),
+				errors.Is(err, errFailedToGetCollection):
 				statusCode = http.StatusInternalServerError
 			default:
 				statusCode = http.StatusInternalServerError
