@@ -52,7 +52,7 @@ type NFT struct {
 type Token struct {
 	Multiplier      int    `mapstructure:"multiplier"` //boosting multiplier
 	Name            string `mapstructure:"name"`
-	MinTokens       int    `mapstructure:"min_tokens"`
+	MinAmount       int    `mapstructure:"min_amount"`
 	Chain           string `mapstructure:"chain"`
 	ContractAddress string `mapstructure:"contract_address"`
 }
