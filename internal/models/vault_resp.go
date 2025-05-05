@@ -17,6 +17,7 @@ type VaultResponse struct {
 	RegisteredAt          int64        `json:"registered_at"`
 	AvatarURL             string       `json:"avatar_url"`
 	ShowNameInLeaderboard bool         `json:"show_name_in_leaderboard"`
+	SwapVolume            float64      `json:"swap_volume"`
 	ReferralCode          string       `json:"referral_code"`
 }
 
@@ -26,4 +27,5 @@ type VaultsResponse struct {
 	TotalBalance    int64           `json:"total_balance"`
 	TotalLP         int64           `json:"total_lp"`
 	TotalNFT        int64           `json:"total_nft"`
+	TotalSwapVolume float64         `json:"total_swap_volume"`
 }

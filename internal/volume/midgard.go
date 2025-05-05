@@ -4,28 +4,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
-	"strconv"
 
 	"github.com/sirupsen/logrus"
 )
 
 type midgardTracker struct {
-	baseUrl string
-	logger  *logrus.Logger
+	baseUrl      string
+	chainDecimal int
+	logger       *logrus.Logger
 }
 
-func NewTCMidgardTracker() IVolumeTracker {
+func NewMidgardVolumeTracker(baseAddress string, chainDecimal int) IVolumeTracker {
 	return &midgardTracker{
-		baseUrl: "https://midgard.ninerealms.com/v2/actions",
-		logger:  logrus.WithField("module", "thorchain_volume_tracker").Logger,
-	}
-}
-
-func NewMayaMidgardTracker() IVolumeTracker {
-	return &midgardTracker{
-		baseUrl: "https://midgard.mayachain.info/v2/actions",
-		logger:  logrus.WithField("module", "mayachain_volume_tracker").Logger,
+		baseUrl:      fmt.Sprintf("%s/v2/actions", baseAddress),
+		chainDecimal: chainDecimal,
+		logger:       logrus.WithField("module", "midgard_tracker").Logger,
 	}
 }
 
@@ -58,10 +53,8 @@ func (v *midgardTracker) processVolumeWithToken(from, to int64, affiliate, nextP
 		if action.Status != "success" {
 			continue
 		}
-		date, err := strconv.ParseInt(action.Date[:10], 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing action date: %w", err)
-		}
+		// convert nanoseconds to seconds
+		date := action.Date / 1e9
 		if date < from {
 			return res, nil
 		}
@@ -70,11 +63,7 @@ func (v *midgardTracker) processVolumeWithToken(from, to int64, affiliate, nextP
 				continue
 			}
 			for _, outCoin := range out.OutCoins {
-				amount, err := strconv.ParseInt(outCoin.Amount, 10, 64)
-				if err != nil {
-					return nil, fmt.Errorf("error parsing out coin amount: %w", err)
-				}
-				res[out.Address] += float64(amount) * action.Metadata.Swap.OutPriceUSD
+				res[out.Address] += float64(outCoin.Amount) * math.Pow10(-v.chainDecimal) * action.Metadata.Swap.OutPriceUSD
 			}
 		}
 	}
@@ -101,7 +90,7 @@ type tcMetadata struct {
 	Swap tcSwap `json:"swap"`
 }
 type tcOutCoins struct {
-	Amount string `json:"amount"`
+	Amount int64  `json:"amount,string"`
 	Asset  string `json:"asset"`
 }
 type tcOut struct {
@@ -110,7 +99,7 @@ type tcOut struct {
 	OutCoins  []tcOutCoins `json:"coins"`
 }
 type tcActions struct {
-	Date     string     `json:"date"`
+	Date     int64      `json:"date,string"`
 	Metadata tcMetadata `json:"metadata"`
 	Out      []tcOut    `json:"out"`
 	Status   string     `json:"status"`

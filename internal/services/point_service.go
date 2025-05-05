@@ -17,6 +17,7 @@ import (
 	"github.com/vultisig/airdrop-registry/internal/liquidity"
 	"github.com/vultisig/airdrop-registry/internal/models"
 	"github.com/vultisig/airdrop-registry/internal/utils"
+	"github.com/vultisig/airdrop-registry/internal/volume"
 )
 
 // PointWorker is a worker that processes points
@@ -27,6 +28,7 @@ type PointWorker struct {
 	balanceResolver        *balance.BalanceResolver
 	lpResolver             *liquidity.LiquidityPositionResolver
 	saverResolver          *liquidity.SaverPositionResolver
+	volumeResolver         *volume.VolumeResolver
 	startCoinID            int64
 	wg                     *sync.WaitGroup
 	stopChan               chan struct{}
@@ -35,7 +37,7 @@ type PointWorker struct {
 	whitelistNFTCollection []models.NFTCollection
 }
 
-func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceResolver, balanceResolver *balance.BalanceResolver) (*PointWorker, error) {
+func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceResolver, balanceResolver *balance.BalanceResolver, volumeResolver *volume.VolumeResolver) (*PointWorker, error) {
 
 	if nil == storage {
 		return nil, fmt.Errorf("storage is nil")
@@ -51,6 +53,7 @@ func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceRe
 		balanceResolver: balanceResolver,
 		lpResolver:      liquidity.NewLiquidtyPositionResolver(),
 		saverResolver:   liquidity.NewSaverPositionResolver(),
+		volumeResolver:  volumeResolver,
 		startCoinID:     cfg.Worker.StartID,
 		stopChan:        make(chan struct{}),
 		wg:              &sync.WaitGroup{},
@@ -150,6 +153,11 @@ func (p *PointWorker) startJob(job *models.Job) {
 	if err := p.updateCoinPrice(); err != nil {
 		p.logger.Errorf("failed to update coin prices: %e", err)
 		return
+	}
+
+	//TODO: make sure logic for from/to is correct
+	if err := p.volumeResolver.LoadVolume(job.StartOfEpoch(), job.EndOfEpoch()); err != nil {
+		p.logger.Errorf("failed to load volume: %e", err)
 	}
 
 	p.wg.Add(1)

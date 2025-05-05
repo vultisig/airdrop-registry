@@ -30,6 +30,13 @@ type Config struct {
 	OpenSea struct {
 		APIKey string `mapstructure:"api_key"`
 	}
+	VolumeTrackingAPI struct {
+		AffiliateAddress   []string `mapstructure:"affiliate_address"`
+		EtherscanAPIKey    string   `mapstructure:"etherscan_api_key"`
+		EthplorerAPIKey    string   `mapstructure:"ethplorer_api_key"`
+		TCMidgardBaseURL   string   `mapstructure:"tcmidgard_base_url"`
+		MayaMidgardBaseURL string   `mapstructure:"mayamidgard_base_url"`
+	}
 }
 
 func LoadConfig() (*Config, error) {
