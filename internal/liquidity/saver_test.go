@@ -72,8 +72,8 @@ func TestGetSaverPosition(t *testing.T) {
 	poolCache := cache.New(5*time.Minute, 10*time.Minute)
 	// Create a LiquidityPositionResolver instance
 	saverPositionResolver := &SaverPositionResolver{
-		thorwalletBaseURL: mockServer.URL,
-		poolCache:         poolCache,
+		midgardBaseURL: mockServer.URL,
+		poolCache:      poolCache,
 	}
 	poolCache.Add("AVAX.USDC-0XB97EF9EF8734C71904D8002F8B6BC66DD9C48A6E", poolResp{
 		Pool:          "AVAX.USDC-0XB97EF9EF8734C71904D8002F8B6BC66DD9C48A6E",
