@@ -41,7 +41,15 @@ type Config struct {
 		NFTs               []NFT     `mapstructure:"nfts"`       // list of boosting NFTs
 		Tokens             []Token   `mapstructure:"tokens"`     // list of boosting tokens
 	}
+	VolumeTrackingAPI struct {
+		AffiliateAddress   []string `mapstructure:"affiliate_address"`
+		EtherscanAPIKey    string   `mapstructure:"etherscan_api_key"`
+		EthplorerAPIKey    string   `mapstructure:"ethplorer_api_key"`
+		TCMidgardBaseURL   string   `mapstructure:"tcmidgard_base_url"`
+		MayaMidgardBaseURL string   `mapstructure:"mayamidgard_base_url"`
+	}
 }
+
 type NFT struct {
 	Multiplier      int    `mapstructure:"multiplier"` //boosting multiplier
 	CollectionName  string `mapstructure:"collection_name"`

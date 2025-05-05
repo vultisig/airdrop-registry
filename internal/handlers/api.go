@@ -88,7 +88,9 @@ func (a *Api) setupRouting() {
 	rg.POST("vault/theme", a.updateVaultShareAppearanceHandler)
 
 	// leader board
+	//TODO: Rename the endpoint to /leaderboard/rank/vaults
 	rg.GET("/leaderboard/vaults", a.getVaultsByRankHandler)
+	rg.GET("/leaderboard/swap/vaults", a.getVaultsByVolumeHandler)
 
 	// NFT-related endpoints
 	rg.GET("/nft/price/:collectionID", a.getCollectionMinPriceHandler)
