@@ -19,6 +19,7 @@ import (
 	"github.com/vultisig/airdrop-registry/internal/utils"
 )
 
+const MinBalanceForValidReferral = 10 // 10 USDT
 // PointWorker is a worker that processes points
 type PointWorker struct {
 	logger                 *logrus.Logger
@@ -27,6 +28,7 @@ type PointWorker struct {
 	balanceResolver        *balance.BalanceResolver
 	lpResolver             *liquidity.LiquidityPositionResolver
 	saverResolver          *liquidity.SaverPositionResolver
+	referralResolver       *ReferralResolverService
 	startCoinID            int64
 	wg                     *sync.WaitGroup
 	stopChan               chan struct{}
@@ -35,7 +37,7 @@ type PointWorker struct {
 	whitelistNFTCollection []models.NFTCollection
 }
 
-func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceResolver, balanceResolver *balance.BalanceResolver) (*PointWorker, error) {
+func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceResolver, balanceResolver *balance.BalanceResolver, referralResolver *ReferralResolverService) (*PointWorker, error) {
 
 	if nil == storage {
 		return nil, fmt.Errorf("storage is nil")
@@ -45,16 +47,17 @@ func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceRe
 	}
 
 	return &PointWorker{
-		logger:          logrus.WithField("module", "point_worker").Logger,
-		storage:         storage,
-		priceResolver:   priceResolver,
-		balanceResolver: balanceResolver,
-		lpResolver:      liquidity.NewLiquidtyPositionResolver(),
-		saverResolver:   liquidity.NewSaverPositionResolver(),
-		startCoinID:     cfg.Worker.StartID,
-		stopChan:        make(chan struct{}),
-		wg:              &sync.WaitGroup{},
-		cfg:             cfg,
+		logger:           logrus.WithField("module", "point_worker").Logger,
+		storage:          storage,
+		priceResolver:    priceResolver,
+		balanceResolver:  balanceResolver,
+		lpResolver:       liquidity.NewLiquidtyPositionResolver(),
+		referralResolver: referralResolver,
+		saverResolver:    liquidity.NewSaverPositionResolver(),
+		startCoinID:      cfg.Worker.StartID,
+		stopChan:         make(chan struct{}),
+		wg:               &sync.WaitGroup{},
+		cfg:              cfg,
 		whitelistNFTCollection: []models.NFTCollection{
 			{
 				Chain:             common.Ethereum,
@@ -202,7 +205,20 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 			p.logger.Info("no more vaults to process")
 			break
 		}
-		for _, vault := range vaults {
+		for i, vault := range vaults {
+			// Fetch referral count
+			vaults[i].ReferralCount, err = p.getValidReferralCount(vault.ECDSA, vault.EDDSA)
+			if err != nil {
+				p.logger.Errorf("failed to get referral count for vault %d: %v", vault.ID, err)
+				continue
+			}
+
+			err = p.storage.UpdateReferralCount(&vaults[i])
+			if err != nil {
+				p.logger.Errorf("failed to update referral count for vault %d: %v", vault.ID, err)
+				continue
+			}
+
 			coins, err := p.storage.GetCoins(vault.ID)
 			if err != nil {
 				p.logger.Errorf("failed to get coins for vault: %v", err)
@@ -491,4 +507,30 @@ func (p *PointWorker) updateCoinPrice() error {
 
 	defer p.logger.Info("finish updating coin prices")
 	return nil
+}
+
+func (p *PointWorker) getValidReferralCount(ecdsaKey string, eddsaKey string) (int64, error) {
+	referrals, err := p.referralResolver.GetReferrals(ecdsaKey, eddsaKey)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get referrals: %w", err)
+	}
+
+	var cnt int64
+	for _, r := range referrals {
+		//User can not refer himself
+		if r.WalletPublicKeyEcdsa == ecdsaKey && r.WalletPublicKeyEddsa == eddsaKey {
+			continue
+		}
+		v, err := p.storage.GetVault(r.WalletPublicKeyEcdsa, r.WalletPublicKeyEddsa)
+		if err != nil || v == nil {
+			p.logger.Warnf("Referral vault not found for ECDSA: %s, EDDSA: %s",
+				r.WalletPublicKeyEcdsa, r.WalletPublicKeyEddsa)
+			continue
+		}
+		if v.Balance+v.LPValue+v.NFTValue >= MinBalanceForValidReferral {
+			cnt++
+		}
+	}
+
+	return cnt, nil
 }

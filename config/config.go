@@ -30,7 +30,7 @@ type Config struct {
 	OpenSea struct {
 		APIKey string `mapstructure:"api_key"`
 	}
-	Vultiref struct {
+	ReferralBot struct {
 		APIKey      string `mapstructure:"api_key"`
 		BaseAddress string `mapstructure:"base_address"`
 	}

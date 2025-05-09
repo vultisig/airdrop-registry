@@ -1,4 +1,4 @@
-package vultibot
+package services
 
 import (
 	"bytes"
@@ -10,21 +10,23 @@ import (
 	"github.com/vultisig/airdrop-registry/internal/models"
 )
 
-type VultibotService struct {
+const MinBalanceForValidReferral = 10 // 10 USDT
+
+type ReferralResolverService struct {
 	baseAddress string
 	apiKey      string
 	logger      *logrus.Logger
 }
 
-func NewVultibotService(baseAddress, apiKey string) *VultibotService {
-	return &VultibotService{
+func NewReferralResolverService(baseAddress, apiKey string) *ReferralResolverService {
+	return &ReferralResolverService{
 		baseAddress: baseAddress,
 		apiKey:      apiKey,
 		logger:      logrus.New(),
 	}
 }
 
-func (v *VultibotService) GetReferrals(eddsaKey string, ecdsaKey string) ([]models.Referral, error) {
+func (v *ReferralResolverService) GetReferrals(ecdsaKey string, eddsaKey string) ([]models.Referral, error) {
 	url := fmt.Sprintf("%s/user/referrals?eddsaKey=%s&ecdsaKey=%s&apiKey=%s",
 		v.baseAddress,
 		eddsaKey,
@@ -52,7 +54,7 @@ func (v *VultibotService) GetReferrals(eddsaKey string, ecdsaKey string) ([]mode
 	return apiResponse.Items, nil
 }
 
-func (v *VultibotService) GetAllAchievements(achievementsRequest models.AchievementsRequest) ([]models.AchievementsResponse, error) {
+func (v *ReferralResolverService) GetAllAchievements(achievementsRequest models.AchievementsRequest) ([]models.AchievementsResponse, error) {
 	url := fmt.Sprintf("%s/achievements/list",
 		v.baseAddress,
 	)

@@ -11,7 +11,6 @@ import (
 )
 
 const MaxPageSize = 100
-const MinBalanceForValidReferral = 50
 
 func (a *Api) registerVaultHandler(c *gin.Context) {
 	var vault models.VaultRequest
