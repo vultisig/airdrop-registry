@@ -76,7 +76,6 @@ func (a *Api) setupRouting() {
 	rg.GET("/vault/shared/:uid", a.getVaultByUIDHandler)
 	rg.POST("/vault/join-airdrop", a.joinAirdrop)
 	rg.POST("/vault/exit-airdrop", a.exitAirdrop)
-	rg.POST("/vault/referrals", a.getUserReferrals)
 
 	// Coins
 	rg.DELETE("/coin/:ecdsaPublicKey/:eddsaPublicKey/:coinID", a.deleteCoin)
