@@ -117,3 +117,21 @@ func TestEIP55(t *testing.T) {
 		})
 	}
 }
+
+func TestGetReferralMultiplier(t *testing.T) {
+	testCases := []struct {
+		input          int64
+		expectedOutput float64
+	}{
+		{0, 1},
+		{1, 1.1114992922647913},
+		{10, 1.3857241771164996},
+		{500, 2},
+	}
+	for _, tc := range testCases {
+		result := GetReferralMultiplier(tc.input)
+		if result != tc.expectedOutput {
+			t.Errorf("Expected %f for input %d, but got %f", tc.expectedOutput, tc.input, result)
+		}
+	}
+}

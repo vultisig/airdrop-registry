@@ -455,6 +455,13 @@ func (p *PointWorker) updateBalance(coin models.CoinDBModel, multiplier int64) e
 	if newPoints == 0 {
 		return nil
 	}
+	v, err := p.storage.GetVaultByID(coin.VaultID)
+	if err != nil {
+		return fmt.Errorf("failed to get vault: %w", err)
+	}
+	referralMultiplier := utils.GetReferralMultiplier(v.ReferralCount)
+	newPoints = int64(float64(newPoints) * referralMultiplier)
+
 	if err := p.storage.IncreaseVaultTotalPoints(coin.VaultID, newPoints); err != nil {
 		return fmt.Errorf("failed to increase vault total points: %w", err)
 	}

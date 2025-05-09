@@ -10,8 +10,6 @@ import (
 	"github.com/vultisig/airdrop-registry/internal/models"
 )
 
-const MinBalanceForValidReferral = 10 // 10 USDT
-
 type ReferralResolverService struct {
 	baseAddress string
 	apiKey      string
