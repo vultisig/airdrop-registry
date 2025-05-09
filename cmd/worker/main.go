@@ -28,9 +28,6 @@ func main() {
 		}
 	}()
 	referralResolver := services.NewReferralResolverService(cfg.ReferralBot.APIKey, cfg.ReferralBot.BaseAddress)
-	if err != nil {
-		panic(err)
-	}
 	priceResolver, err := services.NewPriceResolver(cfg)
 	if err != nil {
 		panic(err)
