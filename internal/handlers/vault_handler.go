@@ -74,6 +74,7 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		Balance:               vault.Balance,
 		LPValue:               vault.LPValue,
 		NFTValue:              vault.NFTValue,
+		SwapVolume:            vault.SwapVolume,
 		RegisteredAt:          vault.Model.CreatedAt.UTC().Unix(),
 		Coins:                 []models.ChainCoins{},
 		AvatarURL:             vault.AvatarURL,
@@ -136,6 +137,7 @@ func (a *Api) getVaultByUIDHandler(c *gin.Context) {
 		Balance:        vault.Balance,
 		LPValue:        vault.LPValue,
 		NFTValue:       vault.NFTValue,
+		SwapVolume:     vault.SwapVolume,
 		Rank:           vault.Rank,
 		RegisteredAt:   vault.Model.CreatedAt.UTC().Unix(),
 		Coins:          []models.ChainCoins{},
@@ -392,6 +394,71 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 			Balance:      vault.Balance,
 			LPValue:      vault.LPValue,
 			NFTValue:     vault.NFTValue,
+			RegisteredAt: vault.Model.CreatedAt.UTC().Unix(),
+			AvatarURL:    vault.AvatarURL,
+		}
+		vaultsResp.Vaults = append(vaultsResp.Vaults, vaultResp)
+	}
+	c.JSON(http.StatusOK, vaultsResp)
+}
+
+func (a *Api) getVaultsByVolumeHandler(c *gin.Context) {
+	fromStr := c.DefaultQuery("from", "0")
+	limitStr := c.DefaultQuery("limit", "10")
+	from, err := strconv.ParseInt(fromStr, 10, 64)
+	if err != nil {
+		_ = c.Error(errInvalidRequest)
+		return
+	}
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		_ = c.Error(errInvalidRequest)
+		return
+	}
+	if limit > MaxPageSize {
+		limit = MaxPageSize
+	}
+	vaultsResp := models.VaultsResponse{
+		Vaults:          []models.VaultResponse{},
+		TotalVaultCount: 0,
+		TotalSwapVolume: 0,
+	}
+	vaultsResp.TotalVaultCount, err = a.s.GetLeaderVaultCount()
+	if err != nil {
+		a.logger.Errorf("failed to get leader vault count: %v", err)
+		_ = c.Error(errFailedToGetVault)
+		return
+	}
+	vaultsResp.TotalSwapVolume, err = a.s.GetLeaderVaultTotalVolume()
+	if err != nil {
+		a.logger.Errorf("failed to get leader vault total volume: %v", err)
+		_ = c.Error(errFailedToGetVault)
+		return
+	}
+	vaults, err := a.s.GetSwapLeaderVaults(from, limit)
+	if err != nil {
+		a.logger.Errorf("failed to get leader vaults: %v", err)
+		_ = c.Error(errFailedToGetVault)
+		return
+	}
+	for _, vault := range vaults {
+		vaultName := vault.Alias
+		if !vault.ShowNameInLeaderboard {
+			length := 10
+			if len(vault.Uid) < 10 {
+				length = len(vault.Uid)
+			}
+			vaultName = vault.Uid[:length]
+		}
+		vaultResp := models.VaultResponse{
+			Name:         vaultName,
+			Alias:        vaultName,
+			TotalPoints:  vault.TotalPoints,
+			Rank:         vault.Rank,
+			Balance:      vault.Balance,
+			LPValue:      vault.LPValue,
+			NFTValue:     vault.NFTValue,
+			SwapVolume:   vault.SwapVolume,
 			RegisteredAt: vault.Model.CreatedAt.UTC().Unix(),
 			AvatarURL:    vault.AvatarURL,
 		}
