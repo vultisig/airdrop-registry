@@ -34,6 +34,13 @@ func (s *Storage) GetVaultByUID(uid string) (*models.Vault, error) {
 	}
 	return &vault, nil
 }
+func (s *Storage) GetVaultByID(id uint) (*models.Vault, error) {
+	var vault models.Vault
+	if err := s.db.Where("id = ?", id).First(&vault).Error; err != nil {
+		return nil, fmt.Errorf("failed to get vault with ID %d: %w", id, err)
+	}
+	return &vault, nil
+}
 
 func (s *Storage) UpdateVault(vault *models.Vault) error {
 	if err := s.db.Save(vault).Error; err != nil {
@@ -181,6 +188,14 @@ func (s *Storage) UpdateVaultAvatar(vault *models.Vault) error {
 	qry := `UPDATE vaults SET avatar_url = ?, avatar_collection_id = ?, avatar_item_id = ? WHERE id = ?`
 	if err := s.db.Exec(qry, vault.AvatarURL, vault.AvatarCollectionID, vault.AvatarItemID, vault.ID).Error; err != nil {
 		return fmt.Errorf("failed to update vault avatar: %w", err)
+	}
+	return nil
+}
+
+func (s *Storage) UpdateReferralCount(vault *models.Vault) error {
+	qry := `UPDATE vaults SET referral_count = ? WHERE id = ?`
+	if err := s.db.Exec(qry, vault.ReferralCount, vault.ID).Error; err != nil {
+		return fmt.Errorf("failed to update vault refferal: %w", err)
 	}
 	return nil
 }

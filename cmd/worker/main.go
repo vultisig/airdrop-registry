@@ -27,6 +27,7 @@ func main() {
 			fmt.Println("fail to close storage db: ", err)
 		}
 	}()
+	referralResolver := services.NewReferralResolverService(cfg.ReferralBot.APIKey, cfg.ReferralBot.BaseAddress)
 	priceResolver, err := services.NewPriceResolver(cfg)
 	if err != nil {
 		panic(err)
@@ -39,7 +40,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	pointWorker, err := services.NewPointWorker(cfg, storage, priceResolver, balanceResolver, volumeTracker)
+	pointWorker, err := services.NewPointWorker(cfg, storage, priceResolver, balanceResolver, volumeTracker, referralResolver)
 	if err != nil {
 		panic(err)
 	}

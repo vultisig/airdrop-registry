@@ -20,6 +20,7 @@ import (
 	"github.com/vultisig/airdrop-registry/internal/volume"
 )
 
+const MinBalanceForValidReferral = 10 // 10 USDT
 // PointWorker is a worker that processes points
 type PointWorker struct {
 	logger                 *logrus.Logger
@@ -28,6 +29,7 @@ type PointWorker struct {
 	balanceResolver        *balance.BalanceResolver
 	lpResolver             *liquidity.LiquidityPositionResolver
 	saverResolver          *liquidity.SaverPositionResolver
+	referralResolver       *ReferralResolverService
 	volumeResolver         *volume.VolumeResolver
 	startCoinID            int64
 	wg                     *sync.WaitGroup
@@ -37,7 +39,7 @@ type PointWorker struct {
 	whitelistNFTCollection []models.NFTCollection
 }
 
-func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceResolver, balanceResolver *balance.BalanceResolver, volumeResolver *volume.VolumeResolver) (*PointWorker, error) {
+func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceResolver, balanceResolver *balance.BalanceResolver, volumeResolver *volume.VolumeResolver, referralResolver *ReferralResolverService) (*PointWorker, error) {
 
 	if nil == storage {
 		return nil, fmt.Errorf("storage is nil")
@@ -47,17 +49,18 @@ func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceRe
 	}
 
 	return &PointWorker{
-		logger:          logrus.WithField("module", "point_worker").Logger,
-		storage:         storage,
-		priceResolver:   priceResolver,
-		balanceResolver: balanceResolver,
-		lpResolver:      liquidity.NewLiquidtyPositionResolver(),
-		saverResolver:   liquidity.NewSaverPositionResolver(),
-		volumeResolver:  volumeResolver,
-		startCoinID:     cfg.Worker.StartID,
-		stopChan:        make(chan struct{}),
-		wg:              &sync.WaitGroup{},
-		cfg:             cfg,
+		logger:           logrus.WithField("module", "point_worker").Logger,
+		storage:          storage,
+		priceResolver:    priceResolver,
+		balanceResolver:  balanceResolver,
+		lpResolver:       liquidity.NewLiquidtyPositionResolver(),
+		referralResolver: referralResolver,
+		saverResolver:    liquidity.NewSaverPositionResolver(),
+		volumeResolver:   volumeResolver,
+		startCoinID:      cfg.Worker.StartID,
+		stopChan:         make(chan struct{}),
+		wg:               &sync.WaitGroup{},
+		cfg:              cfg,
 		whitelistNFTCollection: []models.NFTCollection{
 			{
 				Chain:             common.Ethereum,
@@ -210,7 +213,20 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 			p.logger.Info("no more vaults to process")
 			break
 		}
-		for _, vault := range vaults {
+		for i, vault := range vaults {
+			// Fetch referral count
+			vaults[i].ReferralCount, err = p.getValidReferralCount(vault.ECDSA, vault.EDDSA)
+			if err != nil {
+				p.logger.Errorf("failed to get referral count for vault %d: %v", vault.ID, err)
+				continue
+			}
+
+			err = p.storage.UpdateReferralCount(&vaults[i])
+			if err != nil {
+				p.logger.Errorf("failed to update referral count for vault %d: %v", vault.ID, err)
+				continue
+			}
+
 			coins, err := p.storage.GetCoins(vault.ID)
 			if err != nil {
 				p.logger.Errorf("failed to get coins for vault: %v", err)
@@ -324,6 +340,7 @@ func (p *PointWorker) updatePosition(vaultAddress models.VaultAddress, multiplie
 	if newlp == 0 {
 		return nil
 	}
+
 	if err := p.storage.IncreaseVaultTotalPoints(vaultAddress.GetVaultID(), newPoints); err != nil {
 		return fmt.Errorf("failed to increase vault total points: %w", err)
 	}
@@ -439,6 +456,16 @@ func (p *PointWorker) updateBalance(coin models.CoinDBModel, multiplier int64) e
 	if newPoints == 0 {
 		return nil
 	}
+	v, err := p.storage.GetVaultByID(coin.VaultID)
+	if err != nil {
+		return fmt.Errorf("failed to get vault: %w", err)
+	}
+	referralMultiplier := utils.GetReferralMultiplier(v.ReferralCount)
+	newPoints = int64(float64(newPoints) * referralMultiplier)
+
+	swapVolume := p.volumeResolver.GetVolume(coin.Address)
+	swapMultiplier := utils.GetSwapVolumeMultiplier(swapVolume)
+	newPoints = int64(float64(newPoints) * swapMultiplier)
 	if err := p.storage.IncreaseVaultTotalPoints(coin.VaultID, newPoints); err != nil {
 		return fmt.Errorf("failed to increase vault total points: %w", err)
 	}
@@ -499,4 +526,30 @@ func (p *PointWorker) updateCoinPrice() error {
 
 	defer p.logger.Info("finish updating coin prices")
 	return nil
+}
+
+func (p *PointWorker) getValidReferralCount(ecdsaKey string, eddsaKey string) (int64, error) {
+	referrals, err := p.referralResolver.GetReferrals(ecdsaKey, eddsaKey)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get referrals: %w", err)
+	}
+
+	var cnt int64
+	for _, r := range referrals {
+		//User can not refer himself
+		if r.WalletPublicKeyEcdsa == ecdsaKey && r.WalletPublicKeyEddsa == eddsaKey {
+			continue
+		}
+		v, err := p.storage.GetVault(r.WalletPublicKeyEcdsa, r.WalletPublicKeyEddsa)
+		if err != nil || v == nil {
+			p.logger.Warnf("Referral vault not found for ECDSA: %s, EDDSA: %s",
+				r.WalletPublicKeyEcdsa, r.WalletPublicKeyEddsa)
+			continue
+		}
+		if v.Balance+v.LPValue+v.NFTValue >= MinBalanceForValidReferral {
+			cnt++
+		}
+	}
+
+	return cnt, nil
 }

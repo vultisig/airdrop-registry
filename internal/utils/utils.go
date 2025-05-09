@@ -4,12 +4,13 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"math"
 	"math/big"
 	"regexp"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
+	ethmath "github.com/ethereum/go-ethereum/common/math"
 	"github.com/mr-tron/base58"
 )
 
@@ -33,7 +34,7 @@ func HexToFloat64(hexStr string, decimals int64) (float64, error) {
 	}
 
 	fValue := new(big.Float).SetInt(value)
-	result, _ := new(big.Float).Quo(fValue, new(big.Float).SetInt(math.BigPow(10, decimals))).Float64()
+	result, _ := new(big.Float).Quo(fValue, new(big.Float).SetInt(ethmath.BigPow(10, decimals))).Float64()
 	return result, nil
 }
 
@@ -88,4 +89,37 @@ func EIP55Checksum(address string) (string, error) {
 	}
 	addr := common.HexToAddress(address)
 	return addr.Hex(), nil
+}
+
+// MIN(2,1+(LOG(1+referralCount)/LOG(1+500)))
+func GetReferralMultiplier(referralCount int64) float64 {
+	// Convert referralCount to float64 for math operations
+	rc := float64(referralCount)
+
+	// Compute numerator and denominator
+	numerator := math.Log(1 + rc)
+	denominator := math.Log(1 + 500)
+
+	// Calculate multiplier
+	multiplier := 1 + (numerator / denominator)
+
+	// Apply MIN(2, multiplier)
+	if multiplier > 2 {
+		multiplier = 2
+	}
+
+	return multiplier
+}
+
+// =1+0.02*SQRT(swapVolume)
+func GetSwapVolumeMultiplier(swapVolume float64) float64 {
+	// Calculate the multiplier
+	multiplier := 1 + 0.02*math.Sqrt(swapVolume)
+
+	// Apply MIN(2, multiplier)
+	if multiplier > 2 {
+		multiplier = 2
+	}
+
+	return multiplier
 }

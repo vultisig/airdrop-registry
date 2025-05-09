@@ -31,7 +31,10 @@ type Config struct {
 	OpenSea struct {
 		APIKey string `mapstructure:"api_key"`
 	}
-
+	ReferralBot struct {
+		APIKey      string `mapstructure:"api_key"`
+		BaseAddress string `mapstructure:"base_address"`
+	}
 	Season struct {
 		Start              time.Time `mapstructure:"start"`
 		End                time.Time `mapstructure:"end"`
@@ -82,6 +85,8 @@ func LoadConfig() (*Config, error) {
 	viper.SetDefault("mysql.port", 3301)
 	viper.SetDefault("worker.start_id", 0)
 	viper.SetDefault("worker.concurrency", 10)
+	viper.SetDefault("vultiref.api_key", "")
+	viper.SetDefault("vultiref.base_address", "")
 	viper.SetDefault("season.swap_multiplier", 1.6)
 	viper.SetDefault("season.referral_multiplier", 1.5)
 	viper.SetDefault("season.milestones", []int{5000, 10000, 50000, 100000})
