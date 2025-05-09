@@ -340,6 +340,7 @@ func (p *PointWorker) updatePosition(vaultAddress models.VaultAddress, multiplie
 	if newlp == 0 {
 		return nil
 	}
+
 	if err := p.storage.IncreaseVaultTotalPoints(vaultAddress.GetVaultID(), newPoints); err != nil {
 		return fmt.Errorf("failed to increase vault total points: %w", err)
 	}
@@ -462,6 +463,9 @@ func (p *PointWorker) updateBalance(coin models.CoinDBModel, multiplier int64) e
 	referralMultiplier := utils.GetReferralMultiplier(v.ReferralCount)
 	newPoints = int64(float64(newPoints) * referralMultiplier)
 
+	swapVolume := p.volumeResolver.GetVolume(coin.Address)
+	swapMultiplier := utils.GetSwapVolumeMultiplier(swapVolume)
+	newPoints = int64(float64(newPoints) * swapMultiplier)
 	if err := p.storage.IncreaseVaultTotalPoints(coin.VaultID, newPoints); err != nil {
 		return fmt.Errorf("failed to increase vault total points: %w", err)
 	}
