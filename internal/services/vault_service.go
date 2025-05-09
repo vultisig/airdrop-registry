@@ -193,9 +193,9 @@ func (s *Storage) UpdateVaultAvatar(vault *models.Vault) error {
 }
 
 func (s *Storage) UpdateReferralCount(vault *models.Vault) error {
-	qry := `UPDATE vaults SET referral_count = ?, WHERE id = ?`
+	qry := `UPDATE vaults SET referral_count = ? WHERE id = ?`
 	if err := s.db.Exec(qry, vault.ReferralCount, vault.ID).Error; err != nil {
-		return fmt.Errorf("failed to update vault avatar: %w", err)
+		return fmt.Errorf("failed to update vault refferal: %w", err)
 	}
 	return nil
 }
