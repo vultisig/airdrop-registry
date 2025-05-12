@@ -20,7 +20,7 @@ import (
 	"github.com/vultisig/airdrop-registry/internal/volume"
 )
 
-const MinBalanceForValidReferral = 10 // 10 USDT
+const MinBalanceForValidReferral = 50 // 50 USDT
 // PointWorker is a worker that processes points
 type PointWorker struct {
 	logger                 *logrus.Logger
