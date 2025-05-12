@@ -554,7 +554,7 @@ func (p *PointWorker) getValidReferralCount(ecdsaKey string, eddsaKey string) (i
 
 func (p *PointWorker) getSeasonMultiplierForCoin(coin models.CoinDBModel) int {
 	for _, token := range p.cfg.Season.Tokens {
-		if token.Chain == coin.Chain.String() && token.Name == coin.Ticker {
+		if token.Chain == coin.Chain.String() && token.Name == coin.Ticker && coin.ContractAddress == token.ContractAddress {
 			return token.Multiplier
 		}
 	}
@@ -563,7 +563,7 @@ func (p *PointWorker) getSeasonMultiplierForCoin(coin models.CoinDBModel) int {
 
 func (p *PointWorker) getSeasonMultiplierForNFT(coin models.CoinDBModel) int {
 	for _, collection := range p.cfg.Season.NFTs {
-		if collection.Chain == coin.Chain.String() && collection.ContractAddress == coin.Address {
+		if collection.Chain == coin.Chain.String() && collection.ContractAddress == coin.ContractAddress {
 			return collection.Multiplier
 		}
 	}
