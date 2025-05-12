@@ -134,6 +134,8 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 		return totalBalance, nil
 	case common.Osmosis:
 		return b.FetchOsmosisBalanceOfAddress(coin.Address)
+	case common.Akash:
+		return b.FetchAkashBalanceOfAddress(coin.Address)
 	case common.Solana:
 		//ignore none native coins (spl tokens)
 		if coin.ContractAddress == "" {

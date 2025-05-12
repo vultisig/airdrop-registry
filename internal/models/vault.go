@@ -66,6 +66,8 @@ func (v *Vault) GetAddress(chain common.Chain) (string, error) {
 		return address.GetBech32Address(childPublicKey, "noble")
 	case common.Terra, common.TerraClassic:
 		return address.GetBech32Address(childPublicKey, "terra")
+	case common.Akash:
+		return address.GetBech32Address(childPublicKey, "akash")
 	case common.Solana:
 		return address.GetSolAddress(v.EDDSA)
 	case common.Bitcoin:
