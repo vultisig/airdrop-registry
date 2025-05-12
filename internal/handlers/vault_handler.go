@@ -80,6 +80,7 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		AvatarURL:             vault.AvatarURL,
 		ShowNameInLeaderboard: vault.ShowNameInLeaderboard,
 		ReferralCode:          vault.ReferralCode,
+		ReferralCount:         vault.ReferralCount,
 	}
 	for _, coin := range coins {
 		found := false
@@ -142,6 +143,7 @@ func (a *Api) getVaultByUIDHandler(c *gin.Context) {
 		RegisteredAt:   vault.Model.CreatedAt.UTC().Unix(),
 		Coins:          []models.ChainCoins{},
 		AvatarURL:      vault.AvatarURL,
+		ReferralCount:  vault.ReferralCount,
 	}
 	for i, _ := range coins {
 		coin := coins[i]
