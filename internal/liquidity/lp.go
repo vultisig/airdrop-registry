@@ -13,7 +13,6 @@ import (
 type LiquidityPositionResolver struct {
 	logger            *logrus.Logger
 	thorwalletBaseURL string
-	wewelpResolver    *weweLpResolver
 	tgtPrice          float64
 	mu                sync.RWMutex
 }
@@ -22,7 +21,6 @@ func NewLiquidtyPositionResolver() *LiquidityPositionResolver {
 	return &LiquidityPositionResolver{
 		logger:            logrus.WithField("module", "liquidity_position_resolver").Logger,
 		thorwalletBaseURL: "https://api-v2-prod.thorwallet.org",
-		wewelpResolver:    NewWeWeLpResolver(),
 	}
 }
 
@@ -107,8 +105,4 @@ func (l *LiquidityPositionResolver) GetTGTPrice() float64 {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	return l.tgtPrice
-}
-
-func (l *LiquidityPositionResolver) GetWeWeLPPosition(address string) (float64, error) {
-	return l.wewelpResolver.GetLiquidityPosition(address)
 }

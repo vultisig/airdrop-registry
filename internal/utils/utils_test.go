@@ -146,6 +146,7 @@ func TestGetSwapVolumeMultiplier(t *testing.T) {
 		{900, 1.6},
 		{1600, 1.8},
 		{2500, 2},
+		{100000, 7.324555320336759},
 	}
 	for _, tc := range testCases {
 		result := GetSwapVolumeMultiplier(tc.input)
