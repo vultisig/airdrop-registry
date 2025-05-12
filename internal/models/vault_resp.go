@@ -19,6 +19,7 @@ type VaultResponse struct {
 	ShowNameInLeaderboard bool         `json:"show_name_in_leaderboard"`
 	SwapVolume            float64      `json:"swap_volume"`
 	ReferralCode          string       `json:"referral_code"`
+	ReferralCount         int64        `json:"referral_count"`
 }
 
 type VaultsResponse struct {

@@ -116,10 +116,5 @@ func GetSwapVolumeMultiplier(swapVolume float64) float64 {
 	// Calculate the multiplier
 	multiplier := 1 + 0.02*math.Sqrt(swapVolume)
 
-	// Apply MIN(2, multiplier)
-	if multiplier > 2 {
-		multiplier = 2
-	}
-
 	return multiplier
 }

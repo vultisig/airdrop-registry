@@ -20,7 +20,7 @@ import (
 	"github.com/vultisig/airdrop-registry/internal/volume"
 )
 
-const MinBalanceForValidReferral = 10 // 10 USDT
+const MinBalanceForValidReferral = 50 // 50 USDT
 // PointWorker is a worker that processes points
 type PointWorker struct {
 	logger                 *logrus.Logger
@@ -391,17 +391,12 @@ func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, er
 		return 0, fmt.Errorf("failed to get tgt stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
 	p.logger.Infof("tgt stake position for vault %d is %f", vaultAddress.GetVaultID(), tgtlp)
-	wewelp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetWeWeLPPosition, vaultAddress.GetEVMAddress())
-	if err != nil {
-		return 0, fmt.Errorf("failed to get wewel liquidity position for vault:%d : %w", vaultAddress.GetVaultID(), err)
-	}
-	p.logger.Infof("wewel liquidity position for vault %d is %f", vaultAddress.GetVaultID(), wewelp)
 	saver, err := backoffRetry.RetryWithBackoff(p.saverResolver.GetSaverPosition, address)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get saver position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
 	p.logger.Infof("saver position for vault %d is %f", vaultAddress.GetVaultID(), saver)
-	newLP := tcmayalp + tgtlp + wewelp + saver
+	newLP := tcmayalp + tgtlp + saver
 	return int64(newLP), nil
 }
 func (p *PointWorker) fetchNFTValue(vault models.VaultAddress) (int64, error) {
@@ -409,13 +404,14 @@ func (p *PointWorker) fetchNFTValue(vault models.VaultAddress) (int64, error) {
 	for _, nft := range p.whitelistNFTCollection {
 		address := vault.GetAddress(nft.Chain)
 		if address != "" {
-			balance, err := p.balanceResolver.GetBalanceWithRetry(models.CoinDBModel{CoinBase: models.CoinBase{
+			token := models.CoinDBModel{CoinBase: models.CoinBase{
 				Chain:           nft.Chain,
 				Address:         address,
 				ContractAddress: nft.CollectionAddress,
 				Decimals:        0,
 				IsNative:        false,
-			}})
+			}}
+			balance, err := p.balanceResolver.GetBalanceWithRetry(token)
 			if err != nil {
 				return 0, fmt.Errorf("failed to get balance for address:%s : %v", address, err)
 			}
@@ -423,7 +419,8 @@ func (p *PointWorker) fetchNFTValue(vault models.VaultAddress) (int64, error) {
 			if err != nil {
 				return 0, fmt.Errorf("failed to get price for collection:%s : %v", nft.CollectionSlug, err)
 			}
-			sum += balance * price
+			seasonMultiplier := p.getSeasonMultiplierForNFT(token)
+			sum += balance * float64(seasonMultiplier) * price
 		}
 	}
 	return int64(sum), nil
@@ -452,7 +449,8 @@ func (p *PointWorker) updateBalance(coin models.CoinDBModel, multiplier int64) e
 	if err != nil {
 		return fmt.Errorf("failed to parse coin price: %w", err)
 	}
-	newPoints := int64(coinBalance * price * float64(multiplier))
+	seasonMultiplier := p.getSeasonMultiplierForCoin(coin)
+	newPoints := int64(coinBalance * price * float64(multiplier) * float64(seasonMultiplier))
 	if newPoints == 0 {
 		return nil
 	}
@@ -552,4 +550,22 @@ func (p *PointWorker) getValidReferralCount(ecdsaKey string, eddsaKey string) (i
 	}
 
 	return cnt, nil
+}
+
+func (p *PointWorker) getSeasonMultiplierForCoin(coin models.CoinDBModel) int {
+	for _, token := range p.cfg.Season.Tokens {
+		if token.Chain == coin.Chain.String() && token.Name == coin.Ticker && coin.ContractAddress == token.ContractAddress {
+			return token.Multiplier
+		}
+	}
+	return 1
+}
+
+func (p *PointWorker) getSeasonMultiplierForNFT(coin models.CoinDBModel) int {
+	for _, collection := range p.cfg.Season.NFTs {
+		if collection.Chain == coin.Chain.String() && collection.ContractAddress == coin.ContractAddress {
+			return collection.Multiplier
+		}
+	}
+	return 1
 }

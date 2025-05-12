@@ -36,13 +36,11 @@ type Config struct {
 		BaseAddress string `mapstructure:"base_address"`
 	}
 	Season struct {
-		Start              time.Time `mapstructure:"start"`
-		End                time.Time `mapstructure:"end"`
-		SwapMultiplier     float32   `mapstructure:"swap_multiplier"`
-		ReferralMultiplier float32   `mapstructure:"referral_multiplier"`
-		Milestones         []int     `mapstructure:"milestones"` // list of vulti milestones
-		NFTs               []NFT     `mapstructure:"nfts"`       // list of boosting NFTs
-		Tokens             []Token   `mapstructure:"tokens"`     // list of boosting tokens
+		Start      time.Time `mapstructure:"start" json:"start"`
+		End        time.Time `mapstructure:"end" json:"end"`
+		Milestones []int     `mapstructure:"milestones" json:"milestones"` // list of vulti milestones
+		NFTs       []NFT     `mapstructure:"nfts" json:"nfts"`             // list of boosting NFTs
+		Tokens     []Token   `mapstructure:"tokens" json:"tokens"`         // list of boosting tokens
 	}
 	VolumeTrackingAPI struct {
 		AffiliateAddress   []string `mapstructure:"affiliate_address"`
@@ -54,18 +52,18 @@ type Config struct {
 }
 
 type NFT struct {
-	Multiplier      int    `mapstructure:"multiplier"` //boosting multiplier
-	CollectionName  string `mapstructure:"collection_name"`
-	Chain           string `mapstructure:"chain"`
-	ContractAddress string `mapstructure:"contract_address"`
+	Multiplier      int    `mapstructure:"multiplier" json:"multiplier"` //boosting multiplier
+	CollectionName  string `mapstructure:"collection_name" json:"collection_name"`
+	Chain           string `mapstructure:"chain" json:"chain"`
+	ContractAddress string `mapstructure:"contract_address" json:"contract_address"`
 }
 
 type Token struct {
-	Multiplier      int    `mapstructure:"multiplier"` //boosting multiplier
-	Name            string `mapstructure:"name"`
-	MinAmount       int    `mapstructure:"min_amount"`
-	Chain           string `mapstructure:"chain"`
-	ContractAddress string `mapstructure:"contract_address"`
+	Multiplier      int    `mapstructure:"multiplier" json:"multiplier"` //boosting multiplier
+	Name            string `mapstructure:"name" json:"name"`
+	MinAmount       int    `mapstructure:"min_amount" json:"min_amount"` // minimum amount to be eligible for the multiplier
+	Chain           string `mapstructure:"chain" json:"chain"`
+	ContractAddress string `mapstructure:"contract_address" json:"contract_address"`
 }
 
 func LoadConfig() (*Config, error) {
