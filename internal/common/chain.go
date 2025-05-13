@@ -40,6 +40,7 @@ const (
 	Osmosis
 	Noble
 	Tron
+	Akash
 )
 
 var chainToString = map[Chain]string{
@@ -73,6 +74,7 @@ var chainToString = map[Chain]string{
 	Osmosis:      "Osmosis",
 	Noble:        "Noble",
 	Tron:         "Tron",
+	Akash:        "Akash",
 }
 var EVMChains = []Chain{
 	Ethereum,
@@ -118,6 +120,7 @@ var chainDerivePath = map[Chain]string{
 	Osmosis:      "m/44'/118'/0'/0/0",
 	Noble:        "m/44'/118'/0'/0/0",
 	Tron:         "m/44'/195'/0'/0/0",
+	Akash:        "m/44'/118'/0'/0/0",
 }
 
 func (c Chain) String() string {

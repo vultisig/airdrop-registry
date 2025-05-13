@@ -125,3 +125,33 @@ func TestFetchTerraBalanceOfAddress(t *testing.T) {
 	assert.NoErrorf(t, err, "Failed to get thorchain rune providers: %v", err)
 	assert.Equal(t, float64(2500), balance)
 }
+
+func TestFetchAkashBalanceOfAddress(t *testing.T) {
+	// Create a mock HTTP server
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Create a mock response
+		response := map[string]interface{}{
+			"balances": []map[string]interface{}{
+				{
+					"denom":  "uakt",
+					"amount": "540733000000",
+				},
+			},
+			"pagination": map[string]interface{}{
+				"next_key": nil,
+				"total":    "1",
+			},
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+	}))
+	defer mockServer.Close()
+
+	// Create a LiquidityPositionResolver instance
+	balanceResolver := &BalanceResolver{
+		logger: logrus.WithField("module", "balance_resolver_test").Logger,
+	}
+	balance, err := balanceResolver.fetchSpecificCosmosBalance(mockServer.URL+"/cosmos/bank/v1beta1/spendable_balances/"+"akash1ysywap8nllx5fn9had5qhywktnweuquv4hepyp", "uakt", 6)
+	assert.NoErrorf(t, err, "Failed to get akash address balance: %v", err)
+	assert.Equal(t, float64(540733), balance)
+}

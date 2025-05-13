@@ -778,5 +778,11 @@
     "cmc_id": 825,
     "contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
     "decimals": 6
+  }, 
+  {
+    "chain": "Akash",
+    "cmc_id": 7431,
+    "contract_address": "",
+    "decimals": 6
   }
 ]
