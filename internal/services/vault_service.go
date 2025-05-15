@@ -48,10 +48,21 @@ func (s *Storage) UpdateVault(vault *models.Vault) error {
 	}
 	return nil
 }
+
+// Increase current season points of vault (called during the season)
 func (s *Storage) IncreaseVaultTotalPoints(id uint, newPoints int64) error {
-	qry := `UPDATE vaults SET total_points = total_points + ? WHERE id = ? and join_airdrop = 1`
+	qry := `UPDATE vaults SET current_season_points = current_season_points + ? WHERE id = ? and join_airdrop = 1`
 	if err := s.db.Exec(qry, newPoints, id).Error; err != nil {
 		return fmt.Errorf("failed to update vault total points: %w", err)
+	}
+	return nil
+}
+
+func (s *Storage) CommitSeasonPoints(id uint) error {
+	// add current season points to total points and set current season points to 0
+	qry := `UPDATE vaults SET total_points = total_points + current_season_points, current_season_points = 0 WHERE id = ?`
+	if err := s.db.Exec(qry, id).Error; err != nil {
+		return fmt.Errorf("failed to commit season points: %w", err)
 	}
 	return nil
 }
