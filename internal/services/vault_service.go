@@ -60,7 +60,7 @@ func (s *Storage) IncreaseVaultTotalPoints(id uint, newPoints int64) error {
 
 func (s *Storage) CommitSeasonPoints(id uint) error {
 	// add current season points to total points and set current season points to 0
-	qry := `UPDATE vaults SET total_points = total_points + current_season_points, current_season_points = 0 WHERE id = ?`
+	qry := `UPDATE vaults SET total_points = total_points + current_season_points, current_season_points = 0, swap_volume = 0 WHERE id = ?`
 	if err := s.db.Exec(qry, id).Error; err != nil {
 		return fmt.Errorf("failed to commit season points: %w", err)
 	}
