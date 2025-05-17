@@ -129,9 +129,12 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 		if errK == nil {
 			totalBalance += balanceKujira
 		}
-		balanceRkujira, errR := b.FetchRkujiraBalanceOfAddress(coin.Address)
-		if errR == nil {
-			totalBalance += balanceRkujira
+
+		if !coin.IsNative {
+			balanceNonNativeKujira, errN := b.FetchNonNativeKujiraBalanceOfAddress(coin.Address, coin.ContractAddress, coin.Decimals)
+			if errN == nil {
+				totalBalance += balanceNonNativeKujira
+			}
 		}
 		return totalBalance, nil
 	case common.Osmosis:
