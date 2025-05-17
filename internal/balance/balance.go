@@ -28,6 +28,7 @@ type BalanceResolver struct {
 	tonBalanceBaseAddress  string
 	tronBalanceBaseAddress string
 	xrpBalanceBaseAddress  string
+	kujiraBalanceBaseAddress  string
 	whitelistNFTCollection []models.NFTCollection
 	whiteListSPLToken      map[string]string
 	whiteListTRC20Token    map[string]int
@@ -42,6 +43,7 @@ func NewBalanceResolver() (*BalanceResolver, error) {
 		tonBalanceBaseAddress:  "https://api.vultisig.com/ton/v3/addressInformation",
 		tronBalanceBaseAddress: "https://api.trongrid.io",
 		xrpBalanceBaseAddress:  "https://xrplcluster.com",
+		kujiraBalanceBaseAddress:  "https://kujira-rest.publicnode.com/cosmos/bank/v1beta1/balances",
 		whitelistNFTCollection: []models.NFTCollection{
 			{
 				Chain:             common.Ethereum,

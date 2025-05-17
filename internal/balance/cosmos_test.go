@@ -50,6 +50,38 @@ func TestFetchThorchainBalanceOfAddress(t *testing.T) {
 	assert.Equal(t, float64(25), balance)
 }
 
+func TestFetchKujiraBalanceOfAddress(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := map[string]interface{}{
+			"balances": []map[string]interface{}{
+				{
+					"denom":  "factory/kujira1qk00h5atutpsv900x202pxx42npjr9thg58dnqpa72f2p7m2luase444a7/uusk",
+					"amount": "240000",
+				}, {
+					"denom":  "ukuji",
+					"amount": "300000",
+				},
+			},
+			"pagination": map[string]interface{}{
+				"next_key": nil,
+				"total":    "2",
+			},
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+	}))
+
+	defer mockServer.Close()
+
+	balanceResolver, err := NewBalanceResolver()
+	assert.NoError(t, err, "Failed to create balance resolver")
+	balanceResolver.kujiraBalanceBaseAddress = mockServer.URL
+	balanceNonnative, err := balanceResolver.FetchNonNativeKujiraBalanceOfAddress("kujira1dhsp650chvyn8vs70v8camcj3q7h7hxlp4w8zw", "factory/kujira1qk00h5atutpsv900x202pxx42npjr9thg58dnqpa72f2p7m2luase444a7/uusk",6)
+	assert.NoErrorf(t, err, "Failed to get kujira balance: %v", err)
+	assert.Equal(t, float64(0.24), balanceNonnative, "Balance does not match expected value")
+
+}
+
 func TestGetTHORChainRuneProviders(t *testing.T) {
 	// Create a mock HTTP server
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
