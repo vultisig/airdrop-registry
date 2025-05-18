@@ -62,8 +62,5 @@ func TestGetUtxoBalances(t *testing.T) {
 	assert.Nil(t, err)
 	fmt.Println("kujira153nnvyxz66sj4ywldvy0uexhdnwpfw9fyf4nkz", balance)
 
-	balance, err = b.FetchRkujiraBalanceOfAddress("kujira1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8khxyy4")
-	assert.Nil(t, err)
-	fmt.Println("kujira1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8khxyy4", balance)
 
 }
