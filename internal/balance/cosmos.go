@@ -156,18 +156,9 @@ func (b *BalanceResolver) FetchCosmosBalanceOfAddress(address string) (float64, 
 	return b.fetchSpecificCosmosBalance(url, "uatom", 6)
 }
 
-func (b *BalanceResolver) FetchKujiraBalanceOfAddress(address string) (float64, error) {
-	url := fmt.Sprintf("https://kujira-rest.publicnode.com/cosmos/bank/v1beta1/balances/%s", address)
-	return b.fetchSpecificCosmosBalance(url, "ukuji", 6)
-}
-func (b *BalanceResolver) FetchNonNativeKujiraBalanceOfAddress(address string, denom string,decimals int) (float64, error) {
-	url := fmt.Sprintf(b.kujiraBalanceBaseAddress+"/%s", address)
+func (b *BalanceResolver) FetchKujiraBalanceOfAddress(address string, denom string, decimals int) (float64, error) {
+	url := fmt.Sprintf("%s/%s", b.kujiraBalanceBaseAddress, address)
 	return b.fetchSpecificCosmosBalance(url, denom, decimals)
-}
-
-func (b *BalanceResolver) FetchRkujiraBalanceOfAddress(address string) (float64, error) {
-	url := fmt.Sprintf("https://kujira-rest.publicnode.com/cosmos/bank/v1beta1/balances/%s", address)
-	return b.fetchSpecificCosmosBalance(url, "factory/kujira1tsekaqv9vmem0zwskmf90gpf0twl6k57e8vdnq/urkuji", 6)
 }
 
 func (b *BalanceResolver) FetchOsmosisBalanceOfAddress(address string) (float64, error) {

@@ -21,29 +21,29 @@ const (
 
 // BalanceResolver is to fetch address balances
 type BalanceResolver struct {
-	logger                 *logrus.Logger
-	thorchainBondProviders *sync.Map
-	thorchainRuneProviders *sync.Map
-	thornodeBaseAddress    string
-	tonBalanceBaseAddress  string
-	tronBalanceBaseAddress string
-	xrpBalanceBaseAddress  string
-	kujiraBalanceBaseAddress  string
-	whitelistNFTCollection []models.NFTCollection
-	whiteListSPLToken      map[string]string
-	whiteListTRC20Token    map[string]int
+	logger                   *logrus.Logger
+	thorchainBondProviders   *sync.Map
+	thorchainRuneProviders   *sync.Map
+	thornodeBaseAddress      string
+	tonBalanceBaseAddress    string
+	tronBalanceBaseAddress   string
+	xrpBalanceBaseAddress    string
+	kujiraBalanceBaseAddress string
+	whitelistNFTCollection   []models.NFTCollection
+	whiteListSPLToken        map[string]string
+	whiteListTRC20Token      map[string]int
 }
 
 func NewBalanceResolver() (*BalanceResolver, error) {
 	return &BalanceResolver{
-		logger:                 logrus.WithField("module", "balance_resolver").Logger,
-		thorchainBondProviders: &sync.Map{},
-		thorchainRuneProviders: &sync.Map{},
-		thornodeBaseAddress:    "https://thornode.ninerealms.com",
-		tonBalanceBaseAddress:  "https://api.vultisig.com/ton/v3/addressInformation",
-		tronBalanceBaseAddress: "https://api.trongrid.io",
-		xrpBalanceBaseAddress:  "https://xrplcluster.com",
-		kujiraBalanceBaseAddress:  "https://kujira-rest.publicnode.com/cosmos/bank/v1beta1/balances",
+		logger:                   logrus.WithField("module", "balance_resolver").Logger,
+		thorchainBondProviders:   &sync.Map{},
+		thorchainRuneProviders:   &sync.Map{},
+		thornodeBaseAddress:      "https://thornode.ninerealms.com",
+		tonBalanceBaseAddress:    "https://api.vultisig.com/ton/v3/addressInformation",
+		tronBalanceBaseAddress:   "https://api.trongrid.io",
+		xrpBalanceBaseAddress:    "https://xrplcluster.com",
+		kujiraBalanceBaseAddress: "https://kujira-rest.publicnode.com/cosmos/bank/v1beta1/balances",
 		whitelistNFTCollection: []models.NFTCollection{
 			{
 				Chain:             common.Ethereum,
@@ -124,19 +124,11 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 			return b.FetchNobleBalanceOfAddress(coin.Address)
 		}
 	case common.Kujira:
-		var totalBalance float64
-		balanceKujira, errK := b.FetchKujiraBalanceOfAddress(coin.Address)
-		if errK == nil {
-			totalBalance += balanceKujira
+		if coin.IsNative {
+			return b.FetchKujiraBalanceOfAddress(coin.Address, coin.Ticker, coin.Decimals)
+		} else {
+			return b.FetchKujiraBalanceOfAddress(coin.Address, coin.ContractAddress, coin.Decimals)
 		}
-
-		if !coin.IsNative {
-			balanceNonNativeKujira, errN := b.FetchNonNativeKujiraBalanceOfAddress(coin.Address, coin.ContractAddress, coin.Decimals)
-			if errN == nil {
-				totalBalance += balanceNonNativeKujira
-			}
-		}
-		return totalBalance, nil
 	case common.Osmosis:
 		return b.FetchOsmosisBalanceOfAddress(coin.Address)
 	case common.Akash:
