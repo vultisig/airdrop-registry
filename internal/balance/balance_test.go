@@ -67,7 +67,91 @@ func TestGetUtxoBalances(t *testing.T) {
 	fmt.Println("kujira153nnvyxz66sj4ywldvy0uexhdnwpfw9fyf4nkz", balance)
 }
 
+func TestFetchUtxoBalances(t *testing.T) {
 	tests := []struct {
 		name         string
 		address      string
 		chain        common.Chain
+		mockResponse UtxoResult
+		wantBalance  float64
+		wantUSDValue float64
+		wantErr      bool
+	}{
+		{
+			name:    "successful bitcoin balance fetch",
+			address: "bc1qxpeg8k8xrygj9ae8q6pkzj29sf7w8e7krm4v5f",
+			chain:   common.Bitcoin,
+			mockResponse: UtxoResult{
+				Data: map[string]struct {
+					Address struct {
+						Balance    float64 `json:"balance"`
+						BalanceUSD float64 `json:"balance_usd"`
+					} `json:"address"`
+				}{
+					"bc1qxpeg8k8xrygj9ae8q6pkzj29sf7w8e7krm4v5f": {
+						Address: struct {
+							Balance    float64 `json:"balance"`
+							BalanceUSD float64 `json:"balance_usd"`
+						}{
+							Balance:    3934,
+							BalanceUSD: 4.28896482,
+						},
+					},
+				},
+			},
+			wantBalance:  0.00003934,
+			wantUSDValue: 4.28896482,
+		},
+		{
+			name:    "successful zcash balance fetch",
+			address: "t1M6wQpBni81cypEEMYmrj241TvtyGgLdCu",
+			chain:   common.Zcash,
+			mockResponse: UtxoResult{
+				Data: map[string]struct {
+					Address struct {
+						Balance    float64 `json:"balance"`
+						BalanceUSD float64 `json:"balance_usd"`
+					} `json:"address"`
+				}{
+					"t1M6wQpBni81cypEEMYmrj241TvtyGgLdCu": {
+						Address: struct {
+							Balance    float64 `json:"balance"`
+							BalanceUSD float64 `json:"balance_usd"`
+						}{
+							Balance:    3238713,
+							BalanceUSD: 1.3576684896,
+						},
+					},
+				},
+			},
+			wantBalance:  0.03238713,
+			wantUSDValue: 1.3576684896,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(tt.mockResponse)
+			}))
+			defer mockServer.Close()
+
+			resolver := &BalanceResolver{
+				logger:           logrus.WithField("module", "balance_resolver_test").Logger,
+				vultisigApiProxy: mockServer.URL,
+			}
+
+			balance, balanceUSD, err := resolver.FetchUtxoBalanceOfAddress(tt.address, tt.chain)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.wantBalance, balance)
+			assert.Equal(t, tt.wantUSDValue, balanceUSD)
+		})
+	}
+}
