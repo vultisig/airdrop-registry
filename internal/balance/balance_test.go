@@ -104,7 +104,7 @@ func TestFetchUtxoBalances(t *testing.T) {
 		},
 		{
 			name:    "successful zcash balance fetch",
-			address: "t1M6wQpBni81cypEEMYmrj241TvtyGgLdCu",
+			address: "t1UJkDvXWkyZjkkRScLxzFJCxcBgq63NZED",
 			chain:   common.Zcash,
 			mockResponse: UtxoResult{
 				Data: map[string]struct {
@@ -113,7 +113,7 @@ func TestFetchUtxoBalances(t *testing.T) {
 						BalanceUSD float64 `json:"balance_usd"`
 					} `json:"address"`
 				}{
-					"t1M6wQpBni81cypEEMYmrj241TvtyGgLdCu": {
+					"t1UJkDvXWkyZjkkRScLxzFJCxcBgq63NZED": {
 						Address: struct {
 							Balance    float64 `json:"balance"`
 							BalanceUSD float64 `json:"balance_usd"`
