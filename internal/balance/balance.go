@@ -14,9 +14,8 @@ import (
 )
 
 const (
-	vultisigApiProxy = "https://api.vultisig.com"
-	maxRetries       = 10
-	initialBackoff   = time.Second
+	maxRetries     = 10
+	initialBackoff = time.Second
 )
 
 // BalanceResolver is to fetch address balances
@@ -29,6 +28,7 @@ type BalanceResolver struct {
 	tronBalanceBaseAddress   string
 	xrpBalanceBaseAddress    string
 	kujiraBalanceBaseAddress string
+	vultisigApiProxy         string
 	whitelistNFTCollection   []models.NFTCollection
 	whiteListSPLToken        map[string]string
 	whiteListTRC20Token      map[string]int
@@ -44,6 +44,7 @@ func NewBalanceResolver() (*BalanceResolver, error) {
 		tronBalanceBaseAddress:   "https://api.trongrid.io",
 		xrpBalanceBaseAddress:    "https://xrplcluster.com",
 		kujiraBalanceBaseAddress: "https://kujira-rest.publicnode.com/cosmos/bank/v1beta1/balances",
+		vultisigApiProxy:         "https://api.vultisig.com",
 		whitelistNFTCollection: []models.NFTCollection{
 			{
 				Chain:             common.Ethereum,
@@ -89,7 +90,7 @@ func (b *BalanceResolver) GetBalanceWithRetry(coin models.CoinDBModel) (float64,
 
 func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 	switch coin.Chain {
-	case common.Bitcoin, common.BitcoinCash, common.Litecoin, common.Dogecoin, common.Dash:
+	case common.Bitcoin, common.BitcoinCash, common.Litecoin, common.Dogecoin, common.Dash, common.Zcash:
 		balance, _, err := b.FetchUtxoBalanceOfAddress(coin.Address, coin.Chain)
 		return balance, err
 	case common.Arbitrum, common.Ethereum, common.Zksync, common.Optimism, common.Polygon, common.BscChain, common.Avalanche, common.Base, common.Blast, common.CronosChain:
