@@ -1,7 +1,6 @@
 package address
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 
@@ -26,8 +25,7 @@ func GetZcashAddress(hexPublicKey string) (string, error) {
 	payload := append(version, pubKeyHash...)
 
 	// Base58Check encoding: payload || checksum
-	checksum := sha256.Sum256(payload)
-	checksum = sha256.Sum256(checksum[:])
+	checksum := utils.SHA256(utils.SHA256(payload))
 	address := base58.Encode(append(payload, checksum[:4]...))
 
 	return address, nil
