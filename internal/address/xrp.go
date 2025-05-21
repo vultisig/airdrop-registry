@@ -1,13 +1,12 @@
 package address
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"strings"
 
 	"github.com/cosmos/btcutil/base58"
-	"golang.org/x/crypto/ripemd160"
+	"github.com/vultisig/airdrop-registry/internal/utils"
 )
 
 // Base58 alphabet used by XRP
@@ -21,23 +20,10 @@ func GetXRPAddress(hexPublicKey string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("invalid hex public key: %v", err)
 	}
-	sha := sha256.New()
-	sha.Write(publicKey)
-	hash := sha.Sum(nil)
 
-	ripemd := ripemd160.New()
-	ripemd.Write(hash)
-	hash = ripemd.Sum(nil)
-
+	hash := utils.Hash160(publicKey)
 	versionHash := append([]byte{0}, hash...)
-
-	sha = sha256.New()
-	sha.Write(versionHash)
-	hash = sha.Sum(nil)
-
-	sha = sha256.New()
-	sha.Write(hash)
-	hash = sha.Sum(nil)
+	hash = utils.SHA256(utils.SHA256(versionHash))
 
 	checksum := hash[:4]
 

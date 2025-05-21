@@ -1,9 +1,13 @@
 package balance
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/vultisig/airdrop-registry/internal/common"
@@ -62,3 +66,8 @@ func TestGetUtxoBalances(t *testing.T) {
 	assert.Nil(t, err)
 	fmt.Println("kujira153nnvyxz66sj4ywldvy0uexhdnwpfw9fyf4nkz", balance)
 }
+
+	tests := []struct {
+		name         string
+		address      string
+		chain        common.Chain

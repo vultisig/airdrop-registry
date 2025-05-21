@@ -92,6 +92,8 @@ func (v *Vault) GetAddress(chain common.Chain) (string, error) {
 		return address.GetXRPAddress(childPublicKey)
 	case common.Tron:
 		return address.GetTronAddress(childPublicKey)
+	case common.Zcash:
+		return address.GetZcashAddress(childPublicKey)
 	default:
 		return "", fmt.Errorf("unsupported chain %s", chain)
 	}

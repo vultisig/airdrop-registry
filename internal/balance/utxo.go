@@ -41,10 +41,12 @@ func (b *BalanceResolver) FetchUtxoBalanceOfAddress(address string, chain common
 		chainName = "litecoin"
 	case common.Dogecoin:
 		chainName = "dogecoin"
+	case common.Zcash:
+		chainName = "zcash"
 	default:
 		return 0, 0, fmt.Errorf("unsupported chain: %s", chain)
 	}
-	url := fmt.Sprintf("%s/blockchair/%s/dashboards/address/%s?state=latest", vultisigApiProxy, chainName, address)
+	url := fmt.Sprintf("%s/blockchair/%s/dashboards/address/%s?state=latest", b.vultisigApiProxy, chainName, address)
 
 	resp, err := http.Get(url)
 	if err != nil {
