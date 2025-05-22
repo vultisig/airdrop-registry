@@ -96,7 +96,7 @@ func (a *Api) setupRouting() {
 	rg.GET("/nft/price/:collectionID", a.getCollectionMinPriceHandler)
 	rg.POST("/nft/avatar", a.setNftAvatarHandler)
 
-	rg.GET("/season/info", a.getCurrentSeasonInfo)
+	rg.GET("/seasons/info", a.getAllSeasonInfo)
 
 }
 
