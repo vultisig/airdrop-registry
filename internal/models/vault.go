@@ -22,7 +22,6 @@ type Vault struct {
 	HexChainCode          string  `gorm:"type:varchar(255)" json:"hex_chain_code" binding:"required"`
 	Uid                   string  `gorm:"type:varchar(255)" json:"uid" binding:"required"`
 	TotalPoints           float64 `json:"total_points"`                         // total point of the vault (will be updatd at the end of each season)
-	CurrentSeasonPoints   float64 `json:"current_season_points"`                // current season point of the vault
 	JoinAirdrop           bool    `json:"join_airdrop"`                         // join airdrop or not
 	Rank                  int64   `json:"rank"`                                 // rank of the vault
 	Balance               int64   `gorm:"type:bigint;default:0" json:"balance"` // latest balance of the vault
@@ -35,6 +34,7 @@ type Vault struct {
 	ShowNameInLeaderboard bool    `gorm:"type:boolean;default:false" json:"show_name_in_leaderboard"`
 	ReferralCode          string  `gorm:"type:varchar(255)" json:"referral_code"`
 	ReferralCount         int64   `gorm:"type:bigint;default:0" json:"referral_count"`
+	CurrentSeasonID       uint    `gorm:"type:bigint;default:0" json:"current_season_id"`
 }
 
 func (*Vault) TableName() string {
