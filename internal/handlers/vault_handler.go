@@ -69,7 +69,6 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 		PublicKeyECDSA:        vault.ECDSA,
 		PublicKeyEDDSA:        vault.EDDSA,
 		TotalPoints:           vault.TotalPoints,
-		CurrentSeasonPoints:   vault.CurrentSeasonPoints,
 		JoinAirdrop:           vault.JoinAirdrop,
 		Rank:                  vault.Rank,
 		Balance:               vault.Balance,
@@ -97,6 +96,28 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 				Address:      coin.Address,
 				HexPublicKey: coin.HexPublicKey,
 				Coins:        []models.Coin{models.NewCoin(coin)},
+			})
+		}
+	}
+	vaultResp.SeasonActivities = make([]models.SeasonStats, 0)
+	for _, season := range a.cfg.Seasons {
+		if season.ID == vault.CurrentSeasonID {
+			vaultResp.SeasonActivities = append(vaultResp.SeasonActivities, models.SeasonStats{
+				SeasonID: season.ID,
+				Rank:     vault.Rank,
+				Points:   vault.TotalPoints,
+			})
+		} else {
+			seasonStats, err := a.s.GetSeasonStats(vault.ID, season.ID)
+			if err != nil {
+				a.logger.Error(err)
+				_ = c.Error(errFailedToGetVault)
+				return
+			}
+			vaultResp.SeasonActivities = append(vaultResp.SeasonActivities, models.SeasonStats{
+				SeasonID: season.ID,
+				Rank:     seasonStats.Rank,
+				Points:   seasonStats.Points,
 			})
 		}
 	}
@@ -129,23 +150,22 @@ func (a *Api) getVaultByUIDHandler(c *gin.Context) {
 		vault.Alias = vault.Name
 	}
 	vaultResp := models.VaultResponse{
-		UId:                 vault.Uid,
-		Name:                vault.Alias,
-		Alias:               vault.Alias,
-		PublicKeyECDSA:      "",
-		PublicKeyEDDSA:      "",
-		TotalPoints:         vault.TotalPoints,
-		CurrentSeasonPoints: vault.CurrentSeasonPoints,
-		JoinAirdrop:         vault.JoinAirdrop,
-		Balance:             vault.Balance,
-		LPValue:             vault.LPValue,
-		NFTValue:            vault.NFTValue,
-		SwapVolume:          vault.SwapVolume,
-		Rank:                vault.Rank,
-		RegisteredAt:        vault.Model.CreatedAt.UTC().Unix(),
-		Coins:               []models.ChainCoins{},
-		AvatarURL:           vault.AvatarURL,
-		ReferralCount:       vault.ReferralCount,
+		UId:            vault.Uid,
+		Name:           vault.Alias,
+		Alias:          vault.Alias,
+		PublicKeyECDSA: "",
+		PublicKeyEDDSA: "",
+		TotalPoints:    vault.TotalPoints,
+		JoinAirdrop:    vault.JoinAirdrop,
+		Balance:        vault.Balance,
+		LPValue:        vault.LPValue,
+		NFTValue:       vault.NFTValue,
+		SwapVolume:     vault.SwapVolume,
+		Rank:           vault.Rank,
+		RegisteredAt:   vault.Model.CreatedAt.UTC().Unix(),
+		Coins:          []models.ChainCoins{},
+		AvatarURL:      vault.AvatarURL,
+		ReferralCount:  vault.ReferralCount,
 	}
 	for i, _ := range coins {
 		coin := coins[i]
@@ -332,6 +352,7 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 	fromStr := c.DefaultQuery("from", "0")
 	limitStr := c.DefaultQuery("limit", "10")
 	from, err := strconv.ParseInt(fromStr, 10, 64)
+	seasonIdStr := c.DefaultQuery("season", "0")
 	if err != nil {
 		_ = c.Error(errInvalidRequest)
 		return
@@ -344,6 +365,12 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 	if limit > MaxPageSize {
 		limit = MaxPageSize
 	}
+	id, err := strconv.ParseUint(seasonIdStr, 10, 64)
+	if err != nil {
+		_ = c.Error(errInvalidRequest)
+		return
+	}
+	seasonId := uint(id)
 	vaultsResp := models.VaultsResponse{
 		Vaults:          []models.VaultResponse{},
 		TotalVaultCount: 0,
@@ -351,35 +378,74 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 		TotalLP:         0,
 		TotalNFT:        0,
 	}
-	vaultsResp.TotalVaultCount, err = a.s.GetLeaderVaultCount()
-	if err != nil {
-		a.logger.Errorf("failed to get leader vault count: %v", err)
-		_ = c.Error(errFailedToGetVault)
-		return
+	var vaults []models.Vault
+	if seasonId == a.cfg.GetCurrentSeason().ID {
+		vaultsResp.TotalVaultCount, err = a.s.GetLeaderVaultCount()
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault count: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaultsResp.TotalBalance, err = a.s.GetLeaderVaultTotalBalance()
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault total balance: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaultsResp.TotalLP, err = a.s.GetLeaderVaultTotalLP()
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault total LP: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaultsResp.TotalNFT, err = a.s.GetLeaderVaultTotalNFT()
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault total NFT: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaults, err = a.s.GetLeaderVaults(from, limit)
+		if err != nil {
+			a.logger.Errorf("failed to get leader vaults: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+	} else {
+		vaultsResp.TotalVaultCount, err = a.s.GetLeaderVaultCountBySeason(seasonId)
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault count: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaultsResp.TotalBalance, err = a.s.GetLeaderVaultTotalBalanceBySeason(seasonId)
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault total balance: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaultsResp.TotalLP, err = a.s.GetLeaderVaultTotalLPBySeason(seasonId)
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault total LP: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaultsResp.TotalNFT, err = a.s.GetLeaderVaultTotalNFTBySeason(seasonId)
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault total NFT: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaults, err = a.s.GetLeaderVaultsBySeason(seasonId, from, limit)
+		if err != nil {
+			a.logger.Errorf("failed to get leader vaults: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
 	}
-	vaultsResp.TotalBalance, err = a.s.GetLeaderVaultTotalBalance()
-	if err != nil {
-		a.logger.Errorf("failed to get leader vault total balance: %v", err)
-		_ = c.Error(errFailedToGetVault)
-		return
-	}
-	vaultsResp.TotalLP, err = a.s.GetLeaderVaultTotalLP()
-	if err != nil {
-		a.logger.Errorf("failed to get leader vault total LP: %v", err)
-		_ = c.Error(errFailedToGetVault)
-		return
-	}
-	vaultsResp.TotalNFT, err = a.s.GetLeaderVaultTotalNFT()
-	if err != nil {
-		a.logger.Errorf("failed to get leader vault total NFT: %v", err)
-		_ = c.Error(errFailedToGetVault)
-		return
-	}
-	vaults, err := a.s.GetLeaderVaults(from, limit)
-	if err != nil {
-		a.logger.Errorf("failed to get leader vaults: %v", err)
-		_ = c.Error(errFailedToGetVault)
-		return
+	cnt := len(vaults)
+	for i := 0; i < cnt; i++ {
+		vaults = append(vaults, vaults[i])
+		vaults[len(vaults)-1].Rank = vaults[cnt-1].Rank + int64(i+1)
 	}
 	for _, vault := range vaults {
 		vaultName := vault.Alias
