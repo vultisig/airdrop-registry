@@ -784,5 +784,11 @@
     "cmc_id": 7431,
     "contract_address": "",
     "decimals": 6
+  },
+  {
+    "chain": "Zcash",
+    "cmc_id": 1437,
+    "contract_address": "",
+    "decimals": 8
   }
 ]

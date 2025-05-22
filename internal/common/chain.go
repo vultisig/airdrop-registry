@@ -41,6 +41,7 @@ const (
 	Noble
 	Tron
 	Akash
+	Zcash
 )
 
 var chainToString = map[Chain]string{
@@ -75,6 +76,7 @@ var chainToString = map[Chain]string{
 	Noble:        "Noble",
 	Tron:         "Tron",
 	Akash:        "Akash",
+	Zcash:        "Zcash",
 }
 var EVMChains = []Chain{
 	Ethereum,
@@ -121,6 +123,7 @@ var chainDerivePath = map[Chain]string{
 	Noble:        "m/44'/118'/0'/0/0",
 	Tron:         "m/44'/195'/0'/0/0",
 	Akash:        "m/44'/118'/0'/0/0",
+	Zcash:        "m/44'/133'/0'/0/0",
 }
 
 func (c Chain) String() string {
