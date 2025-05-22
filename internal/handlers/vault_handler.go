@@ -442,11 +442,6 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 			return
 		}
 	}
-	cnt := len(vaults)
-	for i := 0; i < cnt; i++ {
-		vaults = append(vaults, vaults[i])
-		vaults[len(vaults)-1].Rank = vaults[cnt-1].Rank + int64(i+1)
-	}
 	for _, vault := range vaults {
 		vaultName := vault.Alias
 		if !vault.ShowNameInLeaderboard {
