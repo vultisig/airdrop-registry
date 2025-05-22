@@ -214,6 +214,13 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 			break
 		}
 		for i, vault := range vaults {
+			if vault.CurrentSeasonID < p.cfg.GetCurrentSeason().ID {
+				p.logger.Infof("vault %d is not in current season, commiting old season points", vault.ID)
+				if err := p.storage.CommitSeasonPoints(vault, p.cfg.GetCurrentSeason().ID); err != nil {
+					p.logger.Errorf("failed to commit season points for vault %d: %v", vault.ID, err)
+					continue
+				}
+			}
 			// Fetch referral count
 			vaults[i].ReferralCount, err = p.getValidReferralCount(vault.ECDSA, vault.EDDSA)
 			if err != nil {
@@ -553,7 +560,7 @@ func (p *PointWorker) getValidReferralCount(ecdsaKey string, eddsaKey string) (i
 }
 
 func (p *PointWorker) getSeasonMultiplierForCoin(coin models.CoinDBModel) int {
-	for _, token := range p.cfg.Season.Tokens {
+	for _, token := range p.cfg.GetCurrentSeason().Tokens {
 		if token.Chain == coin.Chain.String() && token.Name == coin.Ticker && coin.ContractAddress == token.ContractAddress {
 			return token.Multiplier
 		}
@@ -562,7 +569,7 @@ func (p *PointWorker) getSeasonMultiplierForCoin(coin models.CoinDBModel) int {
 }
 
 func (p *PointWorker) getSeasonMultiplierForNFT(coin models.CoinDBModel) int {
-	for _, collection := range p.cfg.Season.NFTs {
+	for _, collection := range p.cfg.GetCurrentSeason().NFTs {
 		if collection.Chain == coin.Chain.String() && collection.ContractAddress == coin.ContractAddress {
 			return collection.Multiplier
 		}
