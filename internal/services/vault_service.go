@@ -58,11 +58,21 @@ func (s *Storage) IncreaseVaultTotalPoints(id uint, newPoints int64) error {
 	return nil
 }
 
-func (s *Storage) CommitSeasonPoints(id uint) error {
-	// add current season points to total points and set current season points to 0
-	qry := `UPDATE vaults SET total_points = total_points + current_season_points, current_season_points = 0, swap_volume = 0 WHERE id = ?`
-	if err := s.db.Exec(qry, id).Error; err != nil {
+func (s *Storage) CommitSeasonPoints(v models.Vault, newSeasonId uint) error {
+	// insert into vault_season_stats
+	qry := `INSERT INTO vault_season_stats (vault_id, season_id, rank, points, balance, lp_value, swap_volume, referral_count)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+	ON DUPLICATE KEY UPDATE  rank=?, points = ?, balance = ?, lp_value = ?, swap_volume = ?, referral_count = ?`
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if err := s.db.WithContext(ctx).Exec(qry, v.ID, v.CurrentSeasonID, v.Rank, v.TotalPoints, v.Balance, v.LPValue, v.SwapVolume, v.ReferralCount,
+		v.Rank, v.TotalPoints, v.Balance, v.LPValue, v.SwapVolume, v.ReferralCount).Error; err != nil {
 		return fmt.Errorf("failed to commit season points: %w", err)
+	}
+	// reset current season points
+	qry = `UPDATE vaults SET current_season_id = ?, rank = 0, total_points = 0, balance = 0, lp_value = 0, swap_volume = 0, referral_count = 0 WHERE id = ?`
+	if err := s.db.Exec(qry, newSeasonId, v.ID).Error; err != nil {
+		return fmt.Errorf("failed to reset vault current season points: %w", err)
 	}
 	return nil
 }
@@ -129,6 +139,18 @@ func (s *Storage) GetLeaderVaults(fromRank int64, limit int) ([]models.Vault, er
 	return vaults, nil
 }
 
+func (s *Storage) GetLeaderVaultsBySeason(seasonId uint, fromRank int64, limit int) ([]models.Vault, error) {
+	var vaults []models.Vault
+	// fetch vault ids from vault_season_stats and join with vaults
+	if err := s.db.Table("vault_season_stats").Select("vaults.*").
+		Joins("join vaults on vault_season_stats.vault_id = vaults.id").
+		Where("vault_season_stats.season_id = ? and vault_season_stats.rank > ? and vaults.join_airdrop = 1", seasonId, fromRank).
+		Order("vault_season_stats.rank asc").Limit(limit).Find(&vaults).Error; err != nil {
+		return nil, fmt.Errorf("failed to get leader vaults by season: %w", err)
+	}
+	return vaults, nil
+}
+
 // TODO: rename the function to GetRankLeaderVaults
 func (s *Storage) GetSwapLeaderVaults(fromRank int64, limit int) ([]models.Vault, error) {
 	var vaults []models.Vault
@@ -142,6 +164,14 @@ func (s *Storage) GetSwapLeaderVaults(fromRank int64, limit int) ([]models.Vault
 func (s *Storage) GetLeaderVaultCount() (int64, error) {
 	var count int64
 	if err := s.db.Model(&models.Vault{}).Where("`rank` is not null and `rank` > 0  and join_airdrop = 1").Count(&count).Error; err != nil {
+		return 0, fmt.Errorf("failed to get leader vault count: %w", err)
+	}
+	return count, nil
+}
+
+func (s *Storage) GetLeaderVaultCountBySeason(seasonId uint) (int64, error) {
+	var count int64
+	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ? and `rank` > 0", seasonId).Count(&count).Error; err != nil {
 		return 0, fmt.Errorf("failed to get leader vault count: %w", err)
 	}
 	return count, nil
@@ -161,6 +191,15 @@ func (s *Storage) GetLeaderVaultTotalBalance() (int64, error) {
 	//return sum of balance of all leader vaults
 	var totalBalance int64
 	if err := s.db.Model(&models.Vault{}).Select("sum(balance)").Row().Scan(&totalBalance); err != nil {
+		return 0, fmt.Errorf("failed to get leader vault total balance: %w", err)
+	}
+	return totalBalance, nil
+}
+
+func (s *Storage) GetLeaderVaultTotalBalanceBySeason(seasonId uint) (int64, error) {
+	//return sum of balance of all leader vaults
+	var totalBalance int64
+	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ?", seasonId).Select("sum(balance)").Row().Scan(&totalBalance); err != nil {
 		return 0, fmt.Errorf("failed to get leader vault total balance: %w", err)
 	}
 	return totalBalance, nil
@@ -186,6 +225,15 @@ func (s *Storage) GetLeaderVaultTotalLP() (int64, error) {
 	return totalLP, nil
 }
 
+func (s *Storage) GetLeaderVaultTotalLPBySeason(seasonId uint) (int64, error) {
+	//return sum of balance of all leader vaults
+	var totalLP int64
+	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ?", seasonId).Select("sum(lp_value)").Row().Scan(&totalLP); err != nil {
+		return 0, fmt.Errorf("failed to get leader vault total lp: %w", err)
+	}
+	return totalLP, nil
+}
+
 func (s *Storage) GetLeaderVaultTotalNFT() (int64, error) {
 	//return sum of balance of all leader vaults
 	var totalLP int64
@@ -193,6 +241,15 @@ func (s *Storage) GetLeaderVaultTotalNFT() (int64, error) {
 		return 0, fmt.Errorf("failed to get leader vault total lp: %w", err)
 	}
 	return totalLP, nil
+}
+
+func (s *Storage) GetLeaderVaultTotalNFTBySeason(seasonId uint) (int64, error) {
+	//return sum of balance of all leader vaults
+	var totalNFT int64
+	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ?", seasonId).Select("sum(nft_value)").Row().Scan(&totalNFT); err != nil {
+		return 0, fmt.Errorf("failed to get leader vault total lp: %w", err)
+	}
+	return totalNFT, nil
 }
 
 func (s *Storage) UpdateVaultAvatar(vault *models.Vault) error {
@@ -209,4 +266,12 @@ func (s *Storage) UpdateReferralCount(vault *models.Vault) error {
 		return fmt.Errorf("failed to update vault refferal: %w", err)
 	}
 	return nil
+}
+
+func (s *Storage) GetSeasonStats(vaultId uint, seasonId uint) (models.SeasonStats, error) {
+	var seasonStats models.SeasonStats
+	if err := s.db.Where("vault_id = ? and season_id = ?", vaultId, seasonId).First(&seasonStats).Error; err != nil {
+		return seasonStats, fmt.Errorf("failed to get vault season stats: %w", err)
+	}
+	return seasonStats, nil
 }
