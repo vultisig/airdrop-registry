@@ -199,7 +199,7 @@ func (s *Storage) GetLeaderVaultTotalBalance() (int64, error) {
 func (s *Storage) GetLeaderVaultTotalBalanceBySeason(seasonId uint) (int64, error) {
 	//return sum of balance of all leader vaults
 	var totalBalance int64
-	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ?", seasonId).Select("sum(balance)").Row().Scan(&totalBalance); err != nil {
+	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ?", seasonId).Select("COALESCE(SUM(balance), 0)").Row().Scan(&totalBalance); err != nil {
 		return 0, fmt.Errorf("failed to get leader vault total balance: %w", err)
 	}
 	return totalBalance, nil
@@ -228,7 +228,7 @@ func (s *Storage) GetLeaderVaultTotalLP() (int64, error) {
 func (s *Storage) GetLeaderVaultTotalLPBySeason(seasonId uint) (int64, error) {
 	//return sum of balance of all leader vaults
 	var totalLP int64
-	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ?", seasonId).Select("sum(lp_value)").Row().Scan(&totalLP); err != nil {
+	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ?", seasonId).Select("COALESCE(SUM(lp_value),0)").Row().Scan(&totalLP); err != nil {
 		return 0, fmt.Errorf("failed to get leader vault total lp: %w", err)
 	}
 	return totalLP, nil
@@ -246,7 +246,7 @@ func (s *Storage) GetLeaderVaultTotalNFT() (int64, error) {
 func (s *Storage) GetLeaderVaultTotalNFTBySeason(seasonId uint) (int64, error) {
 	//return sum of balance of all leader vaults
 	var totalNFT int64
-	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ?", seasonId).Select("sum(nft_value)").Row().Scan(&totalNFT); err != nil {
+	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ?", seasonId).Select("COALESCE(SUM(nft_value),0)").Row().Scan(&totalNFT); err != nil {
 		return 0, fmt.Errorf("failed to get leader vault total lp: %w", err)
 	}
 	return totalNFT, nil
