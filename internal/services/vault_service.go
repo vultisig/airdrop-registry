@@ -59,22 +59,28 @@ func (s *Storage) IncreaseVaultTotalPoints(id uint, newPoints int64) error {
 }
 
 func (s *Storage) CommitSeasonPoints(v models.Vault, newSeasonId uint) error {
+	tx := s.db.Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("failed to start tx: %w", tx.Error)
+	}
 	// insert into vault_season_stats
 	qry := `INSERT INTO vault_season_stats (vault_id, season_id, rank, points, balance, lp_value, swap_volume, referral_count)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	ON DUPLICATE KEY UPDATE  rank=?, points = ?, balance = ?, lp_value = ?, swap_volume = ?, referral_count = ?`
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	if err := s.db.WithContext(ctx).Exec(qry, v.ID, v.CurrentSeasonID, v.Rank, v.TotalPoints, v.Balance, v.LPValue, v.SwapVolume, v.ReferralCount,
+	if err := tx.WithContext(ctx).Exec(qry, v.ID, v.CurrentSeasonID, v.Rank, v.TotalPoints, v.Balance, v.LPValue, v.SwapVolume, v.ReferralCount,
 		v.Rank, v.TotalPoints, v.Balance, v.LPValue, v.SwapVolume, v.ReferralCount).Error; err != nil {
+		tx.Rollback()
 		return fmt.Errorf("failed to commit season points: %w", err)
 	}
 	// reset current season points
 	qry = `UPDATE vaults SET current_season_id = ?, rank = 0, total_points = 0, balance = 0, lp_value = 0, swap_volume = 0, referral_count = 0 WHERE id = ?`
-	if err := s.db.Exec(qry, newSeasonId, v.ID).Error; err != nil {
+	if err := tx.WithContext(ctx).Exec(qry, newSeasonId, v.ID).Error; err != nil {
+		tx.Rollback()
 		return fmt.Errorf("failed to reset vault current season points: %w", err)
 	}
-	return nil
+	return tx.Commit().Error
 }
 
 func (s *Storage) UpdateLPValue(id uint, lpValue int64) error {
