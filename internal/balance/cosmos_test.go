@@ -9,6 +9,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/vultisig/airdrop-registry/internal/common"
+	"github.com/vultisig/airdrop-registry/internal/models"
 )
 
 func TestFetchThorchainBalanceOfAddress(t *testing.T) {
@@ -48,6 +50,58 @@ func TestFetchThorchainBalanceOfAddress(t *testing.T) {
 	balance, err = balanceResolver.FetchThorchainBalanceOfAddress("thor2")
 	assert.NoErrorf(t, err, "Failed to get thorchain rune providers: %v", err)
 	assert.Equal(t, float64(25), balance)
+}
+
+func TestFetchKujiraBalanceOfAddress(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := map[string]interface{}{
+			"balances": []map[string]interface{}{
+				{
+					"denom":  "factory/kujira1qk00h5atutpsv900x202pxx42npjr9thg58dnqpa72f2p7m2luase444a7/uusk",
+					"amount": "240000",
+				}, {
+					"denom":  "ukuji",
+					"amount": "3000000",
+				},
+			},
+			"pagination": map[string]interface{}{
+				"next_key": nil,
+				"total":    "2",
+			},
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+	}))
+
+	defer mockServer.Close()
+
+	balanceResolver, err := NewBalanceResolver()
+	assert.NoError(t, err, "Failed to create balance resolver")
+	balanceResolver.kujiraBalanceBaseAddress = mockServer.URL
+	balance, err := balanceResolver.GetBalance(models.CoinDBModel{
+		CoinBase: models.CoinBase{
+			Chain:           common.Kujira,
+			Ticker:          "uusk",
+			Address:         "kujira1qk00h5atutpsv900x202pxx42npjr9thg58dnqpa72f2p7m2luase444a7",
+			ContractAddress: "factory/kujira1qk00h5atutpsv900x202pxx42npjr9thg58dnqpa72f2p7m2luase444a7/uusk",
+			Decimals:        6,
+			IsNative:        false,
+		},
+	})
+	assert.NoErrorf(t, err, "Failed to get kujira balance: %v", err)
+	assert.Equal(t, float64(0.24), balance, "Balance does not match expected value")
+
+	balance, err = balanceResolver.GetBalance(models.CoinDBModel{
+		CoinBase: models.CoinBase{
+			Chain:    common.Kujira,
+			Ticker:   "ukuji",
+			Address:  "kujira1qk00h5atutpsv900x202pxx42npjr9thg58dnqpa72f2p7m2luase444a7",
+			Decimals: 6,
+			IsNative: true,
+		},
+	})
+	assert.NoErrorf(t, err, "Failed to get kujira balance: %v", err)
+	assert.Equal(t, float64(3), balance, "Balance does not match expected value")
 }
 
 func TestGetTHORChainRuneProviders(t *testing.T) {
