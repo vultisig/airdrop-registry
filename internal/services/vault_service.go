@@ -2,11 +2,13 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/vultisig/airdrop-registry/internal/models"
+	"gorm.io/gorm"
 )
 
 // RegisterVault save the given vault to db
@@ -274,10 +276,10 @@ func (s *Storage) UpdateReferralCount(vault *models.Vault) error {
 	return nil
 }
 
-func (s *Storage) GetSeasonStats(vaultId uint, seasonId uint) (models.SeasonStats, error) {
-	var seasonStats models.SeasonStats
-	if err := s.db.Where("vault_id = ? and season_id = ?", vaultId, seasonId).First(&seasonStats).Error; err != nil {
-		return seasonStats, fmt.Errorf("failed to get vault season stats: %w", err)
+func (s *Storage) GetSeasonStats(vaultId uint, seasonId uint) (models.VaultSeasonStats, error) {
+	var vaultStats models.VaultSeasonStats
+	if err := s.db.Where("vault_id = ? and season_id = ?", vaultId, seasonId).First(&vaultStats).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return vaultStats, fmt.Errorf("failed to get vault season stats: %w", err)
 	}
-	return seasonStats, nil
+	return vaultStats, nil
 }
