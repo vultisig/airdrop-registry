@@ -99,6 +99,28 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 			})
 		}
 	}
+	vaultResp.SeasonActivities = make([]models.SeasonStats, 0)
+	for _, season := range a.cfg.Seasons {
+		if season.ID == vault.CurrentSeasonID {
+			vaultResp.SeasonActivities = append(vaultResp.SeasonActivities, models.SeasonStats{
+				SeasonID: season.ID,
+				Rank:     vault.Rank,
+				Points:   vault.TotalPoints,
+			})
+		} else {
+			seasonStats, err := a.s.GetSeasonStats(vault.ID, season.ID)
+			if err != nil {
+				a.logger.Error(err)
+				_ = c.Error(errFailedToGetVault)
+				return
+			}
+			vaultResp.SeasonActivities = append(vaultResp.SeasonActivities, models.SeasonStats{
+				SeasonID: season.ID,
+				Rank:     seasonStats.Rank,
+				Points:   seasonStats.Points,
+			})
+		}
+	}
 	c.JSON(http.StatusOK, vaultResp)
 }
 
@@ -330,6 +352,7 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 	fromStr := c.DefaultQuery("from", "0")
 	limitStr := c.DefaultQuery("limit", "10")
 	from, err := strconv.ParseInt(fromStr, 10, 64)
+	seasonIdStr := c.DefaultQuery("season", "0")
 	if err != nil {
 		_ = c.Error(errInvalidRequest)
 		return
@@ -342,6 +365,12 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 	if limit > MaxPageSize {
 		limit = MaxPageSize
 	}
+	id, err := strconv.ParseUint(seasonIdStr, 10, 64)
+	if err != nil {
+		_ = c.Error(errInvalidRequest)
+		return
+	}
+	seasonId := uint(id)
 	vaultsResp := models.VaultsResponse{
 		Vaults:          []models.VaultResponse{},
 		TotalVaultCount: 0,
@@ -349,35 +378,69 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 		TotalLP:         0,
 		TotalNFT:        0,
 	}
-	vaultsResp.TotalVaultCount, err = a.s.GetLeaderVaultCount()
-	if err != nil {
-		a.logger.Errorf("failed to get leader vault count: %v", err)
-		_ = c.Error(errFailedToGetVault)
-		return
-	}
-	vaultsResp.TotalBalance, err = a.s.GetLeaderVaultTotalBalance()
-	if err != nil {
-		a.logger.Errorf("failed to get leader vault total balance: %v", err)
-		_ = c.Error(errFailedToGetVault)
-		return
-	}
-	vaultsResp.TotalLP, err = a.s.GetLeaderVaultTotalLP()
-	if err != nil {
-		a.logger.Errorf("failed to get leader vault total LP: %v", err)
-		_ = c.Error(errFailedToGetVault)
-		return
-	}
-	vaultsResp.TotalNFT, err = a.s.GetLeaderVaultTotalNFT()
-	if err != nil {
-		a.logger.Errorf("failed to get leader vault total NFT: %v", err)
-		_ = c.Error(errFailedToGetVault)
-		return
-	}
-	vaults, err := a.s.GetLeaderVaults(from, limit)
-	if err != nil {
-		a.logger.Errorf("failed to get leader vaults: %v", err)
-		_ = c.Error(errFailedToGetVault)
-		return
+	var vaults []models.Vault
+	if seasonId == a.cfg.GetCurrentSeason().ID {
+		vaultsResp.TotalVaultCount, err = a.s.GetLeaderVaultCount()
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault count: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaultsResp.TotalBalance, err = a.s.GetLeaderVaultTotalBalance()
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault total balance: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaultsResp.TotalLP, err = a.s.GetLeaderVaultTotalLP()
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault total LP: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaultsResp.TotalNFT, err = a.s.GetLeaderVaultTotalNFT()
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault total NFT: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaults, err = a.s.GetLeaderVaults(from, limit)
+		if err != nil {
+			a.logger.Errorf("failed to get leader vaults: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+	} else {
+		vaultsResp.TotalVaultCount, err = a.s.GetLeaderVaultCountBySeason(seasonId)
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault count: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaultsResp.TotalBalance, err = a.s.GetLeaderVaultTotalBalanceBySeason(seasonId)
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault total balance: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaultsResp.TotalLP, err = a.s.GetLeaderVaultTotalLPBySeason(seasonId)
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault total LP: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaultsResp.TotalNFT, err = a.s.GetLeaderVaultTotalNFTBySeason(seasonId)
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault total NFT: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
+		vaults, err = a.s.GetLeaderVaultsBySeason(seasonId, from, limit)
+		if err != nil {
+			a.logger.Errorf("failed to get leader vaults: %v", err)
+			_ = c.Error(errFailedToGetVault)
+			return
+		}
 	}
 	for _, vault := range vaults {
 		vaultName := vault.Alias

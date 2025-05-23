@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (a *Api) getCurrentSeasonInfo(c *gin.Context) {
-	currentSeason := a.cfg.Season
-	c.JSON(http.StatusOK, currentSeason)
+func (a *Api) getAllSeasonInfo(c *gin.Context) {
+	allSeasons := a.cfg.Seasons
+	c.JSON(http.StatusOK, allSeasons)
 }
