@@ -12,6 +12,7 @@ type VaultSeasonStats struct {
 	Balance       int64   `gorm:"type:bigint;default:0" json:"balance"` // latest balance of the vault
 	LPValue       int64   `gorm:"type:bigint;default:0" json:"lp_value"`
 	SwapVolume    float64 `gorm:"type:bigint;default:0" json:"swap_volume"`
+	NFTValue      int64   `gorm:"type:bigint;default:0" json:"nft_value"`
 	ReferralCount int64   `gorm:"type:bigint;default:0" json:"referral_count"`
 }
 
