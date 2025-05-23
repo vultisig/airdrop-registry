@@ -32,7 +32,7 @@ func NewStorage(cfg *config.Config) (*Storage, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	err = database.AutoMigrate(&models.Vault{}, &models.CoinDBModel{}, &models.Job{}, &models.VaultShareAppearance{})
+	err = database.AutoMigrate(&models.Vault{}, &models.CoinDBModel{}, &models.Job{}, &models.VaultShareAppearance{}, &models.VaultSeasonStats{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
