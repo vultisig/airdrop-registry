@@ -25,14 +25,15 @@ func (a *Api) registerVaultHandler(c *gin.Context) {
 		return
 	}
 	vaultModel := models.Vault{
-		Name:         vault.Name,
-		Alias:        vault.Name,
-		ECDSA:        vault.PublicKeyECDSA,
-		EDDSA:        vault.PublicKeyEDDSA,
-		Uid:          vault.Uid,
-		HexChainCode: vault.HexChainCode,
-		TotalPoints:  0,
-		JoinAirdrop:  false,
+		Name:            vault.Name,
+		Alias:           vault.Name,
+		ECDSA:           vault.PublicKeyECDSA,
+		EDDSA:           vault.PublicKeyEDDSA,
+		Uid:             vault.Uid,
+		HexChainCode:    vault.HexChainCode,
+		TotalPoints:     0,
+		JoinAirdrop:     false,
+		CurrentSeasonID: a.cfg.GetCurrentSeason().ID,
 	}
 
 	if err := a.s.RegisterVault(&vaultModel); err != nil {
