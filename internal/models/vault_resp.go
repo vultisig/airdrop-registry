@@ -7,7 +7,7 @@ type VaultResponse struct {
 	Alias                 string        `json:"alias"`
 	PublicKeyECDSA        string        `json:"public_key_ecdsa"`
 	PublicKeyEDDSA        string        `json:"public_key_eddsa"`
-	TotalPoints           float64       `json:"-"`
+	TotalPoints           float64       `json:"total_points"`
 	JoinAirdrop           bool          `json:"join_airdrop"`
 	Rank                  int64         `json:"rank"`
 	SwapVolumeRank        int64         `json:"swap_volume_rank"`
