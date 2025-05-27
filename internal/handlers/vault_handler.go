@@ -189,6 +189,28 @@ func (a *Api) getVaultByUIDHandler(c *gin.Context) {
 			})
 		}
 	}
+	vaultResp.SeasonActivities = make([]models.SeasonStats, 0)
+	for _, season := range a.cfg.Seasons {
+		if season.ID == vault.CurrentSeasonID {
+			vaultResp.SeasonActivities = append(vaultResp.SeasonActivities, models.SeasonStats{
+				SeasonID: season.ID,
+				Rank:     vault.Rank,
+				Points:   vault.TotalPoints,
+			})
+		} else {
+			seasonStats, err := a.s.GetSeasonStats(vault.ID, season.ID)
+			if err != nil {
+				a.logger.Error(err)
+				_ = c.Error(errFailedToGetVault)
+				return
+			}
+			vaultResp.SeasonActivities = append(vaultResp.SeasonActivities, models.SeasonStats{
+				SeasonID: season.ID,
+				Rank:     seasonStats.Rank,
+				Points:   seasonStats.Points,
+			})
+		}
+	}
 	c.JSON(http.StatusOK, vaultResp)
 }
 func (a *Api) joinAirdrop(c *gin.Context) {
