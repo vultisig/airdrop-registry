@@ -46,16 +46,13 @@ type Config struct {
 }
 
 type NFT struct {
-	Multiplier      int    `mapstructure:"multiplier" json:"multiplier"` //boosting multiplier
-	CollectionName  string `mapstructure:"collection_name" json:"collection_name"`
-	Chain           string `mapstructure:"chain" json:"chain"`
+	Token
 	ContractAddress string `mapstructure:"contract_address" json:"contract_address"`
 }
 
 type Token struct {
 	Multiplier      int    `mapstructure:"multiplier" json:"multiplier"` //boosting multiplier
 	Name            string `mapstructure:"name" json:"name"`
-	MinAmount       int    `mapstructure:"min_amount" json:"min_amount"` // minimum amount to be eligible for the multiplier
 	Chain           string `mapstructure:"chain" json:"chain"`
 	ContractAddress string `mapstructure:"contract_address" json:"contract_address"`
 }
