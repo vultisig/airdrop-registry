@@ -38,8 +38,13 @@ func (v *ReferralResolverService) GetReferrals(ecdsaKey string, eddsaKey string)
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		v.logger.Errorf("API returned non-200 status code: %d", resp.StatusCode)
-		return nil, fmt.Errorf("API returned non-200 status code: %d", resp.StatusCode)
+		if resp.StatusCode == http.StatusNotFound {
+			return []models.Referral{}, nil
+		} else {
+			v.logger.Errorf("API returned non-200 status code: %d", resp.StatusCode)
+			return nil, fmt.Errorf("API returned non-200 status code: %d", resp.StatusCode)
+		}
+
 	}
 
 	defer resp.Body.Close()
