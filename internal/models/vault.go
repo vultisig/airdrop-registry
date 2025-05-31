@@ -27,7 +27,7 @@ type Vault struct {
 	Rank                  int64   `json:"rank"`                                                   // rank of the vault
 	Balance               int64   `gorm:"type:bigint;default:0" json:"balance"`                   // latest balance of the vault
 	LPValue               int64   `gorm:"type:bigint;default:0" json:"lp_value"`
-	SwapVolume            float64 `gorm:"type:type:decimal(65,30);default:0" json:"swap_volume"`
+	SwapVolume            float64 `gorm:"type:decimal(65,30);default:0" json:"swap_volume"`
 	NFTValue              int64   `gorm:"type:bigint;default:0" json:"nft_value"`
 	AvatarURL             string  `gorm:"type:varchar(255)" json:"avatar_url"`
 	AvatarCollectionID    string  `gorm:"type:varchar(255)" json:"avatar_collection_id"`
