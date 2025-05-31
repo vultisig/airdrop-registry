@@ -77,7 +77,7 @@ func (s *Storage) CommitSeasonPoints(v models.Vault, newSeasonId uint) error {
 		return fmt.Errorf("failed to commit season points: %w", err)
 	}
 	// reset current season points
-	qry = `UPDATE vaults SET current_season_id = ?, rank = 0, total_points = 0, balance = 0, lp_value = 0, swap_volume = 0, referral_count = 0, next_milestone_id=0 WHERE id = ?`
+	qry = `UPDATE vaults SET current_season_id = ?, rank = 0, total_points = 0, total_vault_value = 0, balance = 0, lp_value = 0, swap_volume = 0, referral_count = 0, next_milestone_id=0 WHERE id = ?`
 	if err := tx.WithContext(ctx).Exec(qry, newSeasonId, v.ID).Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to reset vault current season points: %w", err)
