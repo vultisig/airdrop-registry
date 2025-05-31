@@ -255,7 +255,7 @@ func (s *Storage) GetLeaderVaultTotalNFTBySeason(seasonId uint) (int64, error) {
 	//return sum of balance of all leader vaults
 	var totalNFT int64
 	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ?", seasonId).Select("COALESCE(SUM(nft_value),0)").Row().Scan(&totalNFT); err != nil {
-		return 0, fmt.Errorf("failed to get leader vault total lp: %w", err)
+		return 0, fmt.Errorf("failed to get leader vault total nft: %w", err)
 	}
 	return totalNFT, nil
 }
