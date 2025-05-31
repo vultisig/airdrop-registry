@@ -12,7 +12,7 @@ func (a *Api) getAllSeasonInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, allSeasons)
 }
 
-type SeassonPoints struct {
+type SeasonPoints struct {
 	Points float64 `json:"points"`
 }
 
@@ -23,7 +23,7 @@ func (a *Api) getTotalPointsBySeasonHandler(c *gin.Context) {
 		allVaults, err := a.s.GetVaultsWithPage(startId, 1_000)
 		if err != nil {
 			a.logger.Error("failed to get vaults: ", err)
-			_ = c.Error(errAddressNotMatch)
+			_ = c.Error(errFailedToGetVault)
 			return
 		}
 		if len(allVaults) == 0 {
@@ -37,7 +37,7 @@ func (a *Api) getTotalPointsBySeasonHandler(c *gin.Context) {
 		}
 
 	}
-	points := SeassonPoints{
+	points := SeasonPoints{
 		Points: totalPoints,
 	}
 
