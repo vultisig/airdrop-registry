@@ -29,7 +29,7 @@ func (b *BalanceResolver) fetchERC721TokenBalance(chain common.Chain, contractAd
 	paddedWalletAddress := fmt.Sprintf("%064s", strippedWalletAddress)
 
 	// Concatenate function signature and padded wallet address
-	data := functionSignature + paddedWalletAddress
+	data := strings.ToLower(functionSignature + paddedWalletAddress)
 
 	// Create parameters array
 	params := []interface{}{
