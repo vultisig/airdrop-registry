@@ -21,12 +21,13 @@ type Vault struct {
 	EDDSA                 string  `gorm:"type:varchar(255);uniqueIndex:ecdsa_eddsa_idx;not null" json:"eddsa" binding:"required"`
 	HexChainCode          string  `gorm:"type:varchar(255)" json:"hex_chain_code" binding:"required"`
 	Uid                   string  `gorm:"type:varchar(255)" json:"uid" binding:"required"`
-	TotalPoints           float64 `json:"total_points"`                         // total point of the vault
-	JoinAirdrop           bool    `json:"join_airdrop"`                         // join airdrop or not
-	Rank                  int64   `json:"rank"`                                 // rank of the vault
-	Balance               int64   `gorm:"type:bigint;default:0" json:"balance"` // latest balance of the vault
+	TotalVaultValue       float64 `gorm:"type:decimal(65,30);default:0" json:"total_vault_value"` // total value of the vault
+	TotalPoints           float64 `json:"total_points"`                                           // total point of the vault
+	JoinAirdrop           bool    `json:"join_airdrop"`                                           // join airdrop or not
+	Rank                  int64   `json:"rank"`                                                   // rank of the vault
+	Balance               int64   `gorm:"type:bigint;default:0" json:"balance"`                   // latest balance of the vault
 	LPValue               int64   `gorm:"type:bigint;default:0" json:"lp_value"`
-	SwapVolume            float64 `gorm:"type:bigint;default:0" json:"swap_volume"`
+	SwapVolume            float64 `gorm:"type:type:decimal(65,30);default:0" json:"swap_volume"`
 	NFTValue              int64   `gorm:"type:bigint;default:0" json:"nft_value"`
 	AvatarURL             string  `gorm:"type:varchar(255)" json:"avatar_url"`
 	AvatarCollectionID    string  `gorm:"type:varchar(255)" json:"avatar_collection_id"`
@@ -35,6 +36,7 @@ type Vault struct {
 	ReferralCode          string  `gorm:"type:varchar(255)" json:"referral_code"`
 	ReferralCount         int64   `gorm:"type:bigint;default:0" json:"referral_count"`
 	CurrentSeasonID       uint    `gorm:"type:bigint;default:0" json:"current_season_id"`
+	NextMilestoneID       int     `gorm:"type:bigint;default:0" json:"next_milestone_id"`
 }
 
 func (*Vault) TableName() string {
