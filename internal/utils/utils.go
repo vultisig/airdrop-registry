@@ -24,6 +24,9 @@ func IsETHAddress(s string) bool {
 }
 
 func HexToFloat64(hexStr string, decimals int64) (float64, error) {
+	if hexStr == "" {
+		return 0, nil
+	}
 	if strings.HasPrefix(hexStr, "0x") {
 		hexStr = hexStr[2:]
 	}
