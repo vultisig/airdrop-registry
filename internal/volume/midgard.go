@@ -6,6 +6,7 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -35,6 +36,7 @@ func (v *midgardTracker) FetchVolume(from, to int64, affiliate string) (map[stri
 }
 
 func (v *midgardTracker) processVolumeWithToken(from, to int64, affiliate, nextPageToken string) (map[string]float64, error) {
+	time.Sleep(5 * time.Second) // to avoid hitting rate limits
 	url := fmt.Sprintf("%s?affiliate=%s&type=swap&timestamp=%d", v.baseUrl, affiliate, to)
 	if nextPageToken != "" {
 		url = fmt.Sprintf("%s?affiliate=%s&type=swap&nextPageToken=%s", v.baseUrl, affiliate, nextPageToken)
@@ -44,6 +46,10 @@ func (v *midgardTracker) processVolumeWithToken(from, to int64, affiliate, nextP
 		return nil, fmt.Errorf("error making GET request: %w", err)
 	}
 	defer v.SafeClose(resp.Body)
+	if resp.StatusCode == http.StatusTooManyRequests {
+		time.Sleep(30 * time.Second)
+		return v.processVolumeWithToken(from, to, affiliate, nextPageToken)
+	}
 	var volRes tcVolumeModel
 	if err := json.NewDecoder(resp.Body).Decode(&volRes); err != nil {
 		return nil, fmt.Errorf("error decoding response: %w", err)
