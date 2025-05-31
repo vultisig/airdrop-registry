@@ -52,9 +52,9 @@ func (s *Storage) UpdateVault(vault *models.Vault) error {
 }
 
 // Increase current season points of vault (called during the season)
-func (s *Storage) IncreaseVaultTotalPoints(id uint, newPoints int64) error {
-	qry := `UPDATE vaults SET total_points = total_points + ? WHERE id = ? and join_airdrop = 1`
-	if err := s.db.Exec(qry, newPoints, id).Error; err != nil {
+func (s *Storage) IncreaseVaultTotalValue(id uint, newValue float64) error {
+	qry := `UPDATE vaults SET total_vault_value = total_vault_value + ? WHERE id = ?`
+	if err := s.db.Exec(qry, newValue, id).Error; err != nil {
 		return fmt.Errorf("failed to update vault total points: %w", err)
 	}
 	return nil
@@ -77,7 +77,7 @@ func (s *Storage) CommitSeasonPoints(v models.Vault, newSeasonId uint) error {
 		return fmt.Errorf("failed to commit season points: %w", err)
 	}
 	// reset current season points
-	qry = `UPDATE vaults SET current_season_id = ?, rank = 0, total_points = 0, balance = 0, lp_value = 0, swap_volume = 0, referral_count = 0 WHERE id = ?`
+	qry = `UPDATE vaults SET current_season_id = ?, rank = 0, total_points = 0, balance = 0, lp_value = 0, swap_volume = 0, referral_count = 0, next_milestone_id=0 WHERE id = ?`
 	if err := tx.WithContext(ctx).Exec(qry, newSeasonId, v.ID).Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to reset vault current season points: %w", err)
@@ -152,7 +152,7 @@ func (s *Storage) GetLeaderVaultsBySeason(seasonId uint, fromRank int64, limit i
 	// fetch vault ids from vault_season_stats and join with vaults
 	if err := s.db.Table("vault_season_stats").Select("vaults.*").
 		Joins("join vaults on vault_season_stats.vault_id = vaults.id").
-		Where("vault_season_stats.season_id = ? and vault_season_stats.rank > ? and vaults.join_airdrop = 1", seasonId, fromRank).
+		Where("vault_season_stats.season_id = ? and vault_season_stats.rank > ?", seasonId, fromRank).
 		Order("vault_season_stats.rank asc").Limit(limit).Find(&vaults).Error; err != nil {
 		return nil, fmt.Errorf("failed to get leader vaults by season: %w", err)
 	}
@@ -276,10 +276,26 @@ func (s *Storage) UpdateReferralCount(vault *models.Vault) error {
 	return nil
 }
 
+func (s *Storage) UpdateVolume(vaultId uint, volume float64) error {
+	qry := `UPDATE vaults SET swap_volume = swap_volume + ? WHERE id = ?`
+	if err := s.db.Exec(qry, volume, vaultId).Error; err != nil {
+		return fmt.Errorf("failed to update vault swap_volume: %w", err)
+	}
+	return nil
+}
+
 func (s *Storage) GetSeasonStats(vaultId uint, seasonId uint) (models.VaultSeasonStats, error) {
 	var vaultStats models.VaultSeasonStats
 	if err := s.db.Where("vault_id = ? and season_id = ?", vaultId, seasonId).First(&vaultStats).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return vaultStats, fmt.Errorf("failed to get vault season stats: %w", err)
 	}
 	return vaultStats, nil
+}
+
+func (s *Storage) UpdateVaultMilestone(vaultId uint, milestoneId int, prize float64) error {
+	qry := `UPDATE vaults SET next_milestone_id = ? , total_points = total_points + ? WHERE id = ?`
+	if err := s.db.Exec(qry, milestoneId, prize, vaultId).Error; err != nil {
+		return fmt.Errorf("failed to update vault next milestone: %w", err)
+	}
+	return nil
 }
