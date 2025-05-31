@@ -97,6 +97,8 @@ func (a *Api) setupRouting() {
 	rg.POST("/nft/avatar", a.setNftAvatarHandler)
 
 	rg.GET("/seasons/info", a.getAllSeasonInfo)
+	// new endpoint for fetching total points of a season
+	rg.GET("/seasons/points/:seasonID", a.getTotalPointsBySeasonHandler)
 
 }
 
