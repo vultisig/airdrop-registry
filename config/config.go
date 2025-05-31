@@ -47,23 +47,27 @@ type Config struct {
 
 type NFT struct {
 	Token
-	ContractAddress string `mapstructure:"contract_address" json:"contract_address"`
+	CollectionName string `mapstructure:"collection_name" json:"collection_name"`
 }
 
 type Token struct {
-	Multiplier      int    `mapstructure:"multiplier" json:"multiplier"` //boosting multiplier
-	Name            string `mapstructure:"name" json:"name"`
-	Chain           string `mapstructure:"chain" json:"chain"`
-	ContractAddress string `mapstructure:"contract_address" json:"contract_address"`
+	Multiplier      float64 `mapstructure:"multiplier" json:"multiplier"` //boosting multiplier
+	Name            string  `mapstructure:"name" json:"name"`
+	Chain           string  `mapstructure:"chain" json:"chain"`
+	ContractAddress string  `mapstructure:"contract_address" json:"contract_address"`
 }
 
 type AirdropSeason struct {
-	ID         uint      `mapstructure:"id" json:"id"`
-	Start      time.Time `mapstructure:"start" json:"start"`
-	End        time.Time `mapstructure:"end" json:"end"`
-	Milestones []int     `mapstructure:"milestones" json:"milestones"` // list of vulti milestones
-	NFTs       []NFT     `mapstructure:"nfts" json:"nfts"`             // list of boosting NFTs
-	Tokens     []Token   `mapstructure:"tokens" json:"tokens"`         // list of boosting tokens
+	ID         uint        `mapstructure:"id" json:"id"`
+	Start      time.Time   `mapstructure:"start" json:"start"`
+	End        time.Time   `mapstructure:"end" json:"end"`
+	Milestones []Milestone `mapstructure:"milestones" json:"milestones"` // list of vulti milestones
+	NFTs       []NFT       `mapstructure:"nfts" json:"nfts"`             // list of boosting NFTs
+	Tokens     []Token     `mapstructure:"tokens" json:"tokens"`         // list of boosting tokens
+}
+type Milestone struct {
+	Minimum int `mapstructure:"minimum" json:"minimum"` // minimum amount of vulti to reach this milestone
+	Prize   int `mapstructure:"prize" json:"prize"`     // prize for this milestone
 }
 
 func LoadConfig() (*Config, error) {
