@@ -459,6 +459,9 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 			return
 		}
 		vaults, err = a.s.GetLeaderVaultsBySeason(seasonId, from, limit)
+		for i := range vaults {
+			vaults[i].Rank = from + int64(i+1)
+		}
 		if err != nil {
 			a.logger.Errorf("failed to get leader vaults: %v", err)
 			_ = c.Error(errFailedToGetVault)
@@ -528,6 +531,9 @@ func (a *Api) getVaultsByVolumeHandler(c *gin.Context) {
 		a.logger.Errorf("failed to get leader vaults: %v", err)
 		_ = c.Error(errFailedToGetVault)
 		return
+	}
+	for i := range vaults {
+		vaults[i].Rank = from + int64(i+1)
 	}
 	for _, vault := range vaults {
 		vaultName := vault.Alias
