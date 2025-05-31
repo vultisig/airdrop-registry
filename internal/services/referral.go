@@ -37,6 +37,7 @@ func (v *ReferralResolverService) GetReferrals(ecdsaKey string, eddsaKey string)
 		v.logger.WithError(err).Error("Failed to fetch referrals from API")
 		return nil, err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		if resp.StatusCode == http.StatusNotFound {
 			return []models.Referral{}, nil
@@ -46,9 +47,6 @@ func (v *ReferralResolverService) GetReferrals(ecdsaKey string, eddsaKey string)
 		}
 
 	}
-
-	defer resp.Body.Close()
-
 	var apiResponse models.ReferralsAPIResponse
 	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
 		v.logger.WithError(err).Error("Failed to fetch referrals from API")
