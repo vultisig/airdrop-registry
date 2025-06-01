@@ -24,6 +24,7 @@ type PriceResolver struct {
 	cmcMap               *CmcMapResp
 	lifiBaseAddress      string
 	coingeckoBaseAddress string
+	midgardBaseURL       string
 	priceCache           cache.Cache
 	OpenSeaAPIKey        string
 }
@@ -33,6 +34,7 @@ func NewPriceResolver(cfg *config.Config) (*PriceResolver, error) {
 		logger:               logrus.WithField("module", "price_resolver").Logger,
 		lifiBaseAddress:      "https://li.quest",
 		coingeckoBaseAddress: "https://api.vultisig.com/coingeicko/api/v3/simple/price",
+		midgardBaseURL:       "https://midgard.ninerealms.com",
 		priceCache:           *cache.New(4*time.Hour, 5*time.Hour),
 		OpenSeaAPIKey:        cfg.OpenSea.APIKey,
 	}
@@ -308,4 +310,48 @@ func (p *PriceResolver) GetOpenSeaCollectionMinPrice(collectionSlug string) (flo
 		return price * pricePerEth, nil
 	}
 	return 0, fmt.Errorf("ETH price not found in response")
+}
+
+func (p *PriceResolver) GetMidgardPrices(asset string) (float64, error) {
+	if cachedPrice, ok := p.priceCache.Get("midgard_" + asset); ok {
+		return cachedPrice.(float64), nil
+	}
+	url := fmt.Sprintf("%s/v2/pools", p.midgardBaseURL)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch pools from %s: %w", url, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("unexpected status code from Midgard API: %d", resp.StatusCode)
+	}
+
+	var pools []midgardPool
+	if err := json.NewDecoder(resp.Body).Decode(&pools); err != nil {
+		return 0, fmt.Errorf("failed to decode pools response: %w", err)
+	}
+
+	for _, pool := range pools {
+		if pool.Asset == asset {
+			p.logger.WithFields(logrus.Fields{
+				"asset":    pool.Asset,
+				"usdPrice": pool.AssetPriceUSD,
+			}).Info("found pool")
+			if pool.Status != "available" {
+				return 0, fmt.Errorf("pool is not available")
+			}
+			p.priceCache.Set("midgard_"+asset, pool.AssetPriceUSD, cache.DefaultExpiration)
+			return pool.AssetPriceUSD, nil
+		}
+	}
+
+	return 0, fmt.Errorf("asset not found in pools")
+}
+
+type midgardPool struct {
+	Asset         string  `json:"asset"`
+	AssetPriceUSD float64 `json:"assetPriceUSD,string"`
+	Status        string  `json:"status"`
 }
