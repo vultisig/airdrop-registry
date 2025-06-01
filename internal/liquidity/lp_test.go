@@ -99,3 +99,22 @@ func TestGetLiquidityPosition(t *testing.T) {
 
 	assert.Equal(t, float64(14), lp)
 }
+
+func TestGetTCYStakePosition(t *testing.T) {
+	// Create a mock HTTP server
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := map[string]interface{}{"address": "thor1005rk5k9uuew3u5y489yd8tgjyrsykknnat8z0", "amount": "13035628360"}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+	}))
+	defer mockServer.Close()
+
+	liquidityPositionResolver := &LiquidityPositionResolver{
+		thornodeBaseURL: mockServer.URL,
+	}
+	liquidityPositionResolver.SetTCYPrice(0.5)
+
+	got, err := liquidityPositionResolver.GetTCYStakePosition("thor1005rk5k9uuew3u5y489yd8tgjyrsykknnat8z0")
+	assert.NoError(t, err)
+	assert.Equal(t, float64(6517814180), got)
+}

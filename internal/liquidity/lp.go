@@ -13,6 +13,9 @@ import (
 type LiquidityPositionResolver struct {
 	logger            *logrus.Logger
 	thorwalletBaseURL string
+	thornodeBaseURL   string
+	tcyPrice          float64
+	midgardBaseURL    string
 	mu                sync.RWMutex
 }
 
@@ -20,6 +23,8 @@ func NewLiquidtyPositionResolver() *LiquidityPositionResolver {
 	return &LiquidityPositionResolver{
 		logger:            logrus.WithField("module", "liquidity_position_resolver").Logger,
 		thorwalletBaseURL: "https://api-v2-prod.thorwallet.org",
+		thornodeBaseURL:   "https://thornode.ninerealms.com",
+		midgardBaseURL:    "https://midgard.ninerealms.com/v2",
 	}
 }
 
@@ -64,4 +69,46 @@ func (l *LiquidityPositionResolver) GetLiquidityPosition(address string) (float6
 		}
 	}
 	return totalLiquidity, nil
+}
+
+// fetch Thorchain TCY LP position from thornode api
+func (l *LiquidityPositionResolver) GetTCYStakePosition(address string) (float64, error) {
+	if address == "" {
+		return 0, nil
+	}
+	url := fmt.Sprintf("%s/thorchain/tcy_staker/%s", l.thornodeBaseURL, address)
+	resp, err := http.Get(url)
+	if err != nil {
+		l.logger.Errorf("error fetching liquidity position from %s: %e", url, err)
+		return 0, fmt.Errorf("error fetching liquidity position from %s: %e", url, err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		l.logger.Errorf("error fetching liquidity position from %s: %s", url, resp.Status)
+		return 0, fmt.Errorf("error fetching liquidity position from %s: %s", url, resp.Status)
+	}
+	var lp tcyLPPositionResponse
+	if err := json.NewDecoder(resp.Body).Decode(&lp); err != nil {
+		l.logger.WithError(err).Error("Failed to decode response")
+		return 0, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return float64(lp.Amount) * l.GetTCYPrice(), nil
+}
+
+type tcyLPPositionResponse struct {
+	Address string `json:"address"`
+	Amount  int64  `json:"amount,string"`
+}
+
+func (l *LiquidityPositionResolver) SetTCYPrice(price float64) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.tcyPrice = price
+
+}
+func (l *LiquidityPositionResolver) GetTCYPrice() float64 {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+	return l.tcyPrice
 }
