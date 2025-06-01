@@ -440,17 +440,32 @@ func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, er
 	backoffRetry := utils.NewBackoffRetry(5)
 	address := strings.Join(vaultAddress.GetAllAddress(), ",")
 	p.logger.Infof("start to update position for vault: %d,  address: %s ", vaultAddress.GetVaultID(), address)
+
+	tcyPrice, err := p.priceResolver.GetMidgardPrices("THOR.TCY")
+	if err != nil {
+		return 0, fmt.Errorf("failed to get tcy price: %w", err)
+	}
+	p.lpResolver.SetTCYPrice(tcyPrice)
+
 	tcmayalp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetLiquidityPosition, address)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get tc/maya liquidity position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
 	p.logger.Infof("tc/maya liquidity position for vault %d is %f", vaultAddress.GetVaultID(), tcmayalp)
+
 	saver, err := backoffRetry.RetryWithBackoff(p.saverResolver.GetSaverPosition, address)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get saver position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
 	p.logger.Infof("saver position for vault %d is %f", vaultAddress.GetVaultID(), saver)
-	newLP := tcmayalp + saver
+
+	tcyStake, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetTCYStakePosition, vaultAddress.GetAddress(common.THORChain))
+	if err != nil {
+		return 0, fmt.Errorf("failed to get tcy stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
+	}
+	p.logger.Infof("tcy stake position for vault %d is %f", vaultAddress.GetVaultID(), tcyStake)
+
+	newLP := tcmayalp + saver + tcyStake
 	return int64(newLP), nil
 }
 func (p *PointWorker) fetchNFTValue(vault models.VaultAddress) (int64, error) {
@@ -564,6 +579,14 @@ func (p *PointWorker) updateCoinPrice() error {
 	mayaPrice := float64(40)
 	if err := p.storage.UpdateCoinPrice(common.MayaChain, "MAYA", mayaPrice); err != nil {
 		p.logger.Errorf("failed to update VTHOR price: %v", err)
+	}
+	tcyPrice, err := p.priceResolver.GetMidgardPrices("THOR.TCY")
+	if err != nil {
+		p.logger.Errorf("failed to get TCY price: %v", err)
+	} else {
+		if err := p.storage.UpdateCoinPrice(common.THORChain, "THOR.TCY", tcyPrice); err != nil {
+			p.logger.Errorf("failed to update TCY price: %v", err)
+		}
 	}
 
 	defer p.logger.Info("finish updating coin prices")
