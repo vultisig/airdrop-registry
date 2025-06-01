@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
 
@@ -46,7 +47,7 @@ type Config struct {
 }
 
 type NFT struct {
-	Token
+	Token          `mapstructure:",squash"`
 	CollectionName string `mapstructure:"collection_name" json:"collection_name"`
 }
 
@@ -102,7 +103,9 @@ func LoadConfig() (*Config, error) {
 		}
 	}
 
-	err := viper.Unmarshal(&cfg)
+	err := viper.Unmarshal(&cfg, func(dc *mapstructure.DecoderConfig) {
+		dc.DecodeHook = mapstructure.StringToTimeHookFunc(time.RFC3339)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode into struct, %w", err)
 	}
