@@ -36,7 +36,7 @@ func (v *midgardTracker) FetchVolume(from, to int64, affiliate string) (map[stri
 }
 
 func (v *midgardTracker) processVolumeWithToken(from, to int64, affiliate, nextPageToken string) (map[string]float64, error) {
-	time.Sleep(5 * time.Second) // to avoid hitting rate limits
+	time.Sleep(10 * time.Second) // to avoid hitting rate limits
 	url := fmt.Sprintf("%s?affiliate=%s&type=swap&timestamp=%d", v.baseUrl, affiliate, to)
 	if nextPageToken != "" {
 		url = fmt.Sprintf("%s?affiliate=%s&type=swap&nextPageToken=%s", v.baseUrl, affiliate, nextPageToken)
