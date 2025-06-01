@@ -149,11 +149,23 @@ func (s *Storage) GetLeaderVaults(fromRank int64, limit int) ([]models.Vault, er
 
 func (s *Storage) GetLeaderVaultsBySeason(seasonId uint, fromRank int64, limit int) ([]models.Vault, error) {
 	var vaults []models.Vault
-	// fetch vault ids from vault_season_stats and join with vaults
-	if err := s.db.Table("vault_season_stats").Select("vaults.*").
-		Joins("join vaults on vault_season_stats.vault_id = vaults.id").
-		Where("vault_season_stats.season_id = ? and vault_season_stats.rank > ?", seasonId, fromRank).
-		Order("vault_season_stats.rank asc").Limit(limit).Find(&vaults).Error; err != nil {
+	err := s.db.Table("vaults").
+		Select(`
+            vaults.*,`+
+			"vault_season_stats.rank as `rank`,"+
+			`vault_season_stats.points as total_points,
+            vault_season_stats.balance as balance,
+            vault_season_stats.lp_value as lp_value,
+            vault_season_stats.swap_volume as swap_volume,
+            vault_season_stats.nft_value as nft_value,
+            vault_season_stats.referral_count as referral_count
+        `).
+		Joins("LEFT JOIN vault_season_stats ON vaults.id = vault_season_stats.vault_id AND vault_season_stats.season_id = ?", seasonId).
+		Where("vault_season_stats.rank > ?", fromRank).
+		Order("vault_season_stats.rank asc").
+		Limit(limit).
+		Find(&vaults).Error
+	if err != nil {
 		return nil, fmt.Errorf("failed to get leader vaults by season: %w", err)
 	}
 	return vaults, nil
