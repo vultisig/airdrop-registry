@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
 	"strconv"
 	"strings"
@@ -239,7 +240,7 @@ type OpenSeaBestCollectionResponse struct {
 			Current struct {
 				Currency string `json:"currency"`
 				Decimals int    `json:"decimals"`
-				Value    int    `json:"value,string"`
+				Value    string `json:"value"`
 			} `json:"current"`
 		} `json:"price"`
 	} `json:"listings"`
@@ -276,7 +277,23 @@ func (p *PriceResolver) GetOpenSeaCollectionMinPrice(collectionSlug string) (flo
 	if !strings.EqualFold(openseaResp.Listings[0].Price.Current.Currency, "ETH") {
 		return 0, fmt.Errorf("currency not ETH")
 	}
-	pricePerEth := float64(openseaResp.Listings[0].Price.Current.Value) / 1e18
+	rawValue := openseaResp.Listings[0].Price.Current.Value
+	valueBigInt, ok := new(big.Int).SetString(rawValue, 10)
+	var pricePerEth float64
+	if !ok {
+		// Handle error, maybe set pricePerEth to 0 or return an error
+		pricePerEth = 0.0
+	} else {
+		// Convert to float64 for division
+		valueFloat := new(big.Float).SetInt(valueBigInt)
+		ethDiv := big.NewFloat(1e18)
+		pricePerEthFloat, _ := new(big.Float).Quo(valueFloat, ethDiv).Float64()
+		// pricePerEthFloat is your value in ETH
+		pricePerEth = pricePerEthFloat
+		// Use pricePerEth as needed
+	}
+
+	//pricePerEth := float64(openseaResp.Listings[0].Price.Current.Value) / 1e18
 	priceMap, err := p.GetAllTokenPrices([]models.CoinIdentity{
 		models.CoinIdentity{
 			CMCId: 1027,

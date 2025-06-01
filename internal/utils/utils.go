@@ -24,6 +24,9 @@ func IsETHAddress(s string) bool {
 }
 
 func HexToFloat64(hexStr string, decimals int64) (float64, error) {
+	if hexStr == "" {
+		return 0, nil
+	}
 	if strings.HasPrefix(hexStr, "0x") {
 		hexStr = hexStr[2:]
 	}
@@ -114,7 +117,7 @@ func GetReferralMultiplier(referralCount int64) float64 {
 // =1+0.02*SQRT(swapVolume)
 func GetSwapVolumeMultiplier(swapVolume float64) float64 {
 	// Calculate the multiplier
-	multiplier := 1 + 0.02*math.Sqrt(swapVolume)
+	multiplier := 1 + 0.002*math.Sqrt(swapVolume)
 
 	return multiplier
 }

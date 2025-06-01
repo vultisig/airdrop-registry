@@ -37,13 +37,16 @@ func (v *ReferralResolverService) GetReferrals(ecdsaKey string, eddsaKey string)
 		v.logger.WithError(err).Error("Failed to fetch referrals from API")
 		return nil, err
 	}
-	if resp.StatusCode != http.StatusOK {
-		v.logger.Errorf("API returned non-200 status code: %d", resp.StatusCode)
-		return nil, fmt.Errorf("API returned non-200 status code: %d", resp.StatusCode)
-	}
-
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusNotFound {
+			return []models.Referral{}, nil
+		} else {
+			v.logger.Errorf("API returned non-200 status code: %d", resp.StatusCode)
+			return nil, fmt.Errorf("API returned non-200 status code: %d", resp.StatusCode)
+		}
 
+	}
 	var apiResponse models.ReferralsAPIResponse
 	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
 		v.logger.WithError(err).Error("Failed to fetch referrals from API")

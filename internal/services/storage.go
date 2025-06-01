@@ -32,7 +32,7 @@ func NewStorage(cfg *config.Config) (*Storage, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	err = database.AutoMigrate(&models.Vault{}, &models.CoinDBModel{}, &models.Job{}, &models.VaultShareAppearance{})
+	err = database.AutoMigrate(&models.Vault{}, &models.CoinDBModel{}, &models.Job{}, &models.VaultShareAppearance{}, &models.VaultSeasonStats{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
@@ -73,17 +73,21 @@ func (s *Storage) UpdateJob(job *models.Job) error {
 	}
 	return nil
 }
+
+// UpdateVaultRanks recalculates and updates the rank for all vaults with join_airdrop = 1,
+// ensuring ranks are consecutive and sorted by total_points in descending order.
 func (s *Storage) UpdateVaultRanks() error {
 	sql := `
 UPDATE vaults
     JOIN (
-        SELECT id, RANK() OVER (ORDER BY total_points DESC) as vaultrank
-        FROM vaults where vaults.join_airdrop = 1
+        SELECT id, ROW_NUMBER() OVER (ORDER BY total_points DESC) as vaultrank
+        FROM vaults WHERE vaults.join_airdrop = 1
     ) ranked_vaults ON vaults.id = ranked_vaults.id
 SET vaults.rank = ranked_vaults.vaultrank ;
 `
 	return s.db.Exec(sql).Error
 }
+
 func (s *Storage) UpdateVaultBalance() error {
 	sql := `UPDATE vaults
 		JOIN (
@@ -92,5 +96,15 @@ func (s *Storage) UpdateVaultBalance() error {
 			GROUP BY vault_id
 		) AS coin_sums ON vaults.id = coin_sums.vault_id
 		SET vaults.balance = coin_sums.total_balance;`
+	return s.db.Exec(sql).Error
+}
+
+func (s *Storage) UpdateVaultTotalPoints() error {
+	sql := `
+        UPDATE vaults
+        SET 
+            total_points = total_points + SQRT(total_vault_value),
+            total_vault_value = 0
+    `
 	return s.db.Exec(sql).Error
 }

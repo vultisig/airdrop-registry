@@ -214,6 +214,13 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 			break
 		}
 		for i, vault := range vaults {
+			if vault.CurrentSeasonID < p.cfg.GetCurrentSeason().ID {
+				p.logger.Infof("vault %d is not in current season, commiting old season points", vault.ID)
+				if err := p.storage.CommitSeasonPoints(vault, p.cfg.GetCurrentSeason().ID); err != nil {
+					p.logger.Errorf("failed to commit season points for vault %d: %v", vault.ID, err)
+					continue
+				}
+			}
 			// Fetch referral count
 			vaults[i].ReferralCount, err = p.getValidReferralCount(vault.ECDSA, vault.EDDSA)
 			if err != nil {
@@ -232,6 +239,25 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 				p.logger.Errorf("failed to get coins for vault: %v", err)
 				continue
 			}
+			var totalVolume float64
+			address := make(map[string]interface{})
+			// fetch volume for each coin
+			for _, coin := range coins {
+				if _, ok := address[coin.Address]; ok {
+					continue // skip if address already exists
+				}
+				coinVolume := p.volumeResolver.GetVolume(coin.Address)
+				if coinVolume > 0 {
+					totalVolume += coinVolume
+				}
+				address[coin.Address] = nil
+			}
+			err = p.storage.UpdateVolume(vault.ID, totalVolume)
+			if err != nil {
+				p.logger.Errorf("failed to update volume for vault %d: %v", vault.ID, err)
+				continue
+			}
+
 			vaultAddress := models.NewVaultAddress(vault.ID)
 			for _, coin := range coins {
 				vaultAddress.SetAddress(coin.Chain, coin.Address)
@@ -264,23 +290,62 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 			// no more to process
 			close(workChan)
 			job.IsSuccess = true
+			break
 		}
 
 		if err := p.storage.UpdateJob(job); err != nil {
 			p.logger.Errorf("failed to update job: %v", err)
 		}
-
-		if job.IsSuccess {
-			if p.storage.UpdateVaultRanks() != nil {
-				p.logger.Errorf("failed to update vault ranks: %v", err)
-			}
-			if p.storage.UpdateVaultBalance() != nil {
-				p.logger.Errorf("failed to update vault balance: %v", err)
-			}
-			return
+	}
+	if job.IsSuccess {
+		if err := p.storage.UpdateVaultBalance(); err != nil {
+			p.logger.Errorf("failed to update vault balance: %v", err)
 		}
+		if p.cfg.GetCurrentSeason().ID > 0 {
+			p.logger.Infof("update vaults total point based on new formula for season %d", p.cfg.GetCurrentSeason().ID)
+			if err := p.storage.UpdateVaultTotalPoints(); err != nil {
+				p.logger.Errorf("failed to update vault total points: %v", err)
+			}
+			if err := p.updateVaultsMilestone(); err != nil {
+				p.logger.Errorf("failed to update vaults milestones: %v", err)
+			}
+		}
+
+		if err := p.storage.UpdateVaultRanks(); err != nil {
+			p.logger.Errorf("failed to update vault ranks: %v", err)
+		}
+		return
 	}
 }
+func (p *PointWorker) updateVaultsMilestone() error {
+	startId := uint(0)
+	for {
+		vaults, err := p.storage.GetVaultsWithPage(startId, 1000)
+		if err != nil {
+			p.logger.Errorf("failed to get vaults: %v", err)
+			return fmt.Errorf("failed to get vaults: %w", err)
+		}
+		if len(vaults) == 0 {
+			break
+		}
+		for _, vault := range vaults {
+			for i := 0; i < len(p.cfg.GetCurrentSeason().Milestones); i++ {
+				// if total points is greater than or equal to milestone minimum
+				if vault.TotalPoints >= float64(p.cfg.GetCurrentSeason().Milestones[i].Minimum) {
+					// if this milestone is locked
+					if vault.NextMilestoneID <= i {
+						// unlock milestone: update vault total points and next milestone id
+						p.storage.UpdateVaultMilestone(vault.ID, i+1, float64(p.cfg.GetCurrentSeason().Milestones[i].Prize))
+					}
+				}
+			}
+			startId = vault.ID
+		}
+	}
+	p.logger.Info("all vaults processed for milestones")
+	return nil
+}
+
 func (p *PointWorker) activePositionWorker(idx int, workerChan <-chan models.VaultAddress, job models.Job) {
 	p.logger.Infof("active position worker %d started", idx)
 	defer p.wg.Done()
@@ -336,12 +401,11 @@ func (p *PointWorker) updatePosition(vaultAddress models.VaultAddress, multiplie
 			p.logger.Errorf("failed to update lp value: %v", err)
 		}
 	}
-	newPoints := int64(newlp * multiplier)
+	newPoints := float64(newlp * multiplier)
 	if newlp == 0 {
 		return nil
 	}
-
-	if err := p.storage.IncreaseVaultTotalPoints(vaultAddress.GetVaultID(), newPoints); err != nil {
+	if err := p.storage.IncreaseVaultTotalValue(vaultAddress.GetVaultID(), newPoints); err != nil {
 		return fmt.Errorf("failed to increase vault total points: %w", err)
 	}
 	return nil
@@ -362,11 +426,11 @@ func (p *PointWorker) updateNFTBalance(vaultAddress models.VaultAddress, multipl
 			p.logger.Errorf("failed to update nft value: %v", err)
 		}
 	}
-	newPoints := int64(nftValue * multiplier)
+	newPoints := float64(nftValue * multiplier)
 	if newPoints == 0 {
 		return nil
 	}
-	if err := p.storage.IncreaseVaultTotalPoints(vaultAddress.GetVaultID(), newPoints); err != nil {
+	if err := p.storage.IncreaseVaultTotalValue(vaultAddress.GetVaultID(), newPoints); err != nil {
 		return fmt.Errorf("failed to increase vault total points: %w", err)
 	}
 	return nil
@@ -381,22 +445,12 @@ func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, er
 		return 0, fmt.Errorf("failed to get tc/maya liquidity position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
 	p.logger.Infof("tc/maya liquidity position for vault %d is %f", vaultAddress.GetVaultID(), tcmayalp)
-	tgtPrice, err := p.priceResolver.GetCoinGeckoPrice("thorwallet", "usd")
-	if err != nil {
-		return 0, fmt.Errorf("failed to get tgt price: %w", err)
-	}
-	p.lpResolver.SetTGTPrice(tgtPrice)
-	tgtlp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetTGTStakePosition, vaultAddress.GetEVMAddress())
-	if err != nil {
-		return 0, fmt.Errorf("failed to get tgt stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
-	}
-	p.logger.Infof("tgt stake position for vault %d is %f", vaultAddress.GetVaultID(), tgtlp)
 	saver, err := backoffRetry.RetryWithBackoff(p.saverResolver.GetSaverPosition, address)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get saver position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
 	p.logger.Infof("saver position for vault %d is %f", vaultAddress.GetVaultID(), saver)
-	newLP := tcmayalp + tgtlp + saver
+	newLP := tcmayalp + saver
 	return int64(newLP), nil
 }
 func (p *PointWorker) fetchNFTValue(vault models.VaultAddress) (int64, error) {
@@ -450,21 +504,11 @@ func (p *PointWorker) updateBalance(coin models.CoinDBModel, multiplier int64) e
 		return fmt.Errorf("failed to parse coin price: %w", err)
 	}
 	seasonMultiplier := p.getSeasonMultiplierForCoin(coin)
-	newPoints := int64(coinBalance * price * float64(multiplier) * float64(seasonMultiplier))
+	newPoints := float64(coinBalance * price * float64(multiplier) * float64(seasonMultiplier))
 	if newPoints == 0 {
 		return nil
 	}
-	v, err := p.storage.GetVaultByID(coin.VaultID)
-	if err != nil {
-		return fmt.Errorf("failed to get vault: %w", err)
-	}
-	referralMultiplier := utils.GetReferralMultiplier(v.ReferralCount)
-	newPoints = int64(float64(newPoints) * referralMultiplier)
-
-	swapVolume := p.volumeResolver.GetVolume(coin.Address)
-	swapMultiplier := utils.GetSwapVolumeMultiplier(swapVolume)
-	newPoints = int64(float64(newPoints) * swapMultiplier)
-	if err := p.storage.IncreaseVaultTotalPoints(coin.VaultID, newPoints); err != nil {
+	if err := p.storage.IncreaseVaultTotalValue(coin.VaultID, newPoints); err != nil {
 		return fmt.Errorf("failed to increase vault total points: %w", err)
 	}
 	return nil
@@ -552,8 +596,8 @@ func (p *PointWorker) getValidReferralCount(ecdsaKey string, eddsaKey string) (i
 	return cnt, nil
 }
 
-func (p *PointWorker) getSeasonMultiplierForCoin(coin models.CoinDBModel) int {
-	for _, token := range p.cfg.Season.Tokens {
+func (p *PointWorker) getSeasonMultiplierForCoin(coin models.CoinDBModel) float64 {
+	for _, token := range p.cfg.GetCurrentSeason().Tokens {
 		if token.Chain == coin.Chain.String() && token.Name == coin.Ticker && coin.ContractAddress == token.ContractAddress {
 			return token.Multiplier
 		}
@@ -561,8 +605,8 @@ func (p *PointWorker) getSeasonMultiplierForCoin(coin models.CoinDBModel) int {
 	return 1
 }
 
-func (p *PointWorker) getSeasonMultiplierForNFT(coin models.CoinDBModel) int {
-	for _, collection := range p.cfg.Season.NFTs {
+func (p *PointWorker) getSeasonMultiplierForNFT(coin models.CoinDBModel) float64 {
+	for _, collection := range p.cfg.GetCurrentSeason().NFTs {
 		if collection.Chain == coin.Chain.String() && collection.ContractAddress == coin.ContractAddress {
 			return collection.Multiplier
 		}

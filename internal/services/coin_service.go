@@ -94,7 +94,7 @@ func (s *Storage) GetCoinsWithPage(startId, limit uint64) ([]models.CoinDBModel,
 }
 func (s *Storage) UpdateCoinBalance(coinID uint64, balance float64) error {
 	qry := `UPDATE coins SET balance = ?, usd_value = balance * price_usd  WHERE id = ?`
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	if err := s.db.WithContext(ctx).Exec(qry, balance, coinID).Error; err != nil {
 		return fmt.Errorf("failed to update coin balance: %w", err)

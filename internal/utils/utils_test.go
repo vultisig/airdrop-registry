@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -142,16 +143,17 @@ func TestGetSwapVolumeMultiplier(t *testing.T) {
 		expectedOutput float64
 	}{
 		{0, 1},
-		{400, 1.4},
-		{900, 1.6},
-		{1600, 1.8},
-		{2500, 2},
-		{100000, 7.324555320336759},
+		{400, 1.04},
+		{900, 1.06},
+		{1600, 1.08},
+		{2500, 1.1},
+		{1000000, 3},
 	}
 	for _, tc := range testCases {
 		result := GetSwapVolumeMultiplier(tc.input)
 		if result != tc.expectedOutput {
 			t.Errorf("Expected %f for input %f, but got %f", tc.expectedOutput, tc.input, result)
+			fmt.Println(result, tc.expectedOutput)
 		}
 	}
 }
