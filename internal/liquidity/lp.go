@@ -74,7 +74,7 @@ func (l *LiquidityPositionResolver) GetLiquidityPosition(address string) (float6
 // fetch Thorchain TCY LP position from thornode api
 func (l *LiquidityPositionResolver) GetTCYStakePosition(address string) (float64, error) {
 	if address == "" {
-		return 0, fmt.Errorf("address cannot be empty")
+		return 0, nil
 	}
 	url := fmt.Sprintf("%s/thorchain/tcy_staker/%s", l.thornodeBaseURL, address)
 	resp, err := http.Get(url)
