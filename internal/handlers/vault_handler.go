@@ -458,9 +458,21 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 			_ = c.Error(errFailedToGetVault)
 			return
 		}
+		totalSeasonPoints, err := a.s.GetLeaderVaultTotalPointsBySeason(seasonId)
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault total points: %v", err)
+			c.Error(errFailedToGetVault)
+			return
+		}
 		vaults, err = a.s.GetLeaderVaultsBySeason(seasonId, from, limit)
 		for i := range vaults {
 			vaults[i].Rank = from + int64(i+1)
+			totalAirdropPoints := float64(1_250_000)
+			if seasonId == 0 {
+				totalAirdropPoints = 1_000_000
+			}
+			// balance for ended season is amount of VULT for each vault and for current season is total balance in $
+			vaults[i].Balance = int64(totalAirdropPoints * (vaults[i].TotalPoints / totalSeasonPoints))
 		}
 		if err != nil {
 			a.logger.Errorf("failed to get leader vaults: %v", err)

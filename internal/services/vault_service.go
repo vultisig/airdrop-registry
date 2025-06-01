@@ -159,6 +159,14 @@ func (s *Storage) GetLeaderVaultsBySeason(seasonId uint, fromRank int64, limit i
 	return vaults, nil
 }
 
+func (s *Storage) GetLeaderVaultTotalPointsBySeason(seasonId uint) (float64, error) {
+	var totalPoints float64
+	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ?", seasonId).Select("COALESCE(SUM(points), 0)").Row().Scan(&totalPoints); err != nil {
+		return 0, fmt.Errorf("failed to get leader vault total points by season: %w", err)
+	}
+	return totalPoints, nil
+}
+
 // TODO: rename the function to GetRankLeaderVaults
 func (s *Storage) GetSwapLeaderVaults(fromRank int64, limit int) ([]models.Vault, error) {
 	var vaults []models.Vault
