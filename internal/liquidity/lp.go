@@ -84,6 +84,10 @@ func (l *LiquidityPositionResolver) GetTCYStakePosition(address string) (float64
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusBadRequest {
+			l.logger.Warnf("bad request for address %s, possibly not a TCY staker", address)
+			return 0, nil
+		}
 		l.logger.Errorf("error fetching liquidity position from %s: %s", url, resp.Status)
 		return 0, fmt.Errorf("error fetching liquidity position from %s: %s", url, resp.Status)
 	}
