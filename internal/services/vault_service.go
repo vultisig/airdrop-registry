@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vultisig/airdrop-registry/internal/models"
 	"gorm.io/gorm"
+
+	"github.com/vultisig/airdrop-registry/internal/models"
 )
 
 // RegisterVault save the given vault to db
@@ -66,18 +67,30 @@ func (s *Storage) CommitSeasonPoints(v models.Vault, newSeasonId uint) error {
 		return fmt.Errorf("failed to start tx: %w", tx.Error)
 	}
 	// insert into vault_season_stats
-	qry := `INSERT INTO vault_season_stats (vault_id, season_id, rank, points, balance, lp_value, swap_volume, referral_count)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-	ON DUPLICATE KEY UPDATE  rank=?, points = ?, balance = ?, lp_value = ?, swap_volume = ?, referral_count = ?`
+	qry := "INSERT INTO vault_season_stats (vault_id, season_id, `rank`, points, balance, lp_value, swap_volume, referral_count)" +
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)" +
+		"ON DUPLICATE KEY UPDATE  `rank`=?, points = ?, balance = ?, lp_value = ?, swap_volume = ?, referral_count = ?"
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	if err := tx.WithContext(ctx).Exec(qry, v.ID, v.CurrentSeasonID, v.Rank, v.TotalPoints, v.Balance, v.LPValue, v.SwapVolume, v.ReferralCount,
-		v.Rank, v.TotalPoints, v.Balance, v.LPValue, v.SwapVolume, v.ReferralCount).Error; err != nil {
+	if err := tx.WithContext(ctx).Exec(qry, v.ID,
+		v.CurrentSeasonID,
+		v.Rank,
+		v.TotalPoints,
+		v.Balance,
+		v.LPValue,
+		v.SwapVolume,
+		v.ReferralCount,
+		v.Rank,
+		v.TotalPoints,
+		v.Balance,
+		v.LPValue,
+		v.SwapVolume,
+		v.ReferralCount).Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to commit season points: %w", err)
 	}
 	// reset current season points
-	qry = `UPDATE vaults SET current_season_id = ?, rank = 0, total_points = 0, total_vault_value = 0, balance = 0, lp_value = 0, swap_volume = 0, referral_count = 0, next_milestone_id=0 WHERE id = ?`
+	qry = `UPDATE vaults SET current_season_id = ?, "rank" = 0, total_points = 0, total_vault_value = 0, balance = 0, lp_value = 0, swap_volume = 0, referral_count = 0, next_milestone_id=0 WHERE id = ?`
 	if err := tx.WithContext(ctx).Exec(qry, newSeasonId, v.ID).Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to reset vault current season points: %w", err)
@@ -208,7 +221,7 @@ func (s *Storage) GetVaultsWithPage(startId, limit uint) ([]models.Vault, error)
 }
 
 func (s *Storage) GetLeaderVaultTotalBalance() (int64, error) {
-	//return sum of balance of all leader vaults
+	// return sum of balance of all leader vaults
 	var totalBalance int64
 	if err := s.db.Model(&models.Vault{}).Select("sum(balance)").Row().Scan(&totalBalance); err != nil {
 		return 0, fmt.Errorf("failed to get leader vault total balance: %w", err)
@@ -217,7 +230,7 @@ func (s *Storage) GetLeaderVaultTotalBalance() (int64, error) {
 }
 
 func (s *Storage) GetLeaderVaultTotalBalanceBySeason(seasonId uint) (int64, error) {
-	//return sum of balance of all leader vaults
+	// return sum of balance of all leader vaults
 	var totalBalance int64
 	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ?", seasonId).Select("COALESCE(SUM(balance), 0)").Row().Scan(&totalBalance); err != nil {
 		return 0, fmt.Errorf("failed to get leader vault total balance: %w", err)
@@ -226,7 +239,7 @@ func (s *Storage) GetLeaderVaultTotalBalanceBySeason(seasonId uint) (int64, erro
 }
 
 func (s *Storage) GetLeaderVaultTotalVolume() (float64, error) {
-	//return sum of volume of all leader vaults
+	// return sum of volume of all leader vaults
 	var totalVolume float64
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -237,7 +250,7 @@ func (s *Storage) GetLeaderVaultTotalVolume() (float64, error) {
 }
 
 func (s *Storage) GetLeaderVaultTotalLP() (int64, error) {
-	//return sum of balance of all leader vaults
+	// return sum of balance of all leader vaults
 	var totalLP int64
 	if err := s.db.Model(&models.Vault{}).Select("sum(lp_value)").Row().Scan(&totalLP); err != nil {
 		return 0, fmt.Errorf("failed to get leader vault total lp: %w", err)
@@ -246,7 +259,7 @@ func (s *Storage) GetLeaderVaultTotalLP() (int64, error) {
 }
 
 func (s *Storage) GetLeaderVaultTotalLPBySeason(seasonId uint) (int64, error) {
-	//return sum of balance of all leader vaults
+	// return sum of balance of all leader vaults
 	var totalLP int64
 	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ?", seasonId).Select("COALESCE(SUM(lp_value),0)").Row().Scan(&totalLP); err != nil {
 		return 0, fmt.Errorf("failed to get leader vault total lp: %w", err)
@@ -255,7 +268,7 @@ func (s *Storage) GetLeaderVaultTotalLPBySeason(seasonId uint) (int64, error) {
 }
 
 func (s *Storage) GetLeaderVaultTotalNFT() (int64, error) {
-	//return sum of balance of all leader vaults
+	// return sum of balance of all leader vaults
 	var totalLP int64
 	if err := s.db.Model(&models.Vault{}).Select("sum(nft_value)").Row().Scan(&totalLP); err != nil {
 		return 0, fmt.Errorf("failed to get leader vault total lp: %w", err)
@@ -264,7 +277,7 @@ func (s *Storage) GetLeaderVaultTotalNFT() (int64, error) {
 }
 
 func (s *Storage) GetLeaderVaultTotalNFTBySeason(seasonId uint) (int64, error) {
-	//return sum of balance of all leader vaults
+	// return sum of balance of all leader vaults
 	var totalNFT int64
 	if err := s.db.Model(&models.VaultSeasonStats{}).Where("`season_id` = ?", seasonId).Select("COALESCE(SUM(nft_value),0)").Row().Scan(&totalNFT); err != nil {
 		return 0, fmt.Errorf("failed to get leader vault total nft: %w", err)
