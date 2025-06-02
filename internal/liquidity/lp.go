@@ -97,7 +97,7 @@ func (l *LiquidityPositionResolver) GetTCYStakePosition(address string) (float64
 		return 0, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	return float64(lp.Amount) * l.GetTCYPrice(), nil
+	return float64(lp.Amount) * 1e-8 * l.GetTCYPrice(), nil
 }
 
 type tcyLPPositionResponse struct {
