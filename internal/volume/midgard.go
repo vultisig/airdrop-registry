@@ -19,7 +19,7 @@ type midgardTracker struct {
 
 func NewMidgardVolumeTracker(baseAddress string, chainDecimal int) IVolumeTracker {
 	return &midgardTracker{
-		baseUrl:      fmt.Sprintf("%s/v2/actions", baseAddress),
+		baseUrl:      fmt.Sprintf("%s/actions", baseAddress),
 		chainDecimal: chainDecimal,
 		logger:       logrus.WithField("module", "midgard_tracker").Logger,
 	}
