@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -458,9 +459,25 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 			_ = c.Error(errFailedToGetVault)
 			return
 		}
+		// total points for finished season
+		totalSeasonPoints, err := a.s.GetLeaderVaultTotalPointsBySeason(seasonId)
+		fmt.Println("totalSeasonPoints:", totalSeasonPoints)
+		if err != nil {
+			a.logger.Errorf("failed to get leader vault total points: %v", err)
+			c.Error(errFailedToGetVault)
+			return
+		}
 		vaults, err = a.s.GetLeaderVaultsBySeason(seasonId, from, limit)
+		//for finished seasons, we should show airdrop share based on total points
 		for i := range vaults {
 			vaults[i].Rank = from + int64(i+1)
+			// for all seasons, except season 0, total airdrop points is 1_250_000
+			totalAirdropPoints := float64(1_250_000)
+			if seasonId == 0 {
+				// for season 0, total airdrop points is 1_000_000
+				totalAirdropPoints = 1_000_000
+			}
+			vaults[i].Balance = int64(totalAirdropPoints * (vaults[i].TotalPoints / totalSeasonPoints))
 		}
 		if err != nil {
 			a.logger.Errorf("failed to get leader vaults: %v", err)
