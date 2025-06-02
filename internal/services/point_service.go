@@ -158,7 +158,7 @@ func (p *PointWorker) startJob(job *models.Job) {
 		return
 	}
 
-	//TODO: make sure logic for from/to is correct
+	// TODO: make sure logic for from/to is correct
 	if err := p.volumeResolver.LoadVolume(job.StartOfEpoch(), job.EndOfEpoch()); err != nil {
 		p.logger.Errorf("failed to load volume: %e", err)
 	}
@@ -601,8 +601,11 @@ func (p *PointWorker) getValidReferralCount(ecdsaKey string, eddsaKey string) (i
 
 	var cnt int64
 	for _, r := range referrals {
-		//User can not refer himself
+		// User can not refer himself
 		if r.WalletPublicKeyEcdsa == ecdsaKey && r.WalletPublicKeyEddsa == eddsaKey {
+			continue
+		}
+		if r.WalletPublicKeyEcdsa == "" || r.WalletPublicKeyEddsa == "" {
 			continue
 		}
 		v, err := p.storage.GetVault(r.WalletPublicKeyEcdsa, r.WalletPublicKeyEddsa)
