@@ -467,6 +467,9 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 			c.Error(errFailedToGetVault)
 			return
 		}
+		if totalSeasonPoints == 0 {
+			a.logger.Warnf("no points found for season %d", seasonId)
+		}
 		vaults, err = a.s.GetLeaderVaultsBySeason(seasonId, from, limit)
 		//for finished seasons, we should show airdrop share based on total points
 		for i := range vaults {
@@ -477,7 +480,11 @@ func (a *Api) getVaultsByRankHandler(c *gin.Context) {
 				// for season 0, total airdrop points is 1_000_000
 				totalAirdropPoints = 1_000_000
 			}
-			vaults[i].Balance = int64(totalAirdropPoints * (vaults[i].TotalPoints / totalSeasonPoints))
+			if totalSeasonPoints > 0 {
+				vaults[i].Balance = int64(totalAirdropPoints * (vaults[i].TotalPoints / totalSeasonPoints))
+			} else {
+				vaults[i].Balance = 0
+			}
 		}
 		if err != nil {
 			a.logger.Errorf("failed to get leader vaults: %v", err)
