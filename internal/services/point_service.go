@@ -161,6 +161,7 @@ func (p *PointWorker) startJob(job *models.Job) {
 	// TODO: make sure logic for from/to is correct
 	if err := p.volumeResolver.LoadVolume(job.StartOfEpoch(), job.EndOfEpoch()); err != nil {
 		p.logger.Errorf("failed to load volume: %e", err)
+		return
 	}
 
 	p.wg.Add(1)
