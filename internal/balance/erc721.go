@@ -37,6 +37,7 @@ func (b *BalanceResolver) fetchERC721TokenBalance(chain common.Chain, contractAd
 			To:   contractAddress,
 			Data: data,
 		},
+		"latest",
 	}
 
 	// Create RPC request
