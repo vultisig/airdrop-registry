@@ -290,11 +290,14 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 			// no more to process
 			close(workChan)
 			job.IsSuccess = true
-			break
+
 		}
 
 		if err := p.storage.UpdateJob(job); err != nil {
 			p.logger.Errorf("failed to update job: %v", err)
+		}
+		if job.IsSuccess {
+			break
 		}
 	}
 	if job.IsSuccess {
@@ -314,7 +317,6 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 		if err := p.storage.UpdateVaultRanks(); err != nil {
 			p.logger.Errorf("failed to update vault ranks: %v", err)
 		}
-		return
 	}
 }
 func (p *PointWorker) updateVaultsMilestone() error {
