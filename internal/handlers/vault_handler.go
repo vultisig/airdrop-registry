@@ -110,6 +110,17 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 				Points:   vault.TotalPoints,
 			})
 		} else {
+			totalSeasonPoints, err := a.s.GetLeaderVaultTotalPointsBySeason(season.ID)
+			if err != nil {
+				a.logger.Error(err)
+				_ = c.Error(errFailedToGetVault)
+				return
+			}
+			totalAirdropPoints := float64(1_250_000)
+			if season.ID == 0 {
+				// for season 0, total airdrop points is 1_000_000
+				totalAirdropPoints = 1_000_000
+			}
 			seasonStats, err := a.s.GetSeasonStats(vault.ID, season.ID)
 			if err != nil {
 				a.logger.Error(err)
@@ -119,7 +130,7 @@ func (a *Api) getVaultHandler(c *gin.Context) {
 			vaultResp.SeasonActivities = append(vaultResp.SeasonActivities, models.SeasonStats{
 				SeasonID: season.ID,
 				Rank:     seasonStats.Rank,
-				Points:   seasonStats.Points,
+				Points:   (seasonStats.Points / totalSeasonPoints) * totalAirdropPoints,
 			})
 		}
 	}
