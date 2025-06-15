@@ -8,11 +8,12 @@ import (
 
 type Job struct {
 	gorm.Model
-	JobDate        time.Time `gorm:"type:date;not null"`
-	Multiplier     int64
-	CurrentID      int64
-	CurrentVaultID uint
-	IsSuccess      bool
+	JobDate         time.Time `gorm:"type:date;not null"`
+	Multiplier      int64
+	CurrentID       int64
+	CurrentVaultID  uint
+	IsSuccess       bool
+	IsVolumeFetched bool `gorm:"type:boolean;default:false"`
 }
 
 func (*Job) TableName() string {
@@ -28,15 +29,15 @@ func (j *Job) DaysSince() int64 {
 
 // start and end of epoch will be used to fetch volume data
 // start of epoch is the date of job.date - multiplier days
-func (j *Job) StartOfEpoch() int64 {
+func StartOfEpoch(jobDate time.Time) int64 {
 	// fetch date of job.date , remove hour,minutes and seconds  add multiplier days
-	startOfEpoch := j.JobDate.Truncate(24 * time.Hour).Add(time.Duration(-1*j.Multiplier) * 24 * time.Hour)
+	startOfEpoch := jobDate.Truncate(24 * time.Hour).Add(time.Duration(-1 * 24 * time.Hour))
 	return startOfEpoch.Unix()
 }
 
 // end of epoch is the start date of job.date
-func (j *Job) EndOfEpoch() int64 {
+func EndOfEpoch(jobDate time.Time) int64 {
 	// fetch date of job.date , remove hour,minutes and seconds  add multiplier days
-	endOfEpoch := j.JobDate.Truncate(24 * time.Hour)
+	endOfEpoch := jobDate.Truncate(24 * time.Hour)
 	return endOfEpoch.Unix()
 }

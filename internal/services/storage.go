@@ -66,10 +66,30 @@ func (s *Storage) GetLastJob() (*models.Job, error) {
 	}
 	return &job, nil
 }
+
 func (s *Storage) UpdateJob(job *models.Job) error {
 	result := s.db.Save(job)
 	if result.Error != nil {
 		return result.Error
+	}
+	return nil
+}
+
+// Get last time volume fetch successful
+func (c *Storage) GetLastVolumeFetch() (*models.Job, error) {
+	var job models.Job
+	result := c.db.Model(&models.Job{}).Where("is_volume_fetched = ?", true).Order("job_date DESC").First(&job)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &job, nil
+}
+
+func (s *Storage) UpdateIsVolumeFetched(job *models.Job) error {
+	// Update the is_volume_fetched field to true for the given job
+	result := s.db.Model(job).Update("is_volume_fetched", true)
+	if result.Error != nil {
+		return fmt.Errorf("failed to update is_volume_fetched: %w", result.Error)
 	}
 	return nil
 }
