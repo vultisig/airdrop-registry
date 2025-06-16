@@ -254,6 +254,34 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 			}
 			var totalVolume float64
 			address := make(map[string]interface{})
+			//generate vault address for all chains
+			for _, chain := range common.GetAllChains() {
+				//generate address for the given chains
+				addr, err := vault.GetAddress(chain)
+				if err != nil {
+					p.logger.Errorf("failed to get address for vault %d on chain %s: %v", vault.ID, chain, err)
+					continue
+				}
+				found := false
+				for _, coin := range coins {
+					if coin.Address == addr {
+						found = true
+					}
+				}
+				if !found {
+					// if address not found in coins, add it
+					coins = append(coins, models.CoinDBModel{
+						CoinBase: models.CoinBase{
+							Chain:    chain,
+							Address:  addr,
+							IsNative: true,
+						},
+						VaultID: vault.ID,
+					})
+				}
+
+			}
+
 			// fetch volume for each coin
 			for _, coin := range coins {
 				if _, ok := address[coin.Address]; ok {

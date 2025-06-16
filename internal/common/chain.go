@@ -44,6 +44,17 @@ const (
 	Zcash
 )
 
+func GetAllChains() []Chain {
+	allChains := make([]Chain, 0, len(chainToString))
+	for k, v := range chainToString {
+		if v == "UNKNOWN" {
+			continue
+		}
+		allChains = append(allChains, k)
+	}
+	return allChains
+}
+
 var chainToString = map[Chain]string{
 	THORChain:    "THORChain",
 	Solana:       "Solana",
