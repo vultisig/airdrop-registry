@@ -279,7 +279,6 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 						VaultID: vault.ID,
 					})
 				}
-
 			}
 
 			// fetch volume for each coin
@@ -354,18 +353,17 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 				p.logger.Errorf("failed to update vaults milestones: %v", err)
 			}
 		}
-		if p.isVolumeFetched {
-			err := p.storage.UpdateIsVolumeFetched(job)
-			if err != nil {
-				//TODO: handler error properly
-				p.logger.Errorf("failed to update is_volume_fetched: %v", err)
-			} else {
-				p.logger.Infof("volume fetched successfully, updated job %d", job.ID)
-			}
-		}
-
 		if err := p.storage.UpdateVaultRanks(); err != nil {
 			p.logger.Errorf("failed to update vault ranks: %v", err)
+		}
+	}
+	if p.isVolumeFetched {
+		err := p.storage.UpdateIsVolumeFetched(job)
+		if err != nil {
+			//TODO: handler error properly
+			p.logger.Errorf("failed to update is_volume_fetched: %v", err)
+		} else {
+			p.logger.Infof("volume fetched successfully, updated job %d", job.ID)
 		}
 	}
 }
