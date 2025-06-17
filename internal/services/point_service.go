@@ -36,6 +36,7 @@ type PointWorker struct {
 	stopChan               chan struct{}
 	cfg                    *config.Config
 	isJobInProgress        bool
+	isVolumeFetched        bool // flag to indicate if volume fetched successfully
 	whitelistNFTCollection []models.NFTCollection
 }
 
@@ -157,10 +158,22 @@ func (p *PointWorker) startJob(job *models.Job) {
 		p.logger.Errorf("failed to update coin prices: %e", err)
 		return
 	}
+	//default value for lastVolumeFetch is first of June 2025
+	lastVolumeFetch := time.Date(2025, 6, 1, 0, 0, 0, 0, time.UTC)
+	lastVolumeJob, err := p.storage.GetLastVolumeFetch()
+	if err == nil {
+		lastVolumeFetch = lastVolumeJob.JobDate
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		p.logger.Errorf("failed to get last volume fetch: %e", err)
+		return
+	}
 
 	// TODO: make sure logic for from/to is correct
-	if err := p.volumeResolver.LoadVolume(job.StartOfEpoch(), job.EndOfEpoch()); err != nil {
+	if err := p.volumeResolver.LoadVolume(models.StartOfEpoch(lastVolumeFetch), models.EndOfEpoch(job.JobDate)); err != nil {
 		p.logger.Errorf("failed to load volume: %e", err)
+	} else {
+		p.logger.Infof("volume fetch completed successfully (from %d to %d)", models.StartOfEpoch(lastVolumeFetch), models.EndOfEpoch(job.JobDate))
+		p.isVolumeFetched = true
 	}
 
 	p.wg.Add(1)
@@ -241,6 +254,33 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 			}
 			var totalVolume float64
 			address := make(map[string]interface{})
+			//generate vault address for all chains
+			for _, chain := range common.GetAllChains() {
+				//generate address for the given chains
+				addr, err := vault.GetAddress(chain)
+				if err != nil {
+					p.logger.Errorf("failed to get address for vault %d on chain %s: %v", vault.ID, chain, err)
+					continue
+				}
+				found := false
+				for _, coin := range coins {
+					if coin.Address == addr {
+						found = true
+					}
+				}
+				if !found {
+					// if address not found in coins, add it
+					coins = append(coins, models.CoinDBModel{
+						CoinBase: models.CoinBase{
+							Chain:    chain,
+							Address:  addr,
+							IsNative: true,
+						},
+						VaultID: vault.ID,
+					})
+				}
+			}
+
 			// fetch volume for each coin
 			for _, coin := range coins {
 				if _, ok := address[coin.Address]; ok {
@@ -313,9 +353,17 @@ func (p *PointWorker) taskProvider(job *models.Job, workChan chan models.CoinDBM
 				p.logger.Errorf("failed to update vaults milestones: %v", err)
 			}
 		}
-
 		if err := p.storage.UpdateVaultRanks(); err != nil {
 			p.logger.Errorf("failed to update vault ranks: %v", err)
+		}
+	}
+	if p.isVolumeFetched {
+		err := p.storage.UpdateIsVolumeFetched(job)
+		if err != nil {
+			//TODO: handler error properly
+			p.logger.Errorf("failed to update is_volume_fetched: %v", err)
+		} else {
+			p.logger.Infof("volume fetched successfully, updated job %d", job.ID)
 		}
 	}
 }
