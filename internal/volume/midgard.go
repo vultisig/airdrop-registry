@@ -12,16 +12,18 @@ import (
 )
 
 type midgardTracker struct {
-	baseUrl      string
-	chainDecimal int
-	logger       *logrus.Logger
+	baseUrl        string
+	chainDecimal   int
+	clientIdHeader string
+	logger         *logrus.Logger
 }
 
-func NewMidgardVolumeTracker(baseAddress string, chainDecimal int) IVolumeTracker {
+func NewMidgardVolumeTracker(baseAddress string, chainDecimal int, clientIdHeader string) IVolumeTracker {
 	return &midgardTracker{
-		baseUrl:      fmt.Sprintf("%s/actions", baseAddress),
-		chainDecimal: chainDecimal,
-		logger:       logrus.WithField("module", "midgard_tracker").Logger,
+		baseUrl:        fmt.Sprintf("%s/v2/actions", baseAddress),
+		chainDecimal:   chainDecimal,
+		clientIdHeader: clientIdHeader,
+		logger:         logrus.WithField("module", "midgard_tracker").Logger,
 	}
 }
 
@@ -36,16 +38,24 @@ func (v *midgardTracker) FetchVolume(from, to int64, affiliate string) (map[stri
 }
 
 func (v *midgardTracker) processVolumeWithToken(from, to int64, affiliate, nextPageToken string) (map[string]float64, error) {
-	time.Sleep(10 * time.Second) // to avoid hitting rate limits
+	time.Sleep(1 * time.Second) // to avoid hitting rate limits
 	url := fmt.Sprintf("%s?affiliate=%s&type=swap&timestamp=%d", v.baseUrl, affiliate, to)
 	if nextPageToken != "" {
 		url = fmt.Sprintf("%s?affiliate=%s&type=swap&nextPageToken=%s", v.baseUrl, affiliate, nextPageToken)
 	}
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error making GET request: %w", err)
+	}
+	if v.clientIdHeader != "" {
+		req.Header.Set("X-Client-ID", v.clientIdHeader)
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making GET request: %w", err)
 	}
 	defer v.SafeClose(resp.Body)
+
 	if resp.StatusCode == http.StatusTooManyRequests {
 		time.Sleep(30 * time.Second)
 		return v.processVolumeWithToken(from, to, affiliate, nextPageToken)

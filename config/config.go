@@ -42,6 +42,7 @@ type Config struct {
 		EtherscanAPIKey    string   `mapstructure:"etherscan_api_key"`
 		EthplorerAPIKey    string   `mapstructure:"ethplorer_api_key"`
 		TCMidgardBaseURL   string   `mapstructure:"tcmidgard_base_url"`
+		TCMidgardXClientID string   `mapstructure:"tcmidgard_xclient_id"`
 		MayaMidgardBaseURL string   `mapstructure:"mayamidgard_base_url"`
 	}
 }

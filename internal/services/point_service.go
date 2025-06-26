@@ -159,20 +159,20 @@ func (p *PointWorker) startJob(job *models.Job) {
 		return
 	}
 	//default value for lastVolumeFetch is first of June 2025
-	lastVolumeFetch := time.Date(2025, 6, 1, 0, 0, 0, 0, time.UTC)
+	lastVolumeFetch := time.Date(2025, 6, 1, 0, 0, 0, 0, time.UTC).Unix()
 	lastVolumeJob, err := p.storage.GetLastVolumeFetch()
 	if err == nil {
-		lastVolumeFetch = lastVolumeJob.JobDate
+		lastVolumeFetch = models.GetDate(lastVolumeJob.JobDate)
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		p.logger.Errorf("failed to get last volume fetch: %e", err)
 		return
 	}
 
 	// TODO: make sure logic for from/to is correct
-	if err := p.volumeResolver.LoadVolume(models.StartOfEpoch(lastVolumeFetch), models.EndOfEpoch(job.JobDate)); err != nil {
+	if err := p.volumeResolver.LoadVolume(lastVolumeFetch, models.GetDate(job.JobDate)); err != nil {
 		p.logger.Errorf("failed to load volume: %e", err)
 	} else {
-		p.logger.Infof("volume fetch completed successfully (from %d to %d)", models.StartOfEpoch(lastVolumeFetch), models.EndOfEpoch(job.JobDate))
+		p.logger.Infof("volume fetch completed successfully (from %d to %d)", lastVolumeFetch, models.GetDate(job.JobDate))
 		p.isVolumeFetched = true
 	}
 
