@@ -26,7 +26,7 @@ type Api struct {
 	s            *services.Storage
 	router       *gin.Engine
 	cachedData   *cache.Cache
-	questService QuestService
+	questService *QuestService
 }
 
 // NewApi creates a new Api instance

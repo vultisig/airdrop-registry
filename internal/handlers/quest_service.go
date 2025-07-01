@@ -17,16 +17,16 @@ type QuestService struct {
 	ethAddressStore map[string]uint
 }
 
-func NewQuestService(storage *services.Storage) (QuestService, error) {
+func NewQuestService(storage *services.Storage) (*QuestService, error) {
 	questService := QuestService{
 		logger:          logrus.WithField("module", "quest_service").Logger,
 		storage:         storage,
 		ethAddressStore: make(map[string]uint),
 	}
 	if err := questService.initialize(); err != nil {
-		return QuestService{}, err
+		return &QuestService{}, err
 	}
-	return questService, nil
+	return &questService, nil
 }
 
 // initialize the quest service
@@ -43,9 +43,6 @@ func (q *QuestService) initialize() error {
 		coins, err := q.storage.GetCoinsWithPage(coinPageId, 10000)
 		if err != nil {
 			return err
-		}
-		if coinPageId > 0 {
-			break
 		}
 		if len(coins) == 0 {
 			break
@@ -71,19 +68,16 @@ func (q *QuestService) initialize() error {
 		if len(vaults) == 0 {
 			break
 		}
-		if vaultPageId > 0 {
-			break
-		}
 		vaultPageId = vaults[len(vaults)-1].ID + 1
 		for _, vault := range vaults {
-			exits := false
+			exists := false
 			for _, v := range q.ethAddressStore {
 				if v == vault.ID {
-					exits = true
+					exists = true
 					break
 				}
 			}
-			if !exits {
+			if !exists {
 				//generate eth address from vault
 				ethAddress, err := vault.GetAddress(common.Ethereum)
 				if err != nil {

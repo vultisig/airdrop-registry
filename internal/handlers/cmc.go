@@ -9,6 +9,7 @@ type cmcQuestResponse struct {
 }
 
 func (a *Api) verifyCoinMarketCapQuest(c *gin.Context) {
+	//TODO: add whitelist ip address check for cmc
 	address := c.Query("address")
 	isValid := a.questService.Exists(address)
 
