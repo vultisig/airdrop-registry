@@ -21,11 +21,12 @@ import (
 
 // Api is the main handler for the API
 type Api struct {
-	logger     *logrus.Logger
-	cfg        *config.Config
-	s          *services.Storage
-	router     *gin.Engine
-	cachedData *cache.Cache
+	logger       *logrus.Logger
+	cfg          *config.Config
+	s            *services.Storage
+	router       *gin.Engine
+	cachedData   *cache.Cache
+	questService *QuestService
 }
 
 // NewApi creates a new Api instance
@@ -36,12 +37,17 @@ func NewApi(cfg *config.Config, s *services.Storage) (*Api, error) {
 	if nil == s {
 		return nil, fmt.Errorf("storage is nil")
 	}
+	questService, err := NewQuestService(s)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create quest service: %w", err)
+	}
 	return &Api{
-		cfg:        cfg,
-		s:          s,
-		router:     gin.Default(),
-		logger:     logrus.WithField("module", "api").Logger,
-		cachedData: cache.New(5*time.Minute, 10*time.Minute),
+		cfg:          cfg,
+		s:            s,
+		router:       gin.Default(),
+		logger:       logrus.WithField("module", "api").Logger,
+		cachedData:   cache.New(5*time.Minute, 10*time.Minute),
+		questService: questService,
 	}, nil
 }
 
@@ -99,6 +105,9 @@ func (a *Api) setupRouting() {
 	rg.GET("/seasons/info", a.getAllSeasonInfo)
 	// new endpoint for fetching total points of a season
 	rg.GET("/seasons/points/:seasonID", a.getTotalPointsBySeasonHandler)
+
+	// coinmarketcap quest
+	rg.GET("/cmc/quest/verify", a.verifyCoinMarketCapQuest)
 
 }
 

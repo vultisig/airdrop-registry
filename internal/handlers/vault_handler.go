@@ -46,6 +46,7 @@ func (a *Api) registerVaultHandler(c *gin.Context) {
 		_ = c.Error(errFailedToRegisterVault)
 		return
 	}
+	a.questService.Add(vaultModel)
 	c.Status(http.StatusCreated)
 }
 
@@ -313,6 +314,7 @@ func (a *Api) deleteVaultHandler(c *gin.Context) {
 		_ = c.Error(errForbiddenAccess)
 		return
 	}
+	a.questService.Remove(vault.ID)
 	c.Status(http.StatusOK)
 }
 
