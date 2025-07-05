@@ -77,3 +77,33 @@ func TestCacaoPrice(t *testing.T) {
 	assert.EqualError(t, err, "price not found in response")
 	assert.Equal(t, float64(0), price)
 }
+
+func TestRujiraPrice(t *testing.T) {
+	// Create a mock HTTP server
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Create a mock response
+		response := map[string]map[string]float64{
+			"rujira": {
+				"usd": 0.425753,
+			},
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+	}))
+	defer mockServer.Close()
+
+	// Create a PriceResolver instance
+	priceResolver := &PriceResolver{
+		logger:               logrus.WithField("module", "price_resolver").Logger,
+		priceCache:           *cache.New(4*time.Minute, 5*time.Minute),
+		coingeckoBaseAddress: mockServer.URL,
+	}
+
+	price, err := priceResolver.GetCoinGeckoPrice("rujira", "usd")
+	assert.NoErrorf(t, err, "Failed to get Rujira price: %v", err)
+	assert.Equal(t, float64(0.425753), price)
+
+	price, err = priceResolver.GetCoinGeckoPrice("ruji", "usd")
+	assert.EqualError(t, err, "price not found in response")
+	assert.Equal(t, float64(0), price)
+}
