@@ -790,5 +790,12 @@
     "cmc_id": 1437,
     "contract_address": "",
     "decimals": 8
+  },
+  {
+    "chain": "THORChain",
+    "cmc_id": 0,
+    "contract_address": "",
+    "decimals": 8,
+    "ticker": "ruji"
   }
 ]
