@@ -646,6 +646,14 @@ func (p *PointWorker) updateCoinPrice() error {
 			p.logger.Errorf("failed to update Rujira price: %v", err)
 		}
 	}
+	cfgiPrice, err := p.priceResolver.GetCoinGeckoPrice("cfgi", "usd")
+	if err != nil {
+		p.logger.Errorf("failed to get CFGI price: %v", err)
+	} else {
+		if err := p.storage.UpdateCoinPrice(common.THORChain, "CFGI", cfgiPrice); err != nil {
+			p.logger.Errorf("failed to update CFGI price: %v", err)
+		}
+	}
 
 	defer p.logger.Info("finish updating coin prices")
 	return nil
