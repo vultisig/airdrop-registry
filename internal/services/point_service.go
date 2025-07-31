@@ -650,7 +650,7 @@ func (p *PointWorker) updateCoinPrice() error {
 	if err != nil {
 		p.logger.Errorf("failed to get CFGI price: %v", err)
 	} else {
-		if err := p.storage.UpdateCoinPrice(common.THORChain, "CFGI", cfgiPrice); err != nil {
+		if err := p.storage.UpdateCoinPrice(common.Ethereum, "CFGI", cfgiPrice); err != nil {
 			p.logger.Errorf("failed to update CFGI price: %v", err)
 		}
 	}
