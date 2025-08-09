@@ -9,6 +9,7 @@ import (
 	"github.com/vultisig/airdrop-registry/internal/common"
 	"github.com/vultisig/airdrop-registry/internal/liquidity"
 	"github.com/vultisig/airdrop-registry/internal/models"
+	"github.com/vultisig/airdrop-registry/internal/stake"
 )
 
 func TestPointService(t *testing.T) {
@@ -18,12 +19,13 @@ func TestPointService(t *testing.T) {
 		t.FailNow()
 	}
 	pointService := PointWorker{
-		logger:          logrus.WithField("module", "point_service").Logger,
-		storage:         nil,
-		priceResolver:   priceResolver,
-		balanceResolver: nil,
-		lpResolver:      liquidity.NewLiquidtyPositionResolver(),
-		saverResolver:   liquidity.NewSaverPositionResolver(),
+		logger:              logrus.WithField("module", "point_service").Logger,
+		storage:             nil,
+		priceResolver:       priceResolver,
+		balanceResolver:     nil,
+		lpResolver:          liquidity.NewLiquidtyPositionResolver(),
+		saverResolver:       liquidity.NewSaverPositionResolver(),
+		rujiraStakeResolver: stake.NewRujiraStakeResolver(),
 	}
 
 	vaultAddress := models.NewVaultAddress(1064)
