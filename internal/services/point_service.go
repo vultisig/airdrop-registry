@@ -502,7 +502,7 @@ func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, er
 
 	rujiraPrice, err := p.priceResolver.GetCoinGeckoPrice("rujira", "usd")
 	if err != nil {
-		p.logger.Errorf("failed to get Rujira price: %v", err)
+		return 0, fmt.Errorf("failed to get Rujira price: %w", err)
 	}
 	p.rujiraStakeResolver.SetRujiPrice(rujiraPrice)
 
