@@ -504,7 +504,7 @@ func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, er
 	if err != nil {
 		return 0, fmt.Errorf("failed to get Rujira price: %w", err)
 	}
-	p.rujiraStakeResolver.SetRujiPrice(rujiraPrice)
+	p.rujiraStakeResolver.SetRujiraPrice(rujiraPrice)
 
 	tcmayalp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetLiquidityPosition, address)
 	if err != nil {
@@ -526,15 +526,15 @@ func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, er
 
 	rujiraSimpleStake, err := backoffRetry.RetryWithBackoff(p.rujiraStakeResolver.GetRujiraSimpleStake, vaultAddress.GetAddress(common.THORChain))
 	if err != nil {
-		return 0, fmt.Errorf("failed to get ruji single stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
+		return 0, fmt.Errorf("failed to get rujira single stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
-	p.logger.Infof("ruji single stake position for vault %d is %f", vaultAddress.GetVaultID(), tcyStake)
+	p.logger.Infof("rujira single stake position for vault %d is %f", vaultAddress.GetVaultID(), tcyStake)
 
 	rujiraAutoCompoundResp, err := backoffRetry.RetryWithBackoff(p.rujiraStakeResolver.GetRujiraAutoCompoundStake, vaultAddress.GetAddress(common.THORChain))
 	if err != nil {
-		return 0, fmt.Errorf("failed to get ruji single stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
+		return 0, fmt.Errorf("failed to get rujira single stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
-	p.logger.Infof("ruji single auto stake position for vault %d is %f", vaultAddress.GetVaultID(), tcyStake)
+	p.logger.Infof("rujira single auto stake position for vault %d is %f", vaultAddress.GetVaultID(), tcyStake)
 
 	rujiraStake := rujiraSimpleStake + rujiraAutoCompoundResp
 

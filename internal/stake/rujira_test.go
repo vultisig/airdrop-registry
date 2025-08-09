@@ -44,7 +44,7 @@ func TestRujiraAutoStakeBalance(t *testing.T) {
 	s := RujiraStakeResolver{
 		thornodeBaseAddress: mockServer.URL,
 		chainDecimal:        8,
-		rujiPrice:           0.862,
+		rujiraPrice:         0.862,
 	}
 	expectedResult := 225687 * math.Pow10(-s.chainDecimal) * 0.862
 	stakeBalance, err := s.GetRujiraAutoCompoundStake("thor15dmp7pnhmjslnshh6zszkq2xwmuamyetzn7mn8")
@@ -61,7 +61,7 @@ func TestRujiStakeBalance(t *testing.T) {
 	s := RujiraStakeResolver{
 		thornodeBaseAddress: mockServer.URL,
 		chainDecimal:        8,
-		rujiPrice:           0.862,
+		rujiraPrice:         0.862,
 	}
 	expectedResult := 2456321 * math.Pow10(-s.chainDecimal) * 0.862
 	stakeBalance, err := s.GetRujiraSimpleStake("thor15dmp7pnhmjslnshh6zszkq2xwmuamyetzn7mn8")

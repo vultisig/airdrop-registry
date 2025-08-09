@@ -21,7 +21,7 @@ type RujiraStakeResolver struct {
 	logger              *logrus.Logger
 	thornodeBaseAddress string
 	chainDecimal        int
-	rujiPrice           float64
+	rujiraPrice         float64
 	mu                  sync.RWMutex
 }
 
@@ -43,6 +43,7 @@ func (s *RujiraStakeResolver) GetRujiraAutoCompoundStake(address string) (float6
 	if err != nil {
 		return 0, fmt.Errorf("error making GET request: %w", err)
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusTooManyRequests {
 		time.Sleep(30 * time.Second)
 		return s.GetRujiraAutoCompoundStake(address)
@@ -51,14 +52,14 @@ func (s *RujiraStakeResolver) GetRujiraAutoCompoundStake(address string) (float6
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return 0, fmt.Errorf("error decoding response: %w", err)
 	}
-	var balance float64
+	var balance int64
 	for _, token := range result.Balances {
 		if strings.EqualFold(token.Denom, "x/staking-x/ruji") {
 			balance = token.Amount
 			break
 		}
 	}
-	return (balance * math.Pow10(-s.chainDecimal)) * s.GetRujirice(), nil
+	return (float64(balance) * math.Pow10(-s.chainDecimal)) * s.GetRujiraPrice(), nil
 }
 
 func (s *RujiraStakeResolver) GetRujiraSimpleStake(address string) (float64, error) {
@@ -73,6 +74,7 @@ func (s *RujiraStakeResolver) GetRujiraSimpleStake(address string) (float64, err
 	if err != nil {
 		return 0, fmt.Errorf("error making GET request: %w", err)
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusTooManyRequests {
 		time.Sleep(30 * time.Second)
 		return s.GetRujiraSimpleStake(address)
@@ -82,7 +84,7 @@ func (s *RujiraStakeResolver) GetRujiraSimpleStake(address string) (float64, err
 		return 0, fmt.Errorf("error decoding response: %w", err)
 	}
 	if result.Data.Addr == address {
-		return (float64(result.Data.Bonded) * math.Pow10(-s.chainDecimal)) * s.GetRujirice(), nil
+		return (float64(result.Data.Bonded) * math.Pow10(-s.chainDecimal)) * s.GetRujiraPrice(), nil
 	}
 	return 0, nil
 }
@@ -97,19 +99,19 @@ type simpleStakeResp struct {
 
 type autoCompoundStakeResp struct {
 	Balances []struct {
-		Denom  string  `json:"denom"`
-		Amount float64 `json:"amount,string"`
+		Denom  string `json:"denom"`
+		Amount int64  `json:"amount,string"`
 	} `json:"balances"`
 }
 
-func (s *RujiraStakeResolver) SetRujiPrice(price float64) {
+func (s *RujiraStakeResolver) SetRujiraPrice(price float64) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.rujiPrice = price
+	s.rujiraPrice = price
 
 }
-func (s *RujiraStakeResolver) GetRujirice() float64 {
+func (s *RujiraStakeResolver) GetRujiraPrice() float64 {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.rujiPrice
+	return s.rujiraPrice
 }
