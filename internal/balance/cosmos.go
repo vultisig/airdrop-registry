@@ -41,6 +41,22 @@ func (b *BalanceResolver) FetchThorchainBalanceOfAddress(address string) (float6
 	return runeBalance + bond/math.Pow10(8), nil
 }
 
+func (b *BalanceResolver) FetchThorchainBalanceOfAddressAndAsset(address, asset string) (float64, error) {
+	if strings.EqualFold(asset, "rujira") {
+		asset = "x/ruji"
+	}
+	b.logger.Infof("Fetching Thorchain balance for address: %s and asset: %s", address, asset)
+	if address == "" {
+		return 0, fmt.Errorf("address cannot be empty")
+	}
+	url := fmt.Sprintf("%s/cosmos/bank/v1beta1/balances/%s", b.thornodeBaseAddress, address)
+	balance, err := b.fetchSpecificCosmosBalance(url, asset, 8)
+	if err != nil {
+		return 0, fmt.Errorf("error fetching thorchain balance: %w", err)
+	}
+	return balance, nil
+}
+
 type THORNodeBondProvider struct {
 	BondAddress string `json:"bond_address"`
 	Bond        string `json:"bond"`

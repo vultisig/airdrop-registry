@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/vultisig/airdrop-registry/config"
 	"github.com/vultisig/airdrop-registry/internal/handlers"
@@ -9,6 +11,10 @@ import (
 )
 
 func main() {
+	now := time.Now()
+	fmt.Println(now)
+	fmt.Println(now.Add(time.Duration(10) * time.Second))
+	return
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		panic(err)

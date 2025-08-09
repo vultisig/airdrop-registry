@@ -138,6 +138,7 @@ func (c *CMCService) GetCMCIDByContract(chainName, contract string) (int, error)
 		}
 		contract = contractEIP55
 	}
+	time.Sleep(5 * time.Second) // to avoid hitting the API rate limit
 
 	url := fmt.Sprintf("%s/info?address=%s&skip_invalid=true&aux=status", c.baseURL, contract)
 	resp, err := http.Get(url)

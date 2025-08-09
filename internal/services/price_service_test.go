@@ -103,7 +103,7 @@ func TestRujiraPrice(t *testing.T) {
 	assert.NoErrorf(t, err, "Failed to get Rujira price: %v", err)
 	assert.Equal(t, float64(0.425753), price)
 
-	price, err = priceResolver.GetCoinGeckoPrice("ruji", "usd")
+	price, err = priceResolver.GetCoinGeckoPrice("rujira", "usd")
 	assert.EqualError(t, err, "price not found in response")
 	assert.Equal(t, float64(0), price)
 }

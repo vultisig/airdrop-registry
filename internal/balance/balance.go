@@ -105,7 +105,11 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 			return b.FetchEvmBalanceOfAddress(coin.Chain, coin.Address)
 		}
 	case common.THORChain:
-		return b.FetchThorchainBalanceOfAddress(coin.Address)
+		if strings.EqualFold(coin.Ticker, "rune") {
+			return b.FetchThorchainBalanceOfAddress(coin.Address)
+		} else {
+			return b.FetchThorchainBalanceOfAddressAndAsset(coin.Address, coin.Ticker)
+		}
 	case common.MayaChain:
 		if strings.EqualFold(coin.Ticker, "maya") {
 			return b.FetchMayachainMayaBalanceOfAddress(coin.Address)

@@ -195,8 +195,12 @@ func (s *Storage) GetLeaderVaultTotalPointsBySeason(seasonId uint) (float64, err
 // TODO: rename the function to GetRankLeaderVaults
 func (s *Storage) GetSwapLeaderVaults(fromRank int64, limit int) ([]models.Vault, error) {
 	var vaults []models.Vault
-	// where rank is not null and rank > fromRank
-	if err := s.db.Where("`rank` is not null and `rank` > ?  and join_airdrop = 1", fromRank).Order("`swap_volume` desc").Limit(limit).Find(&vaults).Error; err != nil {
+	if err := s.db.
+		Where("join_airdrop = ?", true).
+		Order("swap_volume DESC").
+		Offset(int(fromRank)).
+		Limit(limit).
+		Find(&vaults).Error; err != nil {
 		return nil, fmt.Errorf("failed to get leader vaults: %w", err)
 	}
 	return vaults, nil

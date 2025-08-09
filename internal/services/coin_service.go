@@ -70,6 +70,16 @@ func (s *Storage) UpdateCoinPriceByCMCID(cmcID int, priceUSD float64) error {
 	return nil
 }
 
+func (s *Storage) UpdateCoinCMCIDByID(cmcID int, coinID uint64) error {
+	qry := `UPDATE coins SET cmc_id = ? WHERE id = ? `
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	if err := s.db.WithContext(ctx).Exec(qry, cmcID, coinID).Error; err != nil {
+		return fmt.Errorf("failed to update coin cmc_id: %w", err)
+	}
+	return nil
+}
+
 func (s *Storage) GetUniqueCoins() ([]models.CoinIdentity, error) {
 	var coinIdentities []models.CoinIdentity
 	// if the query takes more than 2 minutes, it will be cancelled
