@@ -41,13 +41,13 @@ func TestRujiAutoStakeBalance(t *testing.T) {
 
 	}))
 
-	s := StakeBalanceResolver{
+	s := RujiraStakeResolver{
 		thornodeBaseAddress: mockServer.URL,
 		chainDecimal:        8,
 		rujiPrice:           0.862,
 	}
 	expectedResult := 225687 * math.Pow10(-s.chainDecimal) * 0.862
-	stakeBalance, err := s.GetRujiSingleAutoStakeBalance("thor15dmp7pnhmjslnshh6zszkq2xwmuamyetzn7mn8")
+	stakeBalance, err := s.GetRujiraAutoCompoundStake("thor15dmp7pnhmjslnshh6zszkq2xwmuamyetzn7mn8")
 	assert.NoErrorf(t, err, "Failed to get: %v", err)
 	assert.Equal(t, expectedResult, stakeBalance)
 }
@@ -58,13 +58,13 @@ func TestRujiStakeBalance(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response)
 	}))
-	s := StakeBalanceResolver{
+	s := RujiraStakeResolver{
 		thornodeBaseAddress: mockServer.URL,
 		chainDecimal:        8,
 		rujiPrice:           0.862,
 	}
 	expectedResult := 2456321 * math.Pow10(-s.chainDecimal) * 0.862
-	stakeBalance, err := s.GethRujiSingleStakeBalance("thor15dmp7pnhmjslnshh6zszkq2xwmuamyetzn7mn8")
+	stakeBalance, err := s.GetRujiraSimpleStake("thor15dmp7pnhmjslnshh6zszkq2xwmuamyetzn7mn8")
 	assert.NoErrorf(t, err, "Failed to get: %v", err)
 	assert.Equal(t, float64(expectedResult), stakeBalance)
 }

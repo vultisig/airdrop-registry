@@ -17,7 +17,7 @@ const (
 	RujiraContractAddr = "thor13g83nn5ef4qzqeafp0508dnvkvm0zqr3sj7eefcn5umu65gqluusrml5cr"
 )
 
-type StakeBalanceResolver struct {
+type RujiraStakeResolver struct {
 	logger              *logrus.Logger
 	thornodeBaseAddress string
 	chainDecimal        int
@@ -25,15 +25,15 @@ type StakeBalanceResolver struct {
 	mu                  sync.RWMutex
 }
 
-func NewStakeBalanceResolver() *StakeBalanceResolver {
-	return &StakeBalanceResolver{
+func NewRujiraStakeResolver() *RujiraStakeResolver {
+	return &RujiraStakeResolver{
 		thornodeBaseAddress: "https://thornode.ninerealms.com",
 		chainDecimal:        8,
 		logger:              logrus.WithField("module", "stake_resolver").Logger,
 	}
 }
 
-func (s *StakeBalanceResolver) GetRujiSingleAutoStakeBalance(address string) (float64, error) {
+func (s *RujiraStakeResolver) GetRujiraAutoCompoundStake(address string) (float64, error) {
 	url := fmt.Sprintf("%s/cosmos/bank/v1beta1/balances/%s", s.thornodeBaseAddress, address)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -45,7 +45,7 @@ func (s *StakeBalanceResolver) GetRujiSingleAutoStakeBalance(address string) (fl
 	}
 	if resp.StatusCode == http.StatusTooManyRequests {
 		time.Sleep(30 * time.Second)
-		return s.GetRujiSingleAutoStakeBalance(address)
+		return s.GetRujiraAutoCompoundStake(address)
 	}
 	var result singleAutoStake
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -61,7 +61,7 @@ func (s *StakeBalanceResolver) GetRujiSingleAutoStakeBalance(address string) (fl
 	return (balance * math.Pow10(-s.chainDecimal)) * s.GetRujirice(), nil
 }
 
-func (s *StakeBalanceResolver) GethRujiSingleStakeBalance(address string) (float64, error) {
+func (s *RujiraStakeResolver) GetRujiraSimpleStake(address string) (float64, error) {
 	param := `{ "account": { "addr": "` + address + `" } }`
 	encodedParam := base64.StdEncoding.EncodeToString([]byte(param))
 	url := fmt.Sprintf("%s/cosmwasm/wasm/v1/contract/%s/smart/%s", s.thornodeBaseAddress, RujiraContractAddr, encodedParam)
@@ -75,7 +75,7 @@ func (s *StakeBalanceResolver) GethRujiSingleStakeBalance(address string) (float
 	}
 	if resp.StatusCode == http.StatusTooManyRequests {
 		time.Sleep(30 * time.Second)
-		return s.GethRujiSingleStakeBalance(address)
+		return s.GetRujiraSimpleStake(address)
 	}
 	var result singleStake
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -106,13 +106,13 @@ type BalanceModel struct {
 	Amount float64 `json:"amount,string"`
 }
 
-func (s *StakeBalanceResolver) SetRujiPrice(price float64) {
+func (s *RujiraStakeResolver) SetRujiPrice(price float64) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.rujiPrice = price
 
 }
-func (s *StakeBalanceResolver) GetRujirice() float64 {
+func (s *RujiraStakeResolver) GetRujirice() float64 {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.rujiPrice
