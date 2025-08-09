@@ -524,21 +524,21 @@ func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, er
 	}
 	p.logger.Infof("tcy stake position for vault %d is %f", vaultAddress.GetVaultID(), tcyStake)
 
-	rujiSingleStake, err := backoffRetry.RetryWithBackoff(p.rujiraStakeResolver.GetRujiraSimpleStake, vaultAddress.GetAddress(common.THORChain))
+	rujiraSimpleStake, err := backoffRetry.RetryWithBackoff(p.rujiraStakeResolver.GetRujiraSimpleStake, vaultAddress.GetAddress(common.THORChain))
 	if err != nil {
 		return 0, fmt.Errorf("failed to get ruji single stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
 	p.logger.Infof("ruji single stake position for vault %d is %f", vaultAddress.GetVaultID(), tcyStake)
 
-	rujiSingleAutoStake, err := backoffRetry.RetryWithBackoff(p.rujiraStakeResolver.GetRujiraAutoCompoundStake, vaultAddress.GetAddress(common.THORChain))
+	rujiraAutoCompoundResp, err := backoffRetry.RetryWithBackoff(p.rujiraStakeResolver.GetRujiraAutoCompoundStake, vaultAddress.GetAddress(common.THORChain))
 	if err != nil {
 		return 0, fmt.Errorf("failed to get ruji single stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
 	}
 	p.logger.Infof("ruji single auto stake position for vault %d is %f", vaultAddress.GetVaultID(), tcyStake)
 
-	rujiStake := rujiSingleStake + rujiSingleAutoStake
+	rujiraStake := rujiraSimpleStake + rujiraAutoCompoundResp
 
-	newLP := tcmayalp + saver + tcyStake + rujiStake
+	newLP := tcmayalp + saver + tcyStake + rujiraStake
 	return int64(newLP), nil
 }
 func (p *PointWorker) fetchNFTValue(vault models.VaultAddress) (int64, error) {
