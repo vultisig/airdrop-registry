@@ -77,7 +77,7 @@ func (s *RujiraStakeResolver) GetRujiraSimpleStake(address string) (float64, err
 		time.Sleep(30 * time.Second)
 		return s.GetRujiraSimpleStake(address)
 	}
-	var result singleStake
+	var result simpleStakeResp
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return 0, fmt.Errorf("error decoding response: %w", err)
 	}
@@ -87,23 +87,19 @@ func (s *RujiraStakeResolver) GetRujiraSimpleStake(address string) (float64, err
 	return 0, nil
 }
 
-type singleStake struct {
-	Data singleData `json:"data"`
+type simpleStakeResp struct {
+	Data struct {
+		Addr           string `json:"addr"`
+		Bonded         int64  `json:"bonded,string"`
+		PendingRevenue int64  `json:"pending_revenue,string"`
+	} `json:"data"`
 }
 
-type singleData struct {
-	Addr           string `json:"addr"`
-	Bonded         int64  `json:"bonded,string"`
-	PendingRevenue int64  `json:"pending_revenue,string"`
-}
-
-type singleAutoStake struct {
-	Balances []BalanceModel `json:"balances"`
-}
-
-type BalanceModel struct {
-	Denom  string  `json:"denom"`
-	Amount float64 `json:"amount,string"`
+type autoCompoundStakeResp struct {
+	Balances []struct {
+		Denom  string  `json:"denom"`
+		Amount float64 `json:"amount,string"`
+	} `json:"balances"`
 }
 
 func (s *RujiraStakeResolver) SetRujiPrice(price float64) {
