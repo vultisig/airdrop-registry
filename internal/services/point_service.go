@@ -16,6 +16,7 @@ import (
 	"github.com/vultisig/airdrop-registry/internal/common"
 	"github.com/vultisig/airdrop-registry/internal/liquidity"
 	"github.com/vultisig/airdrop-registry/internal/models"
+	"github.com/vultisig/airdrop-registry/internal/stake"
 	"github.com/vultisig/airdrop-registry/internal/utils"
 	"github.com/vultisig/airdrop-registry/internal/volume"
 )
@@ -38,6 +39,7 @@ type PointWorker struct {
 	isJobInProgress        bool
 	isVolumeFetched        bool // flag to indicate if volume fetched successfully
 	whitelistNFTCollection []models.NFTCollection
+	stakeResolver          *stake.StakeBalanceResolver
 }
 
 func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceResolver, balanceResolver *balance.BalanceResolver, volumeResolver *volume.VolumeResolver, referralResolver *ReferralResolverService) (*PointWorker, error) {
@@ -69,6 +71,7 @@ func NewPointWorker(cfg *config.Config, storage *Storage, priceResolver *PriceRe
 				CollectionSlug:    "thorguards",
 			},
 		},
+		stakeResolver: stake.NewStakeBalanceResolver(),
 	}, nil
 }
 
@@ -497,6 +500,12 @@ func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, er
 	}
 	p.lpResolver.SetTCYPrice(tcyPrice)
 
+	rujiPrice, err := p.priceResolver.GetCoinGeckoPrice("rujira", "usd")
+	if err != nil {
+		p.logger.Errorf("failed to get Rujira price: %v", err)
+	}
+	p.stakeResolver.SetRujiPrice(rujiPrice)
+
 	tcmayalp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetLiquidityPosition, address)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get tc/maya liquidity position for vault:%d : %w", vaultAddress.GetVaultID(), err)
@@ -515,7 +524,21 @@ func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, er
 	}
 	p.logger.Infof("tcy stake position for vault %d is %f", vaultAddress.GetVaultID(), tcyStake)
 
-	newLP := tcmayalp + saver + tcyStake
+	rujiSingleStake, err := backoffRetry.RetryWithBackoff(p.stakeResolver.GethRujiSingleStakeBalance, vaultAddress.GetAddress(common.THORChain))
+	if err != nil {
+		return 0, fmt.Errorf("failed to get ruji single stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
+	}
+	p.logger.Infof("ruji single stake position for vault %d is %f", vaultAddress.GetVaultID(), tcyStake)
+
+	rujiSingleAutoStake, err := backoffRetry.RetryWithBackoff(p.stakeResolver.GetRujiSingleAutoStakeBalance, vaultAddress.GetAddress(common.THORChain))
+	if err != nil {
+		return 0, fmt.Errorf("failed to get ruji single stake position for vault:%d : %w", vaultAddress.GetVaultID(), err)
+	}
+	p.logger.Infof("ruji single auto stake position for vault %d is %f", vaultAddress.GetVaultID(), tcyStake)
+
+	rujiStake := rujiSingleStake + rujiSingleAutoStake
+
+	newLP := tcmayalp + saver + tcyStake + rujiStake
 	return int64(newLP), nil
 }
 func (p *PointWorker) fetchNFTValue(vault models.VaultAddress) (int64, error) {
