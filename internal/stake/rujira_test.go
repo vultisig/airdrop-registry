@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRujiAutoStakeBalance(t *testing.T) {
+func TestRujiraAutoStakeBalance(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := map[string]any{
 			"balances": []map[string]any{

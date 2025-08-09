@@ -500,11 +500,11 @@ func (p *PointWorker) fetchPosition(vaultAddress models.VaultAddress) (int64, er
 	}
 	p.lpResolver.SetTCYPrice(tcyPrice)
 
-	rujiPrice, err := p.priceResolver.GetCoinGeckoPrice("rujira", "usd")
+	rujiraPrice, err := p.priceResolver.GetCoinGeckoPrice("rujira", "usd")
 	if err != nil {
 		p.logger.Errorf("failed to get Rujira price: %v", err)
 	}
-	p.rujiraStakeResolver.SetRujiPrice(rujiPrice)
+	p.rujiraStakeResolver.SetRujiPrice(rujiraPrice)
 
 	tcmayalp, err := backoffRetry.RetryWithBackoff(p.lpResolver.GetLiquidityPosition, address)
 	if err != nil {
