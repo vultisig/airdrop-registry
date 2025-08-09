@@ -47,7 +47,7 @@ func (s *RujiraStakeResolver) GetRujiraAutoCompoundStake(address string) (float6
 		time.Sleep(30 * time.Second)
 		return s.GetRujiraAutoCompoundStake(address)
 	}
-	var result singleAutoStake
+	var result autoCompoundStakeResp
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return 0, fmt.Errorf("error decoding response: %w", err)
 	}
