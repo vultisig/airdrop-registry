@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -45,8 +44,7 @@ func (s *RujiraStakeResolver) GetRujiraAutoCompoundStake(address string) (float6
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusTooManyRequests {
-		time.Sleep(30 * time.Second)
-		return s.GetRujiraAutoCompoundStake(address)
+		return 0, fmt.Errorf("rate limited while fetching Rujira compound stake")
 	}
 	var result autoCompoundStakeResp
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -76,8 +74,7 @@ func (s *RujiraStakeResolver) GetRujiraSimpleStake(address string) (float64, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusTooManyRequests {
-		time.Sleep(30 * time.Second)
-		return s.GetRujiraSimpleStake(address)
+		return 0, fmt.Errorf("rate limited while fetching Rujira simple stake")
 	}
 	var result simpleStakeResp
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
