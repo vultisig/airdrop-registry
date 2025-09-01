@@ -68,3 +68,41 @@ func TestRujiStakeBalance(t *testing.T) {
 	assert.NoErrorf(t, err, "Failed to get: %v", err)
 	assert.Equal(t, float64(expectedResult), stakeBalance)
 }
+
+func TestGetYRunePrice(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := map[string]any{"data": map[string]any{"nav_per_share": "1.193017544906403113"}}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+	}))
+	s := RujiraStakeResolver{
+		thornodeWasmAddress: mockServer.URL,
+	}
+	expected := float64(1.193017544906403113)
+	res, err := s.GetYRunePrice()
+	assert.NoErrorf(t, err, "Failed to get: %v", err)
+	assert.Equal(t, expected, res)
+}
+
+func TestGetYTCYPrice(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := map[string]any{"data": map[string]any{"nav_per_share": "0.174469684415734896"}}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+	}))
+	s := RujiraStakeResolver{
+		thornodeWasmAddress: mockServer.URL,
+	}
+	expected := float64(0.174469684415734896)
+	res, err := s.GetYTCYPrice()
+	assert.NoErrorf(t, err, "Failed to get: %v", err)
+	assert.Equal(t, expected, res)
+}
+
+func TestGetSTCYPrice(t *testing.T) {
+	s := RujiraStakeResolver{}
+	tcyPrice := float64(1)
+	sTCYPriceExpected := tcyPrice
+	res := s.GetSTCYPrice(tcyPrice)
+	assert.Equal(t, sTCYPriceExpected, res)
+}

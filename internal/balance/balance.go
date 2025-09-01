@@ -32,6 +32,7 @@ type BalanceResolver struct {
 	whitelistNFTCollection   []models.NFTCollection
 	whiteListSPLToken        map[string]string
 	whiteListTRC20Token      map[string]int
+	assetMapping             map[string]string
 }
 
 func NewBalanceResolver() (*BalanceResolver, error) {
@@ -62,6 +63,11 @@ func NewBalanceResolver() (*BalanceResolver, error) {
 		},
 		whiteListTRC20Token: map[string]int{
 			"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t": 6, // USDT
+		},
+		assetMapping: map[string]string{
+			"YRUNE": "X/NAMI-INDEX-NAV-THOR1MLPHKRYW5G54YFKRP6XPQZLPV4F8WH6HYW27YYG4Z2ELS8A9GXPQHFHEKT-RCPT",
+			"YTCY":  "X/NAMI-INDEX-NAV-THOR1H0HR0RM3DAWKEDH44HLRMGVYA6PLSRYEHCR46YDA2VJ0WFWGQ5XQRS86PX-RCPT",
+			"STCY":  "X/STAKING-TCY",
 		},
 	}, nil
 }
@@ -105,7 +111,11 @@ func (b *BalanceResolver) GetBalance(coin models.CoinDBModel) (float64, error) {
 			return b.FetchEvmBalanceOfAddress(coin.Chain, coin.Address)
 		}
 	case common.THORChain:
-		return b.FetchThorchainBalanceOfAddress(coin.Address)
+		if coin.Ticker == "rune" {
+			return b.FetchThorchainBalanceOfAddress(coin.Address)
+		} else {
+			return b.FetchThorchainBalanceOfAddressAndAsset(coin.Address, coin.Ticker)
+		}
 	case common.MayaChain:
 		if strings.EqualFold(coin.Ticker, "maya") {
 			return b.FetchMayachainMayaBalanceOfAddress(coin.Address)

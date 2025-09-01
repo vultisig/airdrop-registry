@@ -209,3 +209,57 @@ func TestFetchAkashBalanceOfAddress(t *testing.T) {
 	assert.NoErrorf(t, err, "Failed to get akash address balance: %v", err)
 	assert.Equal(t, float64(540733), balance)
 }
+
+func TestFetchThorchainBalanceOfAddressAndAsset(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := map[string]interface{}{
+			"balances": []map[string]interface{}{
+				{
+					"denom":  "gaia-atom",
+					"amount": "300000000",
+				},
+				{
+					"denom":  "rune",
+					"amount": "10363705053",
+				},
+				{
+					"denom":  "thor.kuji",
+					"amount": "38800000000",
+				},
+				{
+					"denom":  "x/ruji",
+					"amount": "123103419287",
+				},
+				{
+					"denom":  "x/nami-index-nav-thor1mlphkryw5g54yfkrp6xpqzlpv4f8wh6hyw27yyg4z2els8a9gxpqhfhekt-rcpt",
+					"amount": "20000000000",
+				},
+			},
+		}
+		w.WriteHeader(http.StatusOK)
+		jsonBytes, err := json.Marshal(response)
+		if err != nil {
+			return
+		}
+		w.Write(jsonBytes)
+	}))
+	defer mockServer.Close()
+	// Create a LiquidityPositionResolver instance
+	balanceResolver := &BalanceResolver{
+		logger:              logrus.WithField("module", "balance_resolver_test").Logger,
+		thornodeBaseAddress: mockServer.URL,
+		assetMapping: map[string]string{
+			"YRUNE": "X/NAMI-INDEX-NAV-THOR1MLPHKRYW5G54YFKRP6XPQZLPV4F8WH6HYW27YYG4Z2ELS8A9GXPQHFHEKT-RCPT",
+			"YTCY":  "X/NAMI-INDEX-NAV-THOR1H0HR0RM3DAWKEDH44HLRMGVYA6PLSRYEHCR46YDA2VJ0WFWGQ5XQRS86PX-RCPT",
+		},
+	}
+	balance, err := balanceResolver.FetchThorchainBalanceOfAddressAndAsset("thor1v7xyjj2we4udmyyy68hhlv5gtamcut7cq5h7fk", "x/ruji")
+	assert.NoErrorf(t, err, "Failed to get x/ruji address balance: %v", err)
+	assert.Equal(t, float64(1231.03419287), balance)
+	balance, err = balanceResolver.FetchThorchainBalanceOfAddressAndAsset("thor1v7xyjj2we4udmyyy68hhlv5gtamcut7cq5h7fk", "thor.kuji")
+	assert.NoErrorf(t, err, "Failed to get x/ruji address balance: %v", err)
+	assert.Equal(t, float64(388), balance)
+	balance, err = balanceResolver.FetchThorchainBalanceOfAddressAndAsset("thor1v7xyjj2we4udmyyy68hhlv5gtamcut7cq5h7fk", "YRUNE")
+	assert.NoErrorf(t, err, "Failed to get YRUNE address balance: %v", err)
+	assert.Equal(t, float64(200), balance)
+}

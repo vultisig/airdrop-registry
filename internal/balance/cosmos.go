@@ -9,6 +9,21 @@ import (
 	"strings"
 )
 
+func (b *BalanceResolver) FetchThorchainBalanceOfAddressAndAsset(address, asset string) (float64, error) {
+	if address == "" {
+		return 0, fmt.Errorf("address cannot be empty")
+	}
+	if mapAsset, ok := b.assetMapping[asset]; ok {
+		asset = mapAsset
+	}
+	url := fmt.Sprintf("%s/cosmos/bank/v1beta1/balances/%s", b.thornodeBaseAddress, address)
+	balance, err := b.fetchSpecificCosmosBalance(url, asset, 8)
+	if err != nil {
+		return 0, fmt.Errorf("error fetching thorchain balance: %w", err)
+	}
+	return balance, nil
+}
+
 func (b *BalanceResolver) FetchThorchainBalanceOfAddress(address string) (float64, error) {
 	if address == "" {
 		return 0, fmt.Errorf("address cannot be empty")

@@ -669,6 +669,28 @@ func (p *PointWorker) updateCoinPrice() error {
 			p.logger.Errorf("failed to update Rujira price: %v", err)
 		}
 	}
+	yRunePrice, err := p.rujiraStakeResolver.GetYRunePrice()
+	if err != nil {
+		p.logger.Errorf("failed to get yRune price: %v", err)
+	} else {
+		if err := p.storage.UpdateCoinPrice(common.THORChain, "YRUNE", yRunePrice); err != nil {
+			p.logger.Errorf("failed to update yRune price: %v", err)
+		}
+	}
+	yTCYPrice, err := p.rujiraStakeResolver.GetYTCYPrice()
+	if err != nil {
+		p.logger.Errorf("failed to get yTCY price: %v", err)
+	} else {
+		if err := p.storage.UpdateCoinPrice(common.THORChain, "YTCY", yTCYPrice); err != nil {
+			p.logger.Errorf("failed to update yTCY price: %v", err)
+		}
+	}
+	if tcyPrice > 0 {
+		stcyPrice := p.rujiraStakeResolver.GetSTCYPrice(tcyPrice)
+		if err := p.storage.UpdateCoinPrice(common.THORChain, "STCY", stcyPrice); err != nil {
+			p.logger.Errorf("failed to update sTCY price: %v", err)
+		}
+	}
 
 	defer p.logger.Info("finish updating coin prices")
 	return nil

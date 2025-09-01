@@ -14,6 +14,8 @@ import (
 
 const (
 	RujiraContractAddr = "thor13g83nn5ef4qzqeafp0508dnvkvm0zqr3sj7eefcn5umu65gqluusrml5cr"
+	yRuneContractAddr  = "thor1mlphkryw5g54yfkrp6xpqzlpv4f8wh6hyw27yyg4z2els8a9gxpqhfhekt"
+	yTCYContractAddr   = "thor1h0hr0rm3dawkedh44hlrmgvya6plsryehcr46yda2vj0wfwgq5xqrs86px"
 )
 
 type RujiraStakeResolver struct {
@@ -22,6 +24,7 @@ type RujiraStakeResolver struct {
 	chainDecimal        int
 	rujiraPrice         float64
 	mu                  sync.RWMutex
+	thornodeWasmAddress string
 }
 
 func NewRujiraStakeResolver() *RujiraStakeResolver {
@@ -29,6 +32,7 @@ func NewRujiraStakeResolver() *RujiraStakeResolver {
 		thornodeBaseAddress: "https://thornode.ninerealms.com",
 		chainDecimal:        8,
 		logger:              logrus.WithField("module", "stake_resolver").Logger,
+		thornodeWasmAddress: "https://thornode-mainnet-api.bryanlabs.net",
 	}
 }
 
@@ -111,4 +115,57 @@ func (s *RujiraStakeResolver) GetRujiraPrice() float64 {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.rujiraPrice
+}
+func (s *RujiraStakeResolver) GetYTCYPrice() (float64, error) {
+	url := fmt.Sprintf("%s/cosmwasm/wasm/v1/contract/%s/smart/eyJzdGF0dXMiOiB7fX0=", s.thornodeWasmAddress, yTCYContractAddr)
+	var yTCYResp yRuneYTCYModel
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return 0, fmt.Errorf("error making GET request: %w", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, fmt.Errorf("error making GET request: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return 0, fmt.Errorf("rate limited while fetching yTCY price")
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&yTCYResp); err != nil {
+		return 0, fmt.Errorf("error decoding response: %w", err)
+	}
+	return yTCYResp.Data.NavPerShare, nil
+}
+
+func (s *RujiraStakeResolver) GetYRunePrice() (float64, error) {
+	url := fmt.Sprintf("%s/cosmwasm/wasm/v1/contract/%s/smart/eyJzdGF0dXMiOiB7fX0=", s.thornodeWasmAddress, yRuneContractAddr)
+	var yRuneResp yRuneYTCYModel
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return 0, fmt.Errorf("error making GET request: %w", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, fmt.Errorf("error making GET request: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return 0, fmt.Errorf("rate limited while fetching yRune price")
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&yRuneResp); err != nil {
+		return 0, fmt.Errorf("error decoding response: %w", err)
+	}
+	return yRuneResp.Data.NavPerShare, nil
+}
+
+func (s *RujiraStakeResolver) GetSTCYPrice(tcyPrice float64) float64 {
+	return tcyPrice
+}
+
+type Data struct {
+	NavPerShare float64 `json:"nav_per_share,string"`
+}
+
+type yRuneYTCYModel struct {
+	Data Data `json:"data"`
 }
